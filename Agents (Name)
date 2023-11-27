@@ -1,0 +1,86 @@
+import wixWindow from 'wix-window';
+import wixData from 'wix-data';
+import {session} from 'wix-storage';
+
+$w.onReady(function () {
+
+    // Get the user's selected template from the dataset
+    $w('#agentsDataset').onReady(() => {
+        const userTemplate = $w('#agentsDataset').getCurrentItem().template;
+        var itemData = $w('#agentsDataset').getCurrentItem()
+
+        // Set the state of the multistate box based on the user's template
+        let stateName;
+        switch (userTemplate) {
+        case 'Template1':
+            stateName = 'Template1';
+            break;
+        case 'Template2':
+            stateName = 'Template2';
+            break;
+        case 'Template3':
+            stateName = 'Template3';
+            break;
+        default:
+            stateName = 'Template1'; // default state
+        }
+        $w('#templateMultistateBox').changeState(stateName); // Change the state name as needed
+
+        if (itemData.achievements === undefined || itemData.achievements === "") {
+            $w('#t3achievements').hide()
+            $w('#t2achievements').hide()
+            $w('#t1achievements').hide()
+        }
+        if (itemData.facebookUrl === undefined || itemData.facebookUrl === "") {
+            $w('#t1facebook').collapse()
+            $w('#t2facebook').collapse()
+            $w('#t3facebook').collapse()
+        }
+        if (itemData.linkedinUrl === undefined || itemData.linkedinUrl === "") {
+            $w('#t1linkedin').collapse()
+            $w('#t2linkedin').collapse()
+            $w('#t3linkedin').collapse()
+        }
+        if (itemData.instagramUrl === undefined || itemData.instagramUrl === "") {
+            $w('#t1instagram').collapse()
+            $w('#t2instagram').collapse()
+            $w('#t3instagram').collapse()
+        }
+        if (itemData.xurl === undefined || itemData.xurl === "") {
+            $w('#t1x').collapse()
+            $w('#t2x').collapse()
+            $w('#t3x').collapse()
+        }
+    });
+});
+
+$w.onReady(function () {
+
+    /*
+    $w("#leaveReview1").onClick(async (event) => {
+        const user = await $w("#agentsDataset").getCurrentItem();
+        const dataForLightbox = {
+            userId: user._id
+        };
+        let result = await wixWindow.openLightbox('Write A Review', dataForLightbox);
+    });
+    */
+
+});
+
+export function leaveReview3_click(event) {
+
+	let userData = $w("#agentsDataset").getCurrentItem();
+
+    wixWindow.openLightbox('Write A Review', userData)
+		.then( (data) => {
+
+			let receivedData = data;
+
+			if (receivedData === "Reviewed"){
+
+            $w("#leaveReview3").label = "Review Received"
+
+			}
+		} );
+}

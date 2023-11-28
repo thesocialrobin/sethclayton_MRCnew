@@ -21,6 +21,24 @@ $w.onReady(function () {
     $w('#agentsDataset').onReady(() => {
         const userTemplate = $w('#agentsDataset').getCurrentItem().template;
         var itemData = $w('#agentsDataset').getCurrentItem()
+         let userRatings = itemData.ratings;
+
+         if (userRatings !== undefined) {
+
+            getAgentRatingsAverage(itemData._id);
+
+        } else if (userRatings == undefined) {
+
+            console.log("No Ratings Found On Load")
+
+            $w("#quantity").text = "No reviews"
+            $w("#s1").hide();
+            $w("#s2").hide();
+            $w("#s3").hide();
+            $w("#s4").hide();
+            $w("#s5").hide();
+
+        }
 
         let status = "Approved";
         let agentEmail = itemData.email
@@ -149,6 +167,15 @@ let countedTotal = 0
 
                                     ratingsApproved.push(rating); //Remove for final push
                                     console.log("Approved", ratingsApproved) //Remove for final push
+
+                                    
+                                    
+                                console.log("Current Ratings: ", ratings)
+
+                                allRatings.push(rating) //All User Ratings
+
+
+                                    //**Written Reviews Widget**//
 
 
                                         let allApprovedRatings = ratingsApproved.length;
@@ -877,5 +904,190 @@ export function loadMoreFunction(){
 								
 
 							
+
+}
+
+
+export function getAgentRatingsAverage(id) {
+
+
+    wixData.query("Team")
+        .eq("_id", id)
+        .find()
+        .then((results) => {
+            console.log("Found user", results)
+
+            let userRatings = results.items[0].ratings;
+            console.log("Ratings:", userRatings)
+            let sidebarcount = 0
+            let gradeTotal = 0
+            let approvedTotal = 0
+            if (userRatings !== undefined) {
+               
+                let totalCount = userRatings.length;
+
+                userRatings.forEach(function (rating) {
+                    sidebarcount++
+
+                    if (rating.status == "Approved") {
+                        approvedTotal++
+                        ratings.push(rating);
+                        console.log("Pushed")
+                        let ratingNumber = Number(rating.rating);
+                        gradeTotal += ratingNumber;
+                        average.push(ratingNumber);
+                        console.log("Rating: ", rating)
+
+                    }
+                    console.log("Current Ratings: ", ratings)
+
+                    allRatings.push(rating) //All User Ratings
+
+
+                    if (sidebarcount == totalCount && ratings.length > 0) {
+                        let totalPushed = ratings.length;
+                        console.log("Total Pushed Ratings: ", totalPushed)
+                        $w("#quantity").text = "Based on " + (ratings.length).toString() + " Reviews";
+
+                        agentAverage = gradeTotal / Number(totalPushed); //Does not count hidden reviews
+                        console.log("Totals", ratings.length, totalCount, agentAverage)
+
+                        //agentAverage = gradeTotal / totalCount;
+                        let roundedAverage = (Math.round(agentAverage * 2) / 2).toFixed(1)
+                        $w("#agentAverage").text = roundedAverage.toString();
+
+
+                        if (Number(roundedAverage) == 1) {
+                            $w("#s1").show();
+                            $w("#s2").hide();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                        }
+
+                        if (Number(roundedAverage) == 1.5) {
+                            $w("#s1").show();
+                            $w("#h2").show();
+                            $w("#s2").show();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                        }
+
+                        if (Number(roundedAverage) == 2) {
+                            $w("#s1").show();
+                            $w("#s2").show();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                        }
+
+                        if (Number(roundedAverage) == 2.5) {
+                            $w("#s1").show();
+                            $w("#h3").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+
+                        }
+
+                        if (Number(roundedAverage) == 3) {
+                            $w("#s1").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+
+                        }
+
+                        if (Number(roundedAverage) == 3.5) {
+                            $w("#s1").show();
+                            $w("#h4").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").show();
+                            $w("#s5").hide();
+
+
+                        }
+
+                        if (Number(roundedAverage) == 4) {
+                            $w("#s1").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").show();
+                            $w("#s5").hide();
+
+                        }
+
+                        if (Number(roundedAverage) == 4.5) {
+                            $w("#s1").show();
+                            $w("#h5").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").show();
+                            $w("#s5").show();
+
+                        }
+
+                        if (Number(roundedAverage) == 5) {
+                            $w("#s1").show();
+                            $w("#s2").show();
+                            $w("#s3").show();
+                            $w("#s4").show();
+                            $w("#s5").show();
+
+                        }
+                        $w("#quantity").expand();
+
+                        console.log("Agent Average", agentAverage, roundedAverage, totalCount, average)
+
+                        if (sidebarcount == totalCount && ratings.length < 1) {
+                            console.log("No Ratings Approved: ", totalPushed.length, userRatings);
+
+                            $w("#quantity").text = "No reviews"
+                            $w("#s1").hide();
+                            $w("#s2").hide();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                        }
+
+                    } else if (sidebarcount == totalCount && ratings.length < 1) {
+
+                        console.log("No Ratings Approved: ", ratings.length, userRatings);
+
+                        $w("#quantity").text = "No reviews"
+                        $w("#s1").hide();
+                        $w("#s2").hide();
+                        $w("#s3").hide();
+                        $w("#s4").hide();
+                        $w("#s5").hide();
+
+                    }
+
+                })
+
+            } else if (userRatings == undefined) {
+
+                console.log("No Ratings Found for User")
+
+                $w("#quantity").text = "No reviews"
+                $w("#s1").hide();
+                $w("#s2").hide();
+                $w("#s3").hide();
+                $w("#s4").hide();
+                $w("#s5").hide();
+
+            }
+
+        })
 
 }

@@ -416,8 +416,7 @@ export function loadRepeaterData(repeaterData){
 }
 
 export function loadMore_click(event) {
-	// This function was added from the Properties & Events panel. To learn more, visit http://wix.to/UcBnC-4
-	// Add your code for this event here: 
+	loadMoreFunction()
 }
 
 export function loadMoreFunction(){
@@ -425,49 +424,174 @@ export function loadMoreFunction(){
 	session.setItem("Clicked","Start")
 
 
-								let allItems = ratingsApproved.items.length
-								let total = ratingsApproved.items[0].length
+								let allItems = ratingsApproved.length
+								let total = ratingsApproved.length
                                 console.log("All Items: ", allItems, total)
+                                console.log(ratingsApproved[0])
+
+                                if($w('#reviewsList').data.length < 3){
+
+                                    let newItems = [];
+										console.log("RESTART")
+
+										count == 0
+										count ++
+										let thisTotal = 3
+
+
+										if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
+										count++
+                                        }
+
+                                        if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
+										count++
+                                        }
+
+                                        if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
+										count++
+                                        }
+
+                                        if(count == 3){
+
+                                            let reviewsList = $w('#reviewsList')
+										
+													reviewsList.data = newItems;
+													console.log("Reviews Data: ", reviewsList.data)
+
+													reviewsList.onItemReady(($item, itemData) => {
+
+
+														 let rated = itemData.rating
+
+                                                        $item('#reviewerName').text = itemData.name;
+                                                        $item('#reviewerText').text = itemData.comment;
+                                                        $w("#reviewsList").expand();
+
+                                                            if(Number(rated) == 1){
+                                                                $item("#s1b").show();
+                                                                $item("#s2b").hide();
+                                                                $item("#s3b").hide();
+                                                                $item("#s4b").hide();
+                                                                $item("#s5b").hide();
+
+                                                                //$item("#b1b").hide();
+                                                                //$item("#b2b").show();
+                                                                //$item("#b3b").show();
+                                                                //$item("#b4b").show();
+                                                                //$item("#b5b").show();
+
+                                                            }
+
+
+                                                            if(Number(rated) == 2){
+                                                                $item("#s1b").show();
+                                                                $item("#s2b").show();
+                                                                $item("#s3b").hide();
+                                                                $item("#s4b").hide();
+                                                                $item("#s5b").hide();
+
+                                                                //$item("#b1b").hide();
+                                                                //$item("#b2b").hide();
+                                                                //$item("#b3b").show();
+                                                                //$item("#b4b").show();
+                                                                //$item("#b5b").show();
+
+                                                            }
+
+
+                                                            if(Number(rated) == 3){
+                                                                $item("#s1b").show();
+                                                                $item("#s2b").show();
+                                                                $item("#s3b").show();
+                                                                $item("#s4b").hide();
+                                                                $item("#s5b").hide();
+
+                                                                //$item("#b1b").hide();
+                                                                //$item("#b2b").hide();
+                                                                //$item("#b3b").hide();
+                                                                //$item("#b4b").show();
+                                                                //$item("#b5b").show();
+
+                                                            }
+
+
+                                                            if(Number(rated) == 4){
+
+                                                                    $item("#s1b").show();
+                                                                    $item("#s2b").show();
+                                                                    $item("#s3b").show();
+                                                                    $item("#s4b").show();
+                                                                    $item("#s5b").hide();
+
+                                                                    //$item("#b1b").hide();
+                                                                    //$item("#b2b").hide();
+                                                                    //$item("#b3b").hide();
+                                                                    //$item("#b4b").hide();
+                                                                    //$item("#b5b").show();
+
+                                                            }
+
+
+                                                            if(Number(rated) == 5){
+                                                                    $item("#s1b").show();
+                                                                    $item("#s2b").show();
+                                                                    $item("#s3b").show();
+                                                                    $item("#s4b").show();
+                                                                    $item("#s5b").show();
+
+                                                                    //$item("#b1b").hide();
+                                                                    //$item("#b2b").hide();
+                                                                    //$item("#b3b").hide();
+                                                                    //$item("#b4b").hide();
+                                                                    //$item("#b5b").hide();
+
+                                                            }
+
+                                                    })
+
+                                        }
+
+
+
+
+
+                                    }
+                                
 								
-								if(ratingsApproved.items[0] !== undefined && ratingsApproved.items[0] !== ""){
-									console.log("UNDEFINED");
-									console.log("Empty: ", ratingsApproved)
-									console.log("Empty: ", )
+								if(ratingsApproved !== undefined && ratingsApproved !== ""){
+									
+									console.log("Data: ", ratingsApproved, count)
 									let newItems = [];
 
-										if($w('#reviewsList').data.length > 3 && count !== total){
-											session.setItem("Clicked","Pending")
 
-											if(ratingsApproved.items[count] !== undefined && count > allItems){
-												console.log("Added: ", ratingsApproved.items[count])
-												newItems.push(ratingsApproved.items[count])
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
 												count++
 												console.log("Count", allItems, total)
 												session.setItem("Clicked","Pending")
 											}
 
-											if(ratingsApproved.items[count] !== undefined && count > allItems){
-												console.log("Added: ", ratingsApproved.items[count])
-												newItems.push(ratingsApproved.items[count])
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
 												count++
 												console.log("Count", allItems, total)
 												session.setItem("Clicked","Pending")
 											}
 
-											if(ratingsApproved.items[count] !== undefined && count > allItems){
-												console.log("Added: ", ratingsApproved.items[count])
-												newItems.push(ratingsApproved.items[count])
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
 												count++
 												console.log("Count", allItems, total)
 												session.setItem("Clicked","Pending")
-											}
-
-											if(ratingsApproved.items[count] !== undefined && count > allItems){
-												console.log("Added: ", ratingsApproved.items[count])
-												newItems.push(ratingsApproved.items[count])
-												count++
-													console.log("Count", allItems, total)
-													session.setItem("Clicked","Pending")
 											}
 
 													let reviewsList = $w('#reviewsList')
@@ -570,13 +694,15 @@ export function loadMoreFunction(){
 
 													
 
-										}
+										
 
 
 									let getStatus = session.getItem("Clicked")
 
+                                    
+
 									if(count == total && getStatus =="Start"){
-										console.log("Finished", ratingsApproved.items[0])
+										console.log("Finished", ratingsApproved)
 
 										count = 0
 										
@@ -584,27 +710,27 @@ export function loadMoreFunction(){
 										console.log("Counts", count, thisTotal)
 
 
-										if(ratingsApproved.items[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved.items[count])
-										newItems.push(ratingsApproved.items[count])
+										if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
 										count++
 									}
 
-									if(ratingsApproved.items[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved.items[count])
-										newItems.push(ratingsApproved.items[count])
+									if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
 										count++
 									}
 
-									if(ratingsApproved.items[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved.items[count])
-										newItems.push(ratingsApproved.items[count])
+									if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
 										count++
 									}
 
-									if(ratingsApproved.items[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved.items[count])
-										newItems.push(ratingsApproved.items[count])
+									if(ratingsApproved[count] !== undefined && count <= thisTotal){
+										console.log("Added: ", ratingsApproved[count])
+										newItems.push(ratingsApproved[count])
 										count++
 										console.log(count)
 									}

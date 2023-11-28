@@ -150,13 +150,6 @@ let countedTotal = 0
                                     ratingsApproved.push(rating); //Remove for final push
                                     console.log("Approved", ratingsApproved) //Remove for final push
 
-                                    if(approvedCount <= thisTotal && firstLoadCount < 3){
-                                                console.log("Added Approved Rating")
-                                                newItems.push(rating)
-                                                count++
-                                                firstLoadCount++
-
-                                                }
 
                                         let allApprovedRatings = ratingsApproved.length;
 
@@ -165,6 +158,22 @@ let countedTotal = 0
 
                                         if(totalRatingsCount == countedTotal){
                                              console.log("New Items: ",  newItems)
+
+                                              console.log("This Person: ", ratingsApproved[count])
+                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
+                                                newItems.push(ratingsApproved[count])
+                                                count++
+                                                }
+
+                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
+                                                newItems.push(ratingsApproved[count])
+                                                count++
+                                                }
+
+                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
+                                                newItems.push(ratingsApproved[count])
+                                                count++
+                                                }
                                              
 
                                                 if(count == 3 || count == allApprovedRatings){
@@ -438,21 +447,21 @@ export function loadMoreFunction(){
 										count ++
 										let thisTotal = 3
 
-
+                                        console.log("This Person: ", ratingsApproved[count])
 										if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
+										console.log("Added Restart: ", ratingsApproved[count])
 										newItems.push(ratingsApproved[count])
 										count++
                                         }
 
                                         if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
+										console.log("Added Restart 2: ", ratingsApproved[count])
 										newItems.push(ratingsApproved[count])
 										count++
                                         }
 
                                         if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
+										console.log("Added Restart 3: ", ratingsApproved[count])
 										newItems.push(ratingsApproved[count])
 										count++
                                         }
@@ -842,6 +851,16 @@ export function loadMoreFunction(){
 											})
 
 										}
+
+
+                                        if(reviewsList.data.length < 3){
+
+                                            $w('#loadMore').hide();
+
+                                        } else {
+
+                                            $w('#loadMore').show();
+                                        }
 
 
 

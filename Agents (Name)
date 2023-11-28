@@ -473,7 +473,7 @@ export function loadMoreFunction(){
 
                                             if($w('#reviewsList').data.length < 3){
 
-                                    let newItems = [];
+                                    
 										console.log("RESTART")
 
 										count = 0

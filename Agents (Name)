@@ -438,13 +438,46 @@ export function loadMoreFunction(){
                                 console.log("All Items: ", allItems, total)
                                 console.log(ratingsApproved[0])
 
-                                if($w('#reviewsList').data.length < 3){
+                                
+                                
+								
+								if(ratingsApproved !== undefined && ratingsApproved !== ""){
+									
+									console.log("Data: ", ratingsApproved, count)
+									let newItems = [];
+
+
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
+												count++
+												console.log("Count", allItems, total)
+												session.setItem("Clicked","Pending")
+											}
+
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
+												count++
+												console.log("Count", allItems, total)
+												session.setItem("Clicked","Pending")
+											}
+
+											if(ratingsApproved[count] !== undefined && count < allItems){
+												console.log("Added: ", ratingsApproved[count])
+												newItems.push(ratingsApproved[count])
+												count++
+												console.log("Count", allItems, total)
+												session.setItem("Clicked","Pending")
+											}
+
+                                            if($w('#reviewsList').data.length < 3){
 
                                     let newItems = [];
 										console.log("RESTART")
 
-										count == 0
-										count ++
+										count = 0
+										//count ++
 										let thisTotal = 3
 
                                         console.log("This Person: ", ratingsApproved[count])
@@ -471,6 +504,7 @@ export function loadMoreFunction(){
                                             let reviewsList = $w('#reviewsList')
 										
 													reviewsList.data = newItems;
+
 													console.log("Reviews Data: ", reviewsList.data)
 
 													reviewsList.onItemReady(($item, itemData) => {
@@ -571,37 +605,6 @@ export function loadMoreFunction(){
 
 
                                     }
-                                
-								
-								if(ratingsApproved !== undefined && ratingsApproved !== ""){
-									
-									console.log("Data: ", ratingsApproved, count)
-									let newItems = [];
-
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
 
 													let reviewsList = $w('#reviewsList')
 										
@@ -750,7 +753,7 @@ export function loadMoreFunction(){
 											let reviewsList = $w('#reviewsList')
 										
 										reviewsList.data = newItems;
-										console.log("Reviews Data: ", reviewsList.data)
+										console.log("Reviews Data Refreshed: ", reviewsList.data)
 
 										reviewsList.onItemReady(($item, itemData) => {
 

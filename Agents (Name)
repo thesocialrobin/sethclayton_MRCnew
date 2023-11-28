@@ -158,7 +158,7 @@ let countedTotal = 0
 
                                                 }
 
-                                        let allApprovedRatings = ratingsApproved.length
+                                        let allApprovedRatings = ratingsApproved.length;
 
                                          console.log("Totals: ", countedTotal, allApprovedRatings, totalRatingsCount)
 
@@ -170,6 +170,8 @@ let countedTotal = 0
                                                 if(count == 3 || count == allApprovedRatings){
                                                 
                                                 let reviewsRepeater = $w('#reviewsList')
+
+                                                reviewsRepeater.data = newItems;
 
                                             console.log("Features Data: ", reviewsRepeater.data)
 
@@ -186,85 +188,85 @@ let countedTotal = 0
                                                     $item('#reviewerText').text = itemData.comment;
                                                     $w("#reviewsList").expand();
 
-                                            if(Number(rated) == 1){
-                                                $item("#s1b").show();
-                                                $item("#s2b").hide();
-                                                $item("#s3b").hide();
-                                                $item("#s4b").hide();
-                                                $item("#s5b").hide();
+                                                        if(Number(rated) == 1){
+                                                            $item("#s1b").show();
+                                                            $item("#s2b").hide();
+                                                            $item("#s3b").hide();
+                                                            $item("#s4b").hide();
+                                                            $item("#s5b").hide();
 
-                                                //$item("#b1b").hide();
-                                                //$item("#b2b").show();
-                                                //$item("#b3b").show();
-                                                //$item("#b4b").show();
-                                                //$item("#b5b").show();
+                                                            //$item("#b1b").hide();
+                                                            //$item("#b2b").show();
+                                                            //$item("#b3b").show();
+                                                            //$item("#b4b").show();
+                                                            //$item("#b5b").show();
 
-                                            }
-
-
-                                            if(Number(rated) == 2){
-                                                $item("#s1b").show();
-                                                $item("#s2b").show();
-                                                $item("#s3b").hide();
-                                                $item("#s4b").hide();
-                                                $item("#s5b").hide();
-
-                                                //$item("#b1b").hide();
-                                                //$item("#b2b").hide();
-                                                //$item("#b3b").show();
-                                                //$item("#b4b").show();
-                                                //$item("#b5b").show();
-
-                                            }
+                                                        }
 
 
-                                            if(Number(rated) == 3){
-                                                $item("#s1b").show();
-                                                $item("#s2b").show();
-                                                $item("#s3b").show();
-                                                $item("#s4b").hide();
-                                                $item("#s5b").hide();
+                                                        if(Number(rated) == 2){
+                                                            $item("#s1b").show();
+                                                            $item("#s2b").show();
+                                                            $item("#s3b").hide();
+                                                            $item("#s4b").hide();
+                                                            $item("#s5b").hide();
 
-                                                //$item("#b1b").hide();
-                                                //$item("#b2b").hide();
-                                                //$item("#b3b").hide();
-                                                //$item("#b4b").show();
-                                                //$item("#b5b").show();
+                                                            //$item("#b1b").hide();
+                                                            //$item("#b2b").hide();
+                                                            //$item("#b3b").show();
+                                                            //$item("#b4b").show();
+                                                            //$item("#b5b").show();
 
-                                            }
-
-
-                                            if(Number(rated) == 4){
-
-                                                    $item("#s1b").show();
-                                                    $item("#s2b").show();
-                                                    $item("#s3b").show();
-                                                    $item("#s4b").show();
-                                                    $item("#s5b").hide();
-
-                                                    //$item("#b1b").hide();
-                                                    //$item("#b2b").hide();
-                                                    //$item("#b3b").hide();
-                                                    //$item("#b4b").hide();
-                                                    //$item("#b5b").show();
-
-                                            }
+                                                        }
 
 
-                                            if(Number(rated) == 5){
-                                                    $item("#s1b").show();
-                                                    $item("#s2b").show();
-                                                    $item("#s3b").show();
-                                                    $item("#s4b").show();
-                                                    $item("#s5b").show();
+                                                        if(Number(rated) == 3){
+                                                            $item("#s1b").show();
+                                                            $item("#s2b").show();
+                                                            $item("#s3b").show();
+                                                            $item("#s4b").hide();
+                                                            $item("#s5b").hide();
 
-                                                    //$item("#b1b").hide();
-                                                    //$item("#b2b").hide();
-                                                    //$item("#b3b").hide();
-                                                    //$item("#b4b").hide();
-                                                    //$item("#b5b").hide();
+                                                            //$item("#b1b").hide();
+                                                            //$item("#b2b").hide();
+                                                            //$item("#b3b").hide();
+                                                            //$item("#b4b").show();
+                                                            //$item("#b5b").show();
 
-                                            }
+                                                        }
+
+
+                                                        if(Number(rated) == 4){
+
+                                                                $item("#s1b").show();
+                                                                $item("#s2b").show();
+                                                                $item("#s3b").show();
+                                                                $item("#s4b").show();
+                                                                $item("#s5b").hide();
+
+                                                                //$item("#b1b").hide();
+                                                                //$item("#b2b").hide();
+                                                                //$item("#b3b").hide();
+                                                                //$item("#b4b").hide();
+                                                                //$item("#b5b").show();
+
+                                                        }
+
+
+                                                        if(Number(rated) == 5){
+                                                                $item("#s1b").show();
+                                                                $item("#s2b").show();
+                                                                $item("#s3b").show();
+                                                                $item("#s4b").show();
+                                                                $item("#s5b").show();
+
+                                                                //$item("#b1b").hide();
+                                                                //$item("#b2b").hide();
+                                                                //$item("#b3b").hide();
+                                                                //$item("#b4b").hide();
+                                                                //$item("#b5b").hide();
+
+                                                        }
 
                                                         } );
 

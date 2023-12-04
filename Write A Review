@@ -1,0 +1,345 @@
+import wixData from 'wix-data';
+import wixUsers from 'wix-users';
+import { session } from 'wix-storage';
+import wixLocation from 'wix-location';
+import { myQueryContactsFunction, myEmailContactFunction, confirmationEmail, myCreateContactFunction } from 'backend/queryContacts.jsw';
+import { triggeredEmails, contacts } from 'wix-crm';
+import { addLabels } from 'backend/getData.jsw';
+import { triggerThankYou } from 'backend/email.jsw';
+import wixWindow from 'wix-window';
+
+let ratings = null;
+let average = null;
+let allRatings = null;
+allRatings = [];
+ratings = [];
+average = [];
+let context = wixWindow.lightbox.getContext();
+console.log("Received: ", context)
+
+session.setItem("agentName", context.name)
+
+$w.onReady(function () {
+
+    let userId = context._id;
+    let userName = context.name
+    let email = context.email
+    $w("#userName").text = userName 
+    $w("#userName").show();
+    console.log("Confirmation: ", userName, userId)
+
+    wixData.query("Team")
+                    .eq("email", email)         
+                    .find() 
+                    .then((results) => { 
+						console.log("Found user", results)
+
+						let userRatings = results.items[0].ratings; 
+                        let totalRatingsCount = results.items[0].ratings.length;
+						let userId = results.items[0]._id; 
+                        console.log("Ratings:", userRatings)
+
+                        if(userRatings !== undefined && userRatings.length > 0){
+
+                            let totalCount = userRatings.length;
+
+                            userRatings.forEach(function(rating) {
+                               
+                                console.log("Current Ratings: ", allRatings)
+
+                                allRatings.push(rating) //All User Ratings
+
+                            })
+
+                        }
+                    })
+
+
+
+})
+
+
+export function star1_click(event) {
+    session.setItem("rating", "1");
+    checkSubmit();
+    $w("#s1").show();
+    $w("#s2").hide();
+    $w("#s3").hide();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").show();
+    $w("#b3").show();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+export function star2_click(event) {
+    session.setItem("rating", "2");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").hide();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").show();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+export function star3_click(event) {
+    session.setItem("rating", "3");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+export function star4_click(event) {
+    session.setItem("rating", "4");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").show();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").hide();
+    $w("#b5").show();
+}
+
+export function star5_click(event) {
+    session.setItem("rating", "5");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").show();
+    $w("#s5").show();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").hide();
+    $w("#b5").hide();
+}
+
+export function submitReview_click(event) {
+    $w("#submitReview").label = "Submitting..."
+    $w("#submitReview").disable();
+    let refreshId = uniqueId();
+    let newStar = Number(session.getItem("rating"));
+    let comment = $w("#reviewComment").value;
+    let reviewName = $w("#firstName").value;
+    let reviewEmail = $w("#reviewEmail").value;
+    //let userId = context.userId
+    let userId = context._id
+    let reviewStatus = "Awaiting";
+    let newId = uniqueId();
+    refreshId;
+    let rating = {
+        rating: newStar,
+        comment: comment,
+        name: reviewName,
+        status: reviewStatus,
+        email: reviewEmail,
+        date: new Date(),
+        _id: newId
+    }
+
+    console.log("All Ratings: ", allRatings, refreshId, newId, rating)
+
+    allRatings.push(rating);
+
+    console.log("New Ratings: ", allRatings)
+
+    wixData.get("Team", userId)
+        .then((toUpdate) => {
+
+            toUpdate.ratings = allRatings;
+            console.log(toUpdate);
+            wixData.update('Team', toUpdate).then((res) => {
+                console.log('updated');
+                $w("#submitReview").label = "Submitted!"
+                $w("#submitReview").disable();
+                $w("#submitted").expand();
+                createContact();
+                let toAgent = userId
+
+                //----RE ACTIVATE THE BELOW ON 12/3 AFTER THE CONFIRMATION EMAAIL IS CREATED----//
+
+                /*
+
+                confirmationEmail(toAgent).then((resolvedContact) => { //change to confirmationEmail for golive
+                    console.log(resolvedContact);
+
+                    let body = `You've received a new review from ${reviewName}. `;
+                    let bye = `Thanks!`;
+                    let emailId = "TvW6Dgu";
+
+                    let contactId = resolvedContact;
+
+                    body = body + `
+					\r Comment: ${comment}`;
+
+                    console.log("Body: ", body)
+
+                    const options = {
+                        variables: {
+                            name: name,
+                            body: body,
+                            rating: newStar,
+                            bye: bye
+                        }
+                    }
+
+                    myEmailContactFunction(emailId, contactId, options).then(() => {
+                        console.log("Email submission completed.")
+                        session.setItem('Reviewed', userId);
+                         $w("#submitReview").label = "Submitted!"
+                         //wixWindow.lightbox.close("Reviewed");
+                    })
+
+                })
+
+                */
+
+                
+
+            })
+
+        })
+
+}
+
+export function firstName_keyPress(event) {
+    checkSubmit();
+}
+export function reviewEmail_keyPress(event) {
+    checkSubmit();
+}
+export function reviewComment_keyPress(event) {
+    checkSubmit();
+}
+export function checkSubmit() {
+    let length = $w("#firstName").value.length
+    let email = $w("#reviewEmail")
+    let rating = session.getItem("rating");
+    console.log("Rating Is: ", rating)
+    console.log(email.valid)
+    if (length > 2 && rating != undefined && rating != "" && email.valid) {
+
+        $w("#submitReview").enable();
+
+    }
+}
+
+export function sendAutomation(userId) {
+    let first = $w('#firstName').value;
+    let thanksEmailId = "TvW5f5q";
+    let agentName = session.getItem("agentName")
+
+    //triggeredEmails.emailContact(emailId, userId);
+    triggerThankYou(thanksEmailId, userId, first, agentName);
+
+}
+
+function uniqueId() {
+    // desired length of Id
+    var idStrLen = 32;
+    // always start with a letter -- base 36 makes for a nice shortcut
+    var idStr = (Math.floor((Math.random() * 25)) + 10).toString(36) + "-";
+    // add a timestamp in milliseconds (base 36 again) as the base
+    idStr += (new Date()).getTime().toString(36) + "-";
+    // similar to above, complete the Id using random, alphanumeric characters
+    do {
+        idStr += (Math.floor((Math.random() * 35))).toString(36);
+    } while (idStr.length < idStrLen);
+
+    return (idStr);
+}
+
+export function createContact() {
+
+    let first = $w('#firstName').value;
+    let emailReviewer = $w('#reviewEmail').value;
+
+    const contactInfo = {
+        name: {
+            first: first,
+            last: "Visitor"
+        },
+        emails: [{
+                email: emailReviewer,
+            },
+            {
+                email: emailReviewer
+            }
+        ]
+
+    };
+
+    myCreateContactFunction(contactInfo)
+        .then((resolvedContact) => {
+
+            console.log(resolvedContact);
+            let reviewerId = resolvedContact._id;
+            sendAutomation(reviewerId)
+            addLabels(reviewerId)
+                .then((added) => {
+                    console.log("Labels Applied: ", added, reviewerId, resolvedContact, contactInfo)
+
+                })
+
+            /*
+            contacts.appendOrCreateContact(contactInfo)
+              .then((resolvedContact) => {
+                console.log(resolvedContact);
+                let reviewerId = resolvedContact.contactId;
+                sendAutomation(reviewerId)
+                addLabels(reviewerId)
+                .then((added)=>{
+                    console.log("Labels Applied: ", added, reviewerId, resolvedContact, contactInfo)
+
+                })
+                */
+
+            return resolvedContact;
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}
+
+/**
+*	Adds an event handler that runs when the element is clicked.
+	[Read more](https://www.wix.com/corvid/reference/$w.ClickableMixin.html#onClick)
+*	 @param {$w.MouseEvent} event
+*/
+export function button144_click(event) {
+    let userId = context._id;
+    let reviewed = session.getItem("Reviewed")
+    if(reviewed == userId){
+        wixWindow.lightbox.close("Reviewed");
+    }
+	
+}

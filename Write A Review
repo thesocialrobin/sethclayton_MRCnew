@@ -187,14 +187,14 @@ export function submitReview_click(event) {
 
                 //----RE ACTIVATE THE BELOW ON 12/3 AFTER THE CONFIRMATION EMAAIL IS CREATED----//
 
-                /*
+                
 
                 confirmationEmail(toAgent).then((resolvedContact) => { //change to confirmationEmail for golive
                     console.log(resolvedContact);
 
                     let body = `You've received a new review from ${reviewName}. `;
                     let bye = `Thanks!`;
-                    let emailId = "TvW6Dgu";
+                    let emailId = "TvW6Dgu";  
 
                     let contactId = resolvedContact;
 
@@ -221,7 +221,7 @@ export function submitReview_click(event) {
 
                 })
 
-                */
+            
 
                 
 
@@ -335,11 +335,13 @@ export function createContact() {
 	[Read more](https://www.wix.com/corvid/reference/$w.ClickableMixin.html#onClick)
 *	 @param {$w.MouseEvent} event
 */
-export function button144_click(event) {
-    let userId = context._id;
+
+
+
+export function closeLightbox_click(event) {
+  let userId = context._id;
     let reviewed = session.getItem("Reviewed")
     if(reviewed == userId){
         wixWindow.lightbox.close("Reviewed");
     }
-	
 }

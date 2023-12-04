@@ -17,6 +17,7 @@ let allApproved = 0;
 
 $w.onReady(function () {
 
+    $w("#leaveReview3").enable();
     // Get the user's selected template from the dataset
     $w('#agentsDataset').onReady(() => {
         const userTemplate = $w('#agentsDataset').getCurrentItem().template;
@@ -118,6 +119,7 @@ export function leaveReview3_click(event) {
 			if (receivedData === "Reviewed"){
 
             $w("#leaveReview3").label = "Review Received"
+            $w("#leaveReview3").disable();
 
 			}
 		} );

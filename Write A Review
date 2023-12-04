@@ -332,10 +332,11 @@ export function reviewComment_keyPress(event) {
 export function checkSubmit() {
     let length = $w("#firstName").value.length
     let email = $w("#reviewEmail")
+    let reviewComment = $w("#reviewComment")
     let rating = session.getItem("rating");
     console.log("Rating Is: ", rating)
     console.log(email.valid)
-    if (length > 2 && rating != undefined && rating != "" && email.valid) {
+    if (length > 2 && rating != undefined && rating != "" && email.valid && reviewComment.valid) {
 
         $w("#submitReview").enable();
 

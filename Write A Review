@@ -423,10 +423,19 @@ export function createContact() {
 
 
 export function closeLightbox_click(event) {
-  let userId = context._id;
+ let userId = context._id;
     let reviewed = session.getItem("Reviewed")
-    if(reviewed == userId){
+    
         wixWindow.lightbox.close(reviewed);
-    }
+}
+
+
+
+export function closeBox_click(event) {
+	 let userId = context._id;
+    let reviewed = session.getItem("Reviewed")
+    
+        wixWindow.lightbox.close(reviewed);
+    
 }
 

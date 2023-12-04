@@ -179,8 +179,8 @@ export function submitReview_click(event) {
             console.log(toUpdate);
             wixData.update('Team', toUpdate).then((res) => {
                 console.log('updated');
-                $w("#submitReview").label = "Submitted!"
-                $w("#submitReview").disable();
+                //$w("#submitReview").label = "Submitted!"
+                //$w("#submitReview").disable();
                 $w("#submitted").expand();
                 createContact();
                 let toAgent = userId
@@ -216,6 +216,7 @@ export function submitReview_click(event) {
                         console.log("Email submission completed.")
                         session.setItem('Reviewed', userId);
                          $w("#submitReview").label = "Submitted!"
+                         $w("#submitReview").disable();
                          //wixWindow.lightbox.close("Reviewed");
                     })
 

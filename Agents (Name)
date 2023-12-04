@@ -146,6 +146,7 @@ let countedTotal = 0
 
 						let userRatings = results.items[0].ratings; 
                         let totalRatingsCount = results.items[0].ratings.length;
+                        console.log("Totals Initial: ", totalRatingsCount)
 
 
 						let userId = results.items[0]._id; 
@@ -161,10 +162,13 @@ let countedTotal = 0
                             let totalCount = userRatings.length;
 
                             userRatings.forEach(function(rating) {
-                                countedTotal++
-                                console.log("Totals: ", countedTotal, allApproved)
 
-                                let approvedCount = 0;
+                                countedTotal++
+                                console.log("All For Each Totals: ", countedTotal, allApproved)
+
+                                //let approvedCount = 0;
+
+                                let allApprovedRatings = ratingsApproved.length;
 
 
 
@@ -172,14 +176,9 @@ let countedTotal = 0
 
 								if(rating.status == "Approved"){
 
-                                    let fiveProgress = 0;
-                                    let fourProgress = 0;
-                                    let threeProgress = 0;
-                                    let twoProgress = 0;
-                                    let oneProgress = 0;
+                                
 
-
-                                    approvedCount++
+                                    //approvedCount++
 
                                     ratingsApproved.push(rating); //Remove for final push
                                     console.log("Approved", ratingsApproved) //Remove for final push
@@ -193,93 +192,56 @@ let countedTotal = 0
 
                                 console.log("This Rating: ", rating.rating)
 
-                                 if(Number(rating.rating) == 1){
-
-                                     oneProgress++
-
-                                 }
-
-                                 if(Number(rating.rating) == 2){
-
-                                     twoProgress++
-
-                                 }
-
-                                 if(Number(rating.rating) == 3){
-
-                                     threeProgress++
-
-                                 }
-
-                                 if(Number(rating.rating) == 4){
-
-                                     fourProgress++
-
-                                 }
-
-                                 if(Number(rating.rating) == 5){
-
-                                     fiveProgress++
-
-                                 }
-
+                                 
 
 
 
                                     //**Written Reviews Widget**//
 
 
-                                        let allApprovedRatings = ratingsApproved.length;
+                                        
 
-                                         console.log("Totals: ", countedTotal, allApprovedRatings, totalRatingsCount)
+                                         console.log("Totals Approved: ", allApprovedRatings)
+                                         console.log("Totals Counted Total: ", countedTotal)
+                                         console.log("Totals Ratings: ", totalRatingsCount)
 
 
-                                        if(totalRatingsCount == countedTotal){
-
-                                            $w("#5starRatingsProgress").targetValue = totalRatingsCount;
-                                            $w("#5starRatingsProgress").value = fiveProgress;
-
-                                            $w("#4starRatingsProgress").targetValue = totalRatingsCount;
-                                            $w("#4starRatingsProgress").value = fourProgress;
-
-                                            $w("#3starRatingsProgress").targetValue = totalRatingsCount;
-                                            $w("#3starRatingsProgress").targetValue = threeProgress;
-
-                                            $w("#2starRatingsProgress").targetValue = totalRatingsCount;
-                                            $w("#2starRatingsProgress").targetValue = twoProgress;
-
-                                            $w("#1starRatingsProgress").targetValue = totalRatingsCount;
-                                            $w("#1starRatingsProgress").targetValue = oneProgress;
-
-                                            console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, totalRatingsCount)
 
 
                                              console.log("New Items: ",  newItems)
 
                                               console.log("This Person: ", ratingsApproved[count])
+
                                                 if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
+                                                console.log("Current Count: ", count)
                                                 count++
                                                 }
 
                                                 if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
+                                                console.log("Current Count: ", count)
                                                 count++
                                                 }
 
                                                 if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
+                                                console.log("Current Count: ", count)
                                                 count++
+                                                console.log("Current Count of Third: ", count)
                                                 }
                                              
 
-                                                if(count == 3 || count == allApprovedRatings){
+                                                if(count == 3){
+
+                                                    console.log("Current Count of Loaded Is: ", count)
                                                 
                                                 let reviewsRepeater = $w('#reviewsList')
 
                                                 reviewsRepeater.data = newItems;
 
                                             console.log("Features Data: ", reviewsRepeater.data)
+                                            console.log("Tester")
 
 
                                             reviewsRepeater.onItemReady(($item, itemData) => {
@@ -386,15 +348,17 @@ let countedTotal = 0
                                                 })
                                                 console.log("Show Button: ", count, allApprovedRatings);
 
-                                                 if ( allApprovedRatings > 3 ){
-                                                    $w('#loadMore').show();
-                                                }
+                                                 
 
                                             }
                                         }
                                         
 
-								}
+                                        
+                                        //here
+                                        
+
+								
 
                                 /*
                                 if(count == totalCount){
@@ -405,15 +369,24 @@ let countedTotal = 0
 
                                 }
                                 */
+                           
 
+                                if(countedTotal == totalRatingsCount){
+
+                                     if ( allApprovedRatings > 3 ){
+
+                                                     console.log("Show Button Greater than 3 Line 391")
+                                                    $w('#loadMore').show();
+                                                    console.log("Current Count of Loaded: ", count)
+                                                }
+
+                                }
                                 
 
-                                
 
 
 
-
-							})
+							}) //end of foreach
                         }
 
                     })
@@ -535,6 +508,7 @@ export function loadMore_click(event) {
 export function loadMoreFunction(){
     console.log("loadMore")
 	session.setItem("Clicked","Start")
+    console.log("Current Count: ", count)
 
 
 								let allItems = ratingsApproved.length
@@ -966,6 +940,8 @@ export function loadMoreFunction(){
 
                                         } else {
 
+                                            console.log("Show Button Greater than 3 Line 971")
+
                                             $w('#loadMore').show();
                                         }
 
@@ -1083,7 +1059,7 @@ export function getAgentRatingsAverage(id) {
                         $w("#1starRatingsProgress").targetValue = approvedTotal;
                         $w("#1starRatingsProgress").targetValue = oneProgress;
 
-                        console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, totalCount, allApproved)
+                        console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, approvedTotal)
 
 
                         agentAverage = gradeTotal / Number(totalPushed); //Does not count hidden reviews

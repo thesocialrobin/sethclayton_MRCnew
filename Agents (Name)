@@ -212,21 +212,44 @@ let countedTotal = 0
 
                                               console.log("This Person: ", ratingsApproved[count])
 
-                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
+                                                
+                                        }
+                                        
+
+                                        
+                                        //here
+                                        
+
+								
+
+                                /*
+                                if(count == totalCount){
+
+                                    loadRepeaterData(ratingsApproved)
+
+                                
+
+                                }
+                                */
+                           
+
+                                if(countedTotal == totalRatingsCount){
+
+                                    if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
-                                                console.log("Current Count: ", count)
+                                                console.log("Current Count 1: ", count)
                                                 count++
                                                 }
 
                                                 if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
-                                                console.log("Current Count: ", count)
+                                                console.log("Current Count 2: ", count)
                                                 count++
                                                 }
 
                                                 if(ratingsApproved[count] !== undefined && count <= thisTotal){
                                                 newItems.push(ratingsApproved[count])
-                                                console.log("Current Count: ", count)
+                                                console.log("Current Count 3: ", count)
                                                 count++
                                                 console.log("Current Count of Third: ", count)
                                                 }
@@ -346,32 +369,14 @@ let countedTotal = 0
                                                         
 
                                                 })
+
                                                 console.log("Show Button: ", count, allApprovedRatings);
 
                                                  
 
-                                            }
-                                        }
-                                        
+                                            } // if count is 3
 
-                                        
-                                        //here
-                                        
 
-								
-
-                                /*
-                                if(count == totalCount){
-
-                                    loadRepeaterData(ratingsApproved)
-
-                                
-
-                                }
-                                */
-                           
-
-                                if(countedTotal == totalRatingsCount){
 
                                      if ( allApprovedRatings > 3 ){
 

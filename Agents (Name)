@@ -1068,22 +1068,22 @@ export function getAgentRatingsAverage(id) {
                         console.log("Total Pushed Ratings: ", totalPushed)
                         $w("#quantity").text = "Based on " + (ratings.length).toString() + " Reviews";
 
-                        $w("#5starRatingsProgress").targetValue = totalCount;
+                        $w("#5starRatingsProgress").targetValue = approvedTotal;
                         $w("#5starRatingsProgress").value = fiveProgress;
 
-                        $w("#4starRatingsProgress").targetValue = totalCount;
+                        $w("#4starRatingsProgress").targetValue = approvedTotal;
                         $w("#4starRatingsProgress").value = fourProgress;
 
-                        $w("#3starRatingsProgress").targetValue = totalCount;
+                        $w("#3starRatingsProgress").targetValue = approvedTotal;
                         $w("#3starRatingsProgress").targetValue = threeProgress;
 
-                        $w("#2starRatingsProgress").targetValue = totalCount;
+                        $w("#2starRatingsProgress").targetValue = approvedTotal;
                         $w("#2starRatingsProgress").targetValue = twoProgress;
 
-                        $w("#1starRatingsProgress").targetValue = totalCount;
+                        $w("#1starRatingsProgress").targetValue = approvedTotal;
                         $w("#1starRatingsProgress").targetValue = oneProgress;
 
-                        console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, totalCount)
+                        console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, totalCount, allApproved)
 
 
                         agentAverage = gradeTotal / Number(totalPushed); //Does not count hidden reviews

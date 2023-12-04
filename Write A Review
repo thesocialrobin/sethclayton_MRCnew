@@ -18,6 +18,7 @@ let context = wixWindow.lightbox.getContext();
 console.log("Received: ", context)
 
 session.setItem("agentName", context.name)
+session.setItem("Reviewed", "No")
 
 $w.onReady(function () {
 
@@ -73,6 +74,93 @@ export function star1_click(event) {
     $w("#b3").show();
     $w("#b4").show();
     $w("#b5").show();
+}
+
+
+export function s1_click(event) {
+	 session.setItem("rating", "1");
+    checkSubmit();
+    $w("#s1").show();
+    $w("#s2").hide();
+    $w("#s3").hide();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").show();
+    $w("#b3").show();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+
+export function s2_click(event) {
+	 session.setItem("rating", "2");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").hide();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").show();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+
+export function s3_click(event) {
+session.setItem("rating", "3");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").hide();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").show();
+    $w("#b5").show();
+}
+
+export function s4_click(event) {
+	session.setItem("rating", "4");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").show();
+    $w("#s5").hide();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").hide();
+    $w("#b5").show();
+}
+
+export function s5_click(event) {
+	 session.setItem("rating", "5");
+    checkSubmit();
+
+    $w("#s1").show();
+    $w("#s2").show();
+    $w("#s3").show();
+    $w("#s4").show();
+    $w("#s5").show();
+
+    $w("#b1").hide();
+    $w("#b2").hide();
+    $w("#b3").hide();
+    $w("#b4").hide();
+    $w("#b5").hide();
 }
 
 export function star2_click(event) {
@@ -214,7 +302,7 @@ export function submitReview_click(event) {
 
                     myEmailContactFunction(emailId, contactId, options).then(() => {
                         console.log("Email submission completed.")
-                        session.setItem('Reviewed', userId);
+                        session.setItem('Reviewed', "Reviewed");
                          $w("#submitReview").label = "Submitted!"
                          $w("#submitReview").disable();
                          //wixWindow.lightbox.close("Reviewed");
@@ -331,11 +419,6 @@ export function createContact() {
         });
 }
 
-/**
-*	Adds an event handler that runs when the element is clicked.
-	[Read more](https://www.wix.com/corvid/reference/$w.ClickableMixin.html#onClick)
-*	 @param {$w.MouseEvent} event
-*/
 
 
 
@@ -343,6 +426,7 @@ export function closeLightbox_click(event) {
   let userId = context._id;
     let reviewed = session.getItem("Reviewed")
     if(reviewed == userId){
-        wixWindow.lightbox.close("Reviewed");
+        wixWindow.lightbox.close(reviewed);
     }
 }
+

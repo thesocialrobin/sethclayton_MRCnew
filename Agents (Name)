@@ -21,6 +21,7 @@ $w.onReady(function () {
     // Get the user's selected template from the dataset
     $w('#agentsDataset').onReady(() => {
         const userTemplate = $w('#agentsDataset').getCurrentItem().template;
+        session.setItem("Template",userTemplate)
         var itemData = $w('#agentsDataset').getCurrentItem()
         let userRatings = itemData.ratings;
         
@@ -129,7 +130,26 @@ export function leaveReview3_click(event) {
         });
 }
 
-export function getReviews(email, status) {
+export function leaveReview2_click(event) {
+let userData = $w("#agentsDataset").getCurrentItem();
+
+    wixWindow.openLightbox('Write A Review', userData)
+        .then((data) => {
+
+            let receivedData = data;
+
+            console.log("Data Received: ", receivedData)
+
+            if (receivedData === "Reviewed") {
+
+                $w("#leaveReview3").label = "Review Received"
+                $w("#leaveReview3").disable();
+
+            }
+        });
+}
+
+export function getReviews(email, status) { //--Template Three--//
     ratingsApproved = null;
     ratingsApproved = [];
     let thisTotal = 3
@@ -248,7 +268,450 @@ export function getReviews(email, status) {
                                     $item('#reviewerText').text = itemData.comment;
                                     $w("#reviewsList").expand();
 
-                                    //---PROGRESS BARS---//
+                                    
+
+                                    if (Number(rated) == 1) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").hide();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").show();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 2) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 3) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 4) {
+
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").show();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").hide();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 5) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").show();
+                                        $item("#s5b").show();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").hide();
+                                        //$item("#b5b").hide();
+
+                                    }
+
+                                });
+
+                            })
+
+                            console.log("Show Button: ", count, allApprovedRatings);
+
+                        } // if count is 3
+
+                        if (allApprovedRatings > 3) {
+
+                            console.log("Show Button Greater than 3 Line 391")
+                            $w('#loadMore').show();
+                            console.log("Current Count of Loaded: ", count)
+                        }
+
+                    }
+
+                }) //end of foreach
+            }
+
+        })
+
+}
+
+
+export function getReviewsTwo(email, status) {
+    ratingsApproved = null;
+    ratingsApproved = [];
+    let thisTotal = 3
+    let newItems = null;
+    newItems = [];
+    let countedTotal = 0
+
+    console.log("Get Ratings:")
+
+    wixData.query("Team")
+        .eq("email", email)
+        .find()
+        .then((results) => {
+            console.log("Found user", results)
+
+            let userRatings = results.items[0].ratings;
+            let totalRatingsCount = results.items[0].ratings.length;
+            console.log("Totals Initial: ", totalRatingsCount)
+
+            let userId = results.items[0]._id;
+            session.setItem("thisUser", userId)
+            console.log("Ratings:", userRatings)
+            console.log("userId:", userId)
+            let firstLoadCount = 0;
+
+            if (userRatings !== undefined && userRatings.length > 0) {
+
+                let totalCount = userRatings.length;
+
+                userRatings.forEach(function (rating) {
+
+                    countedTotal++
+                    console.log("All For Each Totals: ", countedTotal, allApproved)
+
+                    //let approvedCount = 0;
+
+                    let allApprovedRatings = ratingsApproved.length;
+
+                    if (rating.status == "Approved") {
+
+                        //approvedCount++
+
+                        ratingsApproved.push(rating); //Remove for final push
+                        console.log("Approved", ratingsApproved) //Remove for final push
+
+                        console.log("Current Ratings: ", ratings)
+
+                        allRatings.push(rating) //All User Ratings
+
+                        console.log("This Rating: ", rating.rating)
+
+                        //**Written Reviews Widget**//
+
+                        console.log("Totals Approved: ", allApprovedRatings)
+                        console.log("Totals Counted Total: ", countedTotal)
+                        console.log("Totals Ratings: ", totalRatingsCount)
+
+                        console.log("New Items: ", newItems)
+
+                        console.log("This Person: ", ratingsApproved[count])
+
+                    }
+
+                    //here
+
+                    /*
+                    if(count == totalCount){
+
+                        loadRepeaterData(ratingsApproved)
+
+                    
+
+                    }
+                    */
+
+                    if (countedTotal == totalRatingsCount) {
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 1: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of Third: ", count)
+                        }
+
+                        if (count == 3) {
+
+                            console.log("Current Count of Loaded Is: ", count)
+
+                            let reviewsRepeater = $w('#reviewsList')
+
+                            reviewsRepeater.data = newItems;
+
+                            console.log("Features Data: ", reviewsRepeater.data)
+                            console.log("Tester")
+
+                            reviewsRepeater.onItemReady(($item, itemData) => {
+                                console.log(itemData.item)
+
+                                reviewsRepeater.forEachItem(($item, itemData, index) => {
+
+                                    let rated = itemData.rating
+
+                                    $item('#reviewerName').text = itemData.name;
+                                    $item('#reviewerText').text = itemData.comment;
+                                    $w("#reviewsList").expand();
+
+                                    
+
+                                    if (Number(rated) == 1) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").hide();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").show();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 2) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 3) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 4) {
+
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").show();
+                                        $item("#s5b").hide();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").hide();
+                                        //$item("#b5b").show();
+
+                                    }
+
+                                    if (Number(rated) == 5) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").show();
+                                        $item("#s5b").show();
+
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").hide();
+                                        //$item("#b5b").hide();
+
+                                    }
+
+                                });
+
+                            })
+
+                            console.log("Show Button: ", count, allApprovedRatings);
+
+                        } // if count is 3
+
+                        if (allApprovedRatings > 3) {
+
+                            console.log("Show Button Greater than 3 Line 391")
+                            $w('#loadMore').show();
+                            console.log("Current Count of Loaded: ", count)
+                        }
+
+                    }
+
+                }) //end of foreach
+            }
+
+        })
+
+}
+
+export function getReviewsOne(email, status) {
+    ratingsApproved = null;
+    ratingsApproved = [];
+    let thisTotal = 3
+    let newItems = null;
+    newItems = [];
+    let countedTotal = 0
+
+    console.log("Get Ratings:")
+
+    wixData.query("Team")
+        .eq("email", email)
+        .find()
+        .then((results) => {
+            console.log("Found user", results)
+
+            let userRatings = results.items[0].ratings;
+            let totalRatingsCount = results.items[0].ratings.length;
+            console.log("Totals Initial: ", totalRatingsCount)
+
+            let userId = results.items[0]._id;
+            session.setItem("thisUser", userId)
+            console.log("Ratings:", userRatings)
+            console.log("userId:", userId)
+            let firstLoadCount = 0;
+
+            if (userRatings !== undefined && userRatings.length > 0) {
+
+                let totalCount = userRatings.length;
+
+                userRatings.forEach(function (rating) {
+
+                    countedTotal++
+                    console.log("All For Each Totals: ", countedTotal, allApproved)
+
+                    //let approvedCount = 0;
+
+                    let allApprovedRatings = ratingsApproved.length;
+
+                    if (rating.status == "Approved") {
+
+                        //approvedCount++
+
+                        ratingsApproved.push(rating); //Remove for final push
+                        console.log("Approved", ratingsApproved) //Remove for final push
+
+                        console.log("Current Ratings: ", ratings)
+
+                        allRatings.push(rating) //All User Ratings
+
+                        console.log("This Rating: ", rating.rating)
+
+                        //**Written Reviews Widget**//
+
+                        console.log("Totals Approved: ", allApprovedRatings)
+                        console.log("Totals Counted Total: ", countedTotal)
+                        console.log("Totals Ratings: ", totalRatingsCount)
+
+                        console.log("New Items: ", newItems)
+
+                        console.log("This Person: ", ratingsApproved[count])
+
+                    }
+
+                    //here
+
+                    /*
+                    if(count == totalCount){
+
+                        loadRepeaterData(ratingsApproved)
+
+                    
+
+                    }
+                    */
+
+                    if (countedTotal == totalRatingsCount) {
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 1: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of Third: ", count)
+                        }
+
+                        if (count == 3) {
+
+                            console.log("Current Count of Loaded Is: ", count)
+
+                            let reviewsRepeater = $w('#reviewsList')
+
+                            reviewsRepeater.data = newItems;
+
+                            console.log("Features Data: ", reviewsRepeater.data)
+                            console.log("Tester")
+
+                            reviewsRepeater.onItemReady(($item, itemData) => {
+                                console.log(itemData.item)
+
+                                reviewsRepeater.forEachItem(($item, itemData, index) => {
+
+                                    let rated = itemData.rating
+
+                                    $item('#reviewerName').text = itemData.name;
+                                    $item('#reviewerText').text = itemData.comment;
+                                    $w("#reviewsList").expand();
+
+                                    
 
                                     if (Number(rated) == 1) {
                                         $item("#s1b").show();
@@ -454,7 +917,7 @@ export function loadMore_click(event) {
     loadMoreFunction()
 }
 
-export function loadMoreFunction() {
+export function loadMoreFunction() { //--Template Three--//
     console.log("loadMore")
     session.setItem("Clicked", "Start")
     console.log("Current Count: ", count)
@@ -712,34 +1175,340 @@ export function loadMoreFunction() {
         })
         session.setItem("Clicked", "End")
 
-        
-        /*
-        if (count == total && getStatus == "Start") { 
-            console.log("Finished", ratingsApproved)
+
+    }
+
+}
+
+export function loadMoreFunctionTwo() {
+    console.log("loadMore")
+    session.setItem("Clicked", "Start")
+    console.log("Current Count: ", count)
+
+    let allItems = ratingsApproved.length
+    let total = ratingsApproved.length
+    console.log("All Items: ", allItems, total)
+    console.log(ratingsApproved[0])
+
+    if (ratingsApproved !== undefined && ratingsApproved !== "") {
+
+        console.log("Data: ", ratingsApproved, count)
+        let newItems = [];
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        let getStatus = session.getItem("Clicked")
+
+        if ($w('#reviewsListt2').data.length < 3 || (count == total && getStatus == "Start")) { 
+
+            console.log("RESTART")
 
             count = 0
-
+            //count ++
             let thisTotal = 3
-            console.log("Counts", count, thisTotal)
 
+            console.log("This Person: ", ratingsApproved[count])
             if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                console.log("Added: ", ratingsApproved[count])
+                console.log("Added Restart: ", ratingsApproved[count])
                 newItems.push(ratingsApproved[count])
                 count++
             }
 
             if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                console.log("Added: ", ratingsApproved[count])
+                console.log("Added Restart 2: ", ratingsApproved[count])
                 newItems.push(ratingsApproved[count])
                 count++
             }
 
-
             if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                console.log("Added: ", ratingsApproved[count])
+                console.log("Added Restart 3: ", ratingsApproved[count])
                 newItems.push(ratingsApproved[count])
                 count++
-                console.log(count)
+            }
+
+            if (count == 3) {
+
+                let reviewsList = $w('#reviewsListt2')
+
+                reviewsList.data = newItems;
+
+                console.log("Reviews Data Count is 3: ", reviewsList.data)
+
+                reviewsList.onItemReady(($item, itemData) => {
+
+                    let rated = itemData.rating
+
+                    $item('#reviewerNamet2').text = itemData.name;
+                    $item('#reviewerTextt2').text = itemData.comment;
+                    $w("#reviewsListt2").expand();
+
+                    if (Number(rated) == 1) {
+                        $item("#s1bt2").show();
+                        $item("#s2bt2").hide();
+                        $item("#s3bt2").hide();
+                        $item("#s4bt2").hide();
+                        $item("#s5bt2").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").show();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 2) {
+                        $item("#s1bt2").show();
+                        $item("#s2bt2").show();
+                        $item("#s3bt2").hide();
+                        $item("#s4bt2").hide();
+                        $item("#s5bt2").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 3) {
+                        $item("#s1bt2").show();
+                        $item("#s2bt2").show();
+                        $item("#s3bt2").show();
+                        $item("#s4bt2").hide();
+                        $item("#s5bt2").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 4) {
+
+                        $item("#s1bt2").show();
+                        $item("#s2bt2").show();
+                        $item("#s3bt2").show();
+                        $item("#s4bt2").show();
+                        $item("#s5bt2").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 5) {
+                        $item("#s1bt2").show();
+                        $item("#s2bt2").show();
+                        $item("#s3bt2").show();
+                        $item("#s4bt2").show();
+                        $item("#s5bt2").show();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").hide();
+
+                    }
+
+                })
+
+            }
+
+        }
+
+        let reviewsList = $w('#reviewsListt2')
+
+        reviewsList.data = newItems;
+        console.log("Reviews Data: ", reviewsList.data)
+
+        reviewsList.onItemReady(($item, itemData) => {
+
+            let rated = itemData.rating
+
+            $item('#reviewerNamet2').text = itemData.name;
+            $item('#reviewerTextt2').text = itemData.comment;
+            $w("#reviewsListt2").expand();
+
+            if (Number(rated) == 1) {
+                $item("#s1bt2").show();
+                $item("#s2bt2").hide();
+                $item("#s3bt2").hide();
+                $item("#s4bt2").hide();
+                $item("#s5bt2").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").show();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 2) {
+                $item("#s1bt2").show();
+                $item("#s2bt2").show();
+                $item("#s3bt2").hide();
+                $item("#s4bt2").hide();
+                $item("#s5bt2").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 3) {
+                $item("#s1bt2").show();
+                $item("#s2bt2").show();
+                $item("#s3bt2").show();
+                $item("#s4bt2").hide();
+                $item("#s5bt2").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 4) {
+
+                $item("#s1bt2").show();
+                $item("#s2bt2").show();
+                $item("#s3bt2").show();
+                $item("#s4bt2").show();
+                $item("#s5bt2").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 5) {
+                $item("#s1bt2").show();
+                $item("#s2bt2").show();
+                $item("#s3bt2").show();
+                $item("#s4bt2").show();
+                $item("#s5bt2").show();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").hide();
+
+            }
+
+        })
+        session.setItem("Clicked", "End")
+
+
+    }
+
+}
+
+export function loadMoreFunctionOne() {
+    console.log("loadMore")
+    session.setItem("Clicked", "Start")
+    console.log("Current Count: ", count)
+
+    let allItems = ratingsApproved.length
+    let total = ratingsApproved.length
+    console.log("All Items: ", allItems, total)
+    console.log(ratingsApproved[0])
+
+    if (ratingsApproved !== undefined && ratingsApproved !== "") {
+
+        console.log("Data: ", ratingsApproved, count)
+        let newItems = [];
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        let getStatus = session.getItem("Clicked")
+
+        if ($w('#reviewsList').data.length < 3 || (count == total && getStatus == "Start")) { 
+
+            console.log("RESTART")
+
+            count = 0
+            //count ++
+            let thisTotal = 3
+
+            console.log("This Person: ", ratingsApproved[count])
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart 2: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart 3: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
             }
 
             if (count == 3) {
@@ -747,113 +1516,191 @@ export function loadMoreFunction() {
                 let reviewsList = $w('#reviewsList')
 
                 reviewsList.data = newItems;
-                console.log("Reviews Data Refreshed: ", reviewsList.data)
+
+                console.log("Reviews Data Count is 3: ", reviewsList.data)
 
                 reviewsList.onItemReady(($item, itemData) => {
 
-                    reviewsList.forEachItem(($item, itemData, index) => {
+                    let rated = itemData.rating
 
-                        let rated = itemData.rating
+                    $item('#reviewerName').text = itemData.name;
+                    $item('#reviewerText').text = itemData.comment;
+                    $w("#reviewsList").expand();
 
-                        $item('#reviewerName').text = itemData.name;
-                        $item('#reviewerText').text = itemData.comment;
-                        $w("#reviewsList").expand();
+                    if (Number(rated) == 1) {
+                        $item("#s1b").show();
+                        $item("#s2b").hide();
+                        $item("#s3b").hide();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
 
-                        if (Number(rated) == 1) {
-                            $item("#s1b").show();
-                            $item("#s2b").hide();
-                            $item("#s3b").hide();
-                            $item("#s4b").hide();
-                            $item("#s5b").hide();
+                        //$item("#b1b").hide();
+                        //$item("#b2b").show();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
 
-                            //$item("#b1b").hide();
-                            //$item("#b2b").show();
-                            //$item("#b3b").show();
-                            //$item("#b4b").show();
-                            //$item("#b5b").show();
+                    }
 
-                        }
+                    if (Number(rated) == 2) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").hide();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
 
-                        if (Number(rated) == 2) {
-                            $item("#s1b").show();
-                            $item("#s2b").show();
-                            $item("#s3b").hide();
-                            $item("#s4b").hide();
-                            $item("#s5b").hide();
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
 
-                            //$item("#b1b").hide();
-                            //$item("#b2b").hide();
-                            //$item("#b3b").show();
-                            //$item("#b4b").show();
-                            //$item("#b5b").show();
+                    }
 
-                        }
+                    if (Number(rated) == 3) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
 
-                        if (Number(rated) == 3) {
-                            $item("#s1b").show();
-                            $item("#s2b").show();
-                            $item("#s3b").show();
-                            $item("#s4b").hide();
-                            $item("#s5b").hide();
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
 
-                            //$item("#b1b").hide();
-                            //$item("#b2b").hide();
-                            //$item("#b3b").hide();
-                            //$item("#b4b").show();
-                            //$item("#b5b").show();
+                    }
 
-                        }
+                    if (Number(rated) == 4) {
 
-                        if (Number(rated) == 4) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").show();
+                        $item("#s5b").hide();
 
-                            $item("#s1b").show();
-                            $item("#s2b").show();
-                            $item("#s3b").show();
-                            $item("#s4b").show();
-                            $item("#s5b").hide();
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").show();
 
-                            //$item("#b1b").hide();
-                            //$item("#b2b").hide();
-                            //$item("#b3b").hide();
-                            //$item("#b4b").hide();
-                            //$item("#b5b").show();
+                    }
 
-                        }
+                    if (Number(rated) == 5) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").show();
+                        $item("#s5b").show();
 
-                        if (Number(rated) == 5) {
-                            $item("#s1b").show();
-                            $item("#s2b").show();
-                            $item("#s3b").show();
-                            $item("#s4b").show();
-                            $item("#s5b").show();
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").hide();
 
-                            //$item("#b1b").hide();
-                            //$item("#b2b").hide();
-                            //$item("#b3b").hide();
-                            //$item("#b4b").hide();
-                            //$item("#b5b").hide();
-
-                        }
-
-                    });
+                    }
 
                 })
 
             }
 
-            if (reviewsList.data.length < 3) {
+        }
 
-                $w('#loadMore').hide();
+        let reviewsList = $w('#reviewsList')
 
-            } else {
+        reviewsList.data = newItems;
+        console.log("Reviews Data: ", reviewsList.data)
 
-                console.log("Show Button Greater than 3 Line 971")
+        reviewsList.onItemReady(($item, itemData) => {
 
-                $w('#loadMore').show();
+            let rated = itemData.rating
+
+            $item('#reviewerName').text = itemData.name;
+            $item('#reviewerText').text = itemData.comment;
+            $w("#reviewsList").expand();
+
+            if (Number(rated) == 1) {
+                $item("#s1b").show();
+                $item("#s2b").hide();
+                $item("#s3b").hide();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").show();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
             }
 
-        }
-        */
+            if (Number(rated) == 2) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").hide();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 3) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 4) {
+
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").show();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").show();
+
+            }
+
+            if (Number(rated) == 5) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").show();
+                $item("#s5b").show();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").hide();
+
+            }
+
+        })
+        session.setItem("Clicked", "End")
+
 
     }
 
@@ -936,6 +1783,48 @@ export function getAgentRatingsAverage(id) {
                         console.log("Total Pushed Ratings: ", totalPushed)
                         $w("#quantity").text = "Based on " + (ratings.length).toString() + " Reviews";
 
+                        //------------------------PROGRESS BARS---------------------------//
+
+
+                        //-------TEMPLATE 1----------//
+
+                        $w("#5starRatingsProgresst1").targetValue = approvedTotal;
+                        $w("#5starRatingsProgresst1").value = fiveProgress;
+
+                        $w("#4starRatingsProgresst1").targetValue = approvedTotal;
+                        $w("#4starRatingsProgresst1").value = fourProgress;
+
+                        $w("#3starRatingsProgresst1").targetValue = approvedTotal;
+                        $w("#3starRatingsProgresst1").targetValue = threeProgress;
+
+                        $w("#2starRatingsProgresst1").targetValue = approvedTotal;
+                        $w("#2starRatingsProgresst1").targetValue = twoProgress;
+
+                        $w("#1starRatingsProgresst1").targetValue = approvedTotal;
+                        $w("#1starRatingsProgresst1").targetValue = oneProgress;
+
+
+
+                       //-------TEMPLATE 2----------//
+
+                        $w("#5starRatingsProgresst2").targetValue = approvedTotal;
+                        $w("#5starRatingsProgresst2").value = fiveProgress;
+
+                        $w("#4starRatingsProgresst2").targetValue = approvedTotal;
+                        $w("#4starRatingsProgresst2").value = fourProgress;
+
+                        $w("#3starRatingsProgresst2").targetValue = approvedTotal;
+                        $w("#3starRatingsProgresst2").targetValue = threeProgress;
+
+                        $w("#2starRatingsProgresst2").targetValue = approvedTotal;
+                        $w("#2starRatingsProgresst2").targetValue = twoProgress;
+
+                        $w("#1starRatingsProgresst2").targetValue = approvedTotal;
+                        $w("#1starRatingsProgresst2").targetValue = oneProgress;
+
+
+
+                        //-------TEMPLATE 3----------//
                         $w("#5starRatingsProgress").targetValue = approvedTotal;
                         $w("#5starRatingsProgress").value = fiveProgress;
 
@@ -958,9 +1847,32 @@ export function getAgentRatingsAverage(id) {
 
                         //agentAverage = gradeTotal / totalCount;
                         let roundedAverage = (Math.round(agentAverage * 2) / 2).toFixed(1)
-                        $w("#agentAverage").text = roundedAverage.toString();
+                        $w("#agentAverage").text = roundedAverage.toString(); //-------TEMPLATE 3----------//
+                        $w("#agentAveraget2").text = roundedAverage.toString(); //-------TEMPLATE 2----------//
+                        $w("#agentAveraget1").text = roundedAverage.toString(); //-------TEMPLATE 1----------//
 
                         if (Number(roundedAverage) == 1) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1s2").hide();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
+
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2s2").hide();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+                            
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#s2").hide();
                             $w("#s3").hide();
@@ -970,6 +1882,28 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 1.5) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1h2").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2h2").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+
+                             //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#h2").show();
                             $w("#s2").show();
@@ -980,6 +1914,26 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 2) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
+
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#s2").show();
                             $w("#s3").hide();
@@ -989,6 +1943,27 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 2.5) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1h3").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2h3").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#h3").show();
                             $w("#s2").show();
@@ -999,6 +1974,26 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 3) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();                            
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#s2").show();
                             $w("#s3").show();
@@ -1008,6 +2003,27 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 3.5) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1h4").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").show();
+                            $w("#t1s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2h4").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").show();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#h4").show();
                             $w("#s2").show();
@@ -1018,6 +2034,25 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 4) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").show();
+                            $w("#t1s5").hide()
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").show();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#s2").show();
                             $w("#s3").show();
@@ -1027,6 +2062,27 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 4.5) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1h5").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").show();
+                            $w("#t1s5").show();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2h5").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").show();
+                            $w("#t2s5").show();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#h5").show();
                             $w("#s2").show();
@@ -1037,6 +2093,25 @@ export function getAgentRatingsAverage(id) {
                         }
 
                         if (Number(roundedAverage) == 5) {
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").show();
+                            $w("#t1s2").show();
+                            $w("#t1s3").show();
+                            $w("#t1s4").show();
+                            $w("#t1s5").show();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").show();
+                            $w("#t2s2").show();
+                            $w("#t2s3").show();
+                            $w("#t2s4").show();
+                            $w("#t2s5").show();
+
+                            //--TEMPLATE 3--//
+
                             $w("#s1").show();
                             $w("#s2").show();
                             $w("#s3").show();
@@ -1044,19 +2119,45 @@ export function getAgentRatingsAverage(id) {
                             $w("#s5").show();
 
                         }
+
+
                         $w("#quantity").expand();
+                        $w("#quantityt2").expand();
+                        $w("#quantityt1").expand();
 
                         console.log("Agent Average", agentAverage, roundedAverage, totalCount, average)
 
                         if (sidebarcount == totalCount && ratings.length < 1) {
                             console.log("No Ratings Approved: ", totalPushed.length, userRatings);
 
-                            $w("#quantity").text = "No reviews"
+                            $w("#quantity").text = "No reviews";
+                            $w("#quantityt2").text = "No reviews";
+                            $w("#quantityt1").text = "No reviews";
+
+                             //--TEMPLATE 3--//
+
                             $w("#s1").hide();
                             $w("#s2").hide();
                             $w("#s3").hide();
                             $w("#s4").hide();
                             $w("#s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").hide();
+                            $w("#t2s2").hide();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").hide();
+                            $w("#t1s2").hide();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
+
 
                         }
 
@@ -1065,11 +2166,33 @@ export function getAgentRatingsAverage(id) {
                         console.log("No Ratings Approved: ", ratings.length, userRatings);
 
                         $w("#quantity").text = "No reviews"
-                        $w("#s1").hide();
-                        $w("#s2").hide();
-                        $w("#s3").hide();
-                        $w("#s4").hide();
-                        $w("#s5").hide();
+                        $w("#quantityt2").text = "No reviews";
+                        $w("#quantityt1").text = "No reviews";
+
+
+                             //--TEMPLATE 3--//
+
+                            $w("#s1").hide();
+                            $w("#s2").hide();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").hide();
+                            $w("#t2s2").hide();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").hide();
+                            $w("#t1s2").hide();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
 
                     }
 
@@ -1079,15 +2202,38 @@ export function getAgentRatingsAverage(id) {
 
                 console.log("No Ratings Found for User")
 
-                $w("#quantity").text = "No reviews"
-                $w("#s1").hide();
-                $w("#s2").hide();
-                $w("#s3").hide();
-                $w("#s4").hide();
-                $w("#s5").hide();
+                        $w("#quantity").text = "No reviews"
+                        $w("#quantityt2").text = "No reviews";
+                        $w("#quantityt1").text = "No reviews";
+
+
+                             //--TEMPLATE 3--//
+
+                            $w("#s1").hide();
+                            $w("#s2").hide();
+                            $w("#s3").hide();
+                            $w("#s4").hide();
+                            $w("#s5").hide();
+
+                            //--TEMPLATE 2--//
+
+                            $w("#t2s1").hide();
+                            $w("#t2s2").hide();
+                            $w("#t2s3").hide();
+                            $w("#t2s4").hide();
+                            $w("#t2s5").hide();
+
+                            //--TEMPLATE 1--//
+
+                            $w("#t1s1").hide();
+                            $w("#t1s2").hide();
+                            $w("#t1s3").hide();
+                            $w("#t1s4").hide();
+                            $w("#t1s5").hide();
 
             }
 
         })
 
 }
+

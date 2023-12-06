@@ -1,6 +1,6 @@
 import wixWindow from 'wix-window';
 import wixData from 'wix-data';
-import {session} from 'wix-storage';
+import { session } from 'wix-storage';
 
 let thisUser
 let ratings = null;
@@ -22,9 +22,10 @@ $w.onReady(function () {
     $w('#agentsDataset').onReady(() => {
         const userTemplate = $w('#agentsDataset').getCurrentItem().template;
         var itemData = $w('#agentsDataset').getCurrentItem()
-         let userRatings = itemData.ratings;
+        let userRatings = itemData.ratings;
+        
 
-         if (userRatings !== undefined) {
+        if (userRatings !== undefined) {
 
             getAgentRatingsAverage(itemData._id);
 
@@ -90,6 +91,7 @@ $w.onReady(function () {
             $w('#t2x').collapse()
             $w('#t3x').collapse()
         }
+
     });
 });
 
@@ -109,366 +111,193 @@ $w.onReady(function () {
 
 export function leaveReview3_click(event) {
 
-	let userData = $w("#agentsDataset").getCurrentItem();
+    let userData = $w("#agentsDataset").getCurrentItem();
 
     wixWindow.openLightbox('Write A Review', userData)
-		.then( (data) => {
+        .then((data) => {
 
-			let receivedData = data;
+            let receivedData = data;
 
-			if (receivedData === "Reviewed"){
+            console.log("Data Received: ", receivedData)
 
-            $w("#leaveReview3").label = "Review Received"
-            $w("#leaveReview3").disable();
+            if (receivedData === "Reviewed") {
 
-			}
-		} );
+                $w("#leaveReview3").label = "Review Received"
+                $w("#leaveReview3").disable();
+
+            }
+        });
 }
 
-
-export function getReviews(email, status){
-ratingsApproved = null;
-ratingsApproved = [];
-let thisTotal = 3
-let newItems = null;
-newItems = [];
-let countedTotal = 0
-
-
+export function getReviews(email, status) {
+    ratingsApproved = null;
+    ratingsApproved = [];
+    let thisTotal = 3
+    let newItems = null;
+    newItems = [];
+    let countedTotal = 0
 
     console.log("Get Ratings:")
 
     wixData.query("Team")
-                    .eq("email", email)         
-                    .find() 
-                    .then((results) => { 
-						console.log("Found user", results)
+        .eq("email", email)
+        .find()
+        .then((results) => {
+            console.log("Found user", results)
 
-						let userRatings = results.items[0].ratings; 
-                        let totalRatingsCount = results.items[0].ratings.length;
-                        console.log("Totals Initial: ", totalRatingsCount)
+            let userRatings = results.items[0].ratings;
+            let totalRatingsCount = results.items[0].ratings.length;
+            console.log("Totals Initial: ", totalRatingsCount)
 
+            let userId = results.items[0]._id;
+            session.setItem("thisUser", userId)
+            console.log("Ratings:", userRatings)
+            console.log("userId:", userId)
+            let firstLoadCount = 0;
 
-						let userId = results.items[0]._id; 
-						session.setItem("thisUser", userId)
-                        console.log("Ratings:", userRatings)
-						console.log("userId:", userId)
-                        let firstLoadCount = 0;
-                        
+            if (userRatings !== undefined && userRatings.length > 0) {
 
-                        if(userRatings !== undefined && userRatings.length > 0){
-                           
+                let totalCount = userRatings.length;
 
-                            let totalCount = userRatings.length;
+                userRatings.forEach(function (rating) {
 
-                            userRatings.forEach(function(rating) {
+                    countedTotal++
+                    console.log("All For Each Totals: ", countedTotal, allApproved)
 
-                                countedTotal++
-                                console.log("All For Each Totals: ", countedTotal, allApproved)
+                    //let approvedCount = 0;
 
-                                //let approvedCount = 0;
+                    let allApprovedRatings = ratingsApproved.length;
 
-                                let allApprovedRatings = ratingsApproved.length;
+                    if (rating.status == "Approved") {
 
+                        //approvedCount++
 
+                        ratingsApproved.push(rating); //Remove for final push
+                        console.log("Approved", ratingsApproved) //Remove for final push
 
+                        console.log("Current Ratings: ", ratings)
 
+                        allRatings.push(rating) //All User Ratings
 
-								if(rating.status == "Approved"){
+                        console.log("This Rating: ", rating.rating)
 
-                                
+                        //**Written Reviews Widget**//
 
-                                    //approvedCount++
+                        console.log("Totals Approved: ", allApprovedRatings)
+                        console.log("Totals Counted Total: ", countedTotal)
+                        console.log("Totals Ratings: ", totalRatingsCount)
 
-                                    ratingsApproved.push(rating); //Remove for final push
-                                    console.log("Approved", ratingsApproved) //Remove for final push
+                        console.log("New Items: ", newItems)
 
+                        console.log("This Person: ", ratingsApproved[count])
 
-                                    
-                                    
-                                console.log("Current Ratings: ", ratings)
+                    }
 
-                                allRatings.push(rating) //All User Ratings
+                    //here
 
-                                console.log("This Rating: ", rating.rating)
+                    /*
+                    if(count == totalCount){
 
-                                 
+                        loadRepeaterData(ratingsApproved)
 
+                    
 
+                    }
+                    */
 
-                                    //**Written Reviews Widget**//
+                    if (countedTotal == totalRatingsCount) {
 
-
-                                        
-
-                                         console.log("Totals Approved: ", allApprovedRatings)
-                                         console.log("Totals Counted Total: ", countedTotal)
-                                         console.log("Totals Ratings: ", totalRatingsCount)
-
-
-
-
-                                             console.log("New Items: ",  newItems)
-
-                                              console.log("This Person: ", ratingsApproved[count])
-
-                                                
-                                        }
-                                        
-
-                                        
-                                        //here
-                                        
-
-								
-
-                                /*
-                                if(count == totalCount){
-
-                                    loadRepeaterData(ratingsApproved)
-
-                                
-
-                                }
-                                */
-                           
-
-                                if(countedTotal == totalRatingsCount){
-
-                                    if(ratingsApproved[count] !== undefined && count <= thisTotal){
-                                                newItems.push(ratingsApproved[count])
-                                                console.log("Current Count 1: ", count)
-                                                count++
-                                                }
-
-                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
-                                                newItems.push(ratingsApproved[count])
-                                                console.log("Current Count 2: ", count)
-                                                count++
-                                                }
-
-                                                if(ratingsApproved[count] !== undefined && count <= thisTotal){
-                                                newItems.push(ratingsApproved[count])
-                                                console.log("Current Count 3: ", count)
-                                                count++
-                                                console.log("Current Count of Third: ", count)
-                                                }
-                                             
-
-                                                if(count == 3){
-
-                                                    console.log("Current Count of Loaded Is: ", count)
-                                                
-                                                let reviewsRepeater = $w('#reviewsList')
-
-                                                reviewsRepeater.data = newItems;
-
-                                            console.log("Features Data: ", reviewsRepeater.data)
-                                            console.log("Tester")
-
-
-                                            reviewsRepeater.onItemReady(($item, itemData) => {
-                                                console.log(itemData.item)
-                                              
-                                          
-                                                reviewsRepeater.forEachItem( ($item, itemData, index) => {
-
-                                                        let rated = itemData.rating
-
-                                                    $item('#reviewerName').text = itemData.name;
-                                                    $item('#reviewerText').text = itemData.comment;
-                                                    $w("#reviewsList").expand();
-
-                                                    //---PROGRESS BARS---//
-
-
-                                                   
-
-                                                        if(Number(rated) == 1){
-                                                            $item("#s1b").show();
-                                                            $item("#s2b").hide();
-                                                            $item("#s3b").hide();
-                                                            $item("#s4b").hide();
-                                                            $item("#s5b").hide();
-
-                                                            //$item("#b1b").hide();
-                                                            //$item("#b2b").show();
-                                                            //$item("#b3b").show();
-                                                            //$item("#b4b").show();
-                                                            //$item("#b5b").show();
-
-                                                        }
-
-
-                                                        if(Number(rated) == 2){
-                                                            $item("#s1b").show();
-                                                            $item("#s2b").show();
-                                                            $item("#s3b").hide();
-                                                            $item("#s4b").hide();
-                                                            $item("#s5b").hide();
-
-                                                            //$item("#b1b").hide();
-                                                            //$item("#b2b").hide();
-                                                            //$item("#b3b").show();
-                                                            //$item("#b4b").show();
-                                                            //$item("#b5b").show();
-
-                                                        }
-
-
-                                                        if(Number(rated) == 3){
-                                                            $item("#s1b").show();
-                                                            $item("#s2b").show();
-                                                            $item("#s3b").show();
-                                                            $item("#s4b").hide();
-                                                            $item("#s5b").hide();
-
-                                                            //$item("#b1b").hide();
-                                                            //$item("#b2b").hide();
-                                                            //$item("#b3b").hide();
-                                                            //$item("#b4b").show();
-                                                            //$item("#b5b").show();
-
-                                                        }
-
-
-                                                        if(Number(rated) == 4){
-
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").show();
-                                                                $item("#s4b").show();
-                                                                $item("#s5b").hide();
-
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").hide();
-                                                                //$item("#b4b").hide();
-                                                                //$item("#b5b").show();
-
-                                                        }
-
-
-                                                        if(Number(rated) == 5){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").show();
-                                                                $item("#s4b").show();
-                                                                $item("#s5b").show();
-
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").hide();
-                                                                //$item("#b4b").hide();
-                                                                //$item("#b5b").hide();
-
-                                                        }
-
-                                                        } );
-
-                                                        
-
-                                                })
-
-                                                console.log("Show Button: ", count, allApprovedRatings);
-
-                                                 
-
-                                            } // if count is 3
-
-
-
-                                     if ( allApprovedRatings > 3 ){
-
-                                                     console.log("Show Button Greater than 3 Line 391")
-                                                    $w('#loadMore').show();
-                                                    console.log("Current Count of Loaded: ", count)
-                                                }
-
-                                }
-                                
-
-
-
-
-							}) //end of foreach
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 1: ", count)
+                            count++
                         }
 
-                    })
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
 
-}
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of Third: ", count)
+                        }
 
-export function loadRepeaterData(repeaterData){
-  
+                        if (count == 3) {
 
-						let reviewsRepeater = $w('#reviewsList')
-															
-								reviewsRepeater.data = [];
+                            console.log("Current Count of Loaded Is: ", count)
 
-                                
+                            let reviewsRepeater = $w('#reviewsList')
 
-								reviewsRepeater.data = repeaterData
-								console.log("Repeater Data: ", reviewsRepeater.data)
-                                
-								reviewsRepeater.onItemReady(($item, itemData) => {
+                            reviewsRepeater.data = newItems;
+
+                            console.log("Features Data: ", reviewsRepeater.data)
+                            console.log("Tester")
+
+                            reviewsRepeater.onItemReady(($item, itemData) => {
+                                console.log(itemData.item)
+
+                                reviewsRepeater.forEachItem(($item, itemData, index) => {
 
                                     let rated = itemData.rating
 
-										$item('#reviewerName').text = itemData.name;
-                                        $item('#reviewerText').text = itemData.comment;
-                                        $w("#reviewsList").expand();
+                                    $item('#reviewerName').text = itemData.name;
+                                    $item('#reviewerText').text = itemData.comment;
+                                    $w("#reviewsList").expand();
 
-                                if(Number(rated) == 1){
-                                    $item("#s1b").show();
-                                    $item("#s2b").hide();
-                                    $item("#s3b").hide();
-                                    $item("#s4b").hide();
-                                    $item("#s5b").hide();
+                                    //---PROGRESS BARS---//
 
-                                    //$item("#b1b").hide();
-                                    //$item("#b2b").show();
-                                    //$item("#b3b").show();
-                                    //$item("#b4b").show();
-                                    //$item("#b5b").show();
+                                    if (Number(rated) == 1) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").hide();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
 
-                                }
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").show();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
 
+                                    }
 
-                                if(Number(rated) == 2){
-                                    $item("#s1b").show();
-                                    $item("#s2b").show();
-                                    $item("#s3b").hide();
-                                    $item("#s4b").hide();
-                                    $item("#s5b").hide();
+                                    if (Number(rated) == 2) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").hide();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
 
-                                    //$item("#b1b").hide();
-                                    //$item("#b2b").hide();
-                                    //$item("#b3b").show();
-                                    //$item("#b4b").show();
-                                    //$item("#b5b").show();
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").show();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
 
-                                }
+                                    }
 
+                                    if (Number(rated) == 3) {
+                                        $item("#s1b").show();
+                                        $item("#s2b").show();
+                                        $item("#s3b").show();
+                                        $item("#s4b").hide();
+                                        $item("#s5b").hide();
 
-                                 if(Number(rated) == 3){
-                                    $item("#s1b").show();
-                                    $item("#s2b").show();
-                                    $item("#s3b").show();
-                                    $item("#s4b").hide();
-                                    $item("#s5b").hide();
+                                        //$item("#b1b").hide();
+                                        //$item("#b2b").hide();
+                                        //$item("#b3b").hide();
+                                        //$item("#b4b").show();
+                                        //$item("#b5b").show();
 
-                                    //$item("#b1b").hide();
-                                    //$item("#b2b").hide();
-                                    //$item("#b3b").hide();
-                                    //$item("#b4b").show();
-                                    //$item("#b5b").show();
+                                    }
 
-                                }
+                                    if (Number(rated) == 4) {
 
-
-                                if(Number(rated) == 4){
-
-                                    	$item("#s1b").show();
+                                        $item("#s1b").show();
                                         $item("#s2b").show();
                                         $item("#s3b").show();
                                         $item("#s4b").show();
@@ -480,11 +309,10 @@ export function loadRepeaterData(repeaterData){
                                         //$item("#b4b").hide();
                                         //$item("#b5b").show();
 
-                                }
+                                    }
 
-
-                                if(Number(rated) == 5){
-                                    	$item("#s1b").show();
+                                    if (Number(rated) == 5) {
+                                        $item("#s1b").show();
                                         $item("#s2b").show();
                                         $item("#s3b").show();
                                         $item("#s4b").show();
@@ -496,478 +324,542 @@ export function loadRepeaterData(repeaterData){
                                         //$item("#b4b").hide();
                                         //$item("#b5b").hide();
 
-                                }
+                                    }
 
-                                $item("#reviewsList").expand();
-                                 $item("#line18").expand();
-									
-								})
+                                });
 
+                            })
+
+                            console.log("Show Button: ", count, allApprovedRatings);
+
+                        } // if count is 3
+
+                        if (allApprovedRatings > 3) {
+
+                            console.log("Show Button Greater than 3 Line 391")
+                            $w('#loadMore').show();
+                            console.log("Current Count of Loaded: ", count)
+                        }
+
+                    }
+
+                }) //end of foreach
+            }
+
+        })
+
+}
+
+export function loadRepeaterData(repeaterData) {
+
+    let reviewsRepeater = $w('#reviewsList')
+
+    reviewsRepeater.data = [];
+
+    reviewsRepeater.data = repeaterData
+    console.log("Repeater Data: ", reviewsRepeater.data)
+
+    reviewsRepeater.onItemReady(($item, itemData) => {
+
+        let rated = itemData.rating
+
+        $item('#reviewerName').text = itemData.name;
+        $item('#reviewerText').text = itemData.comment;
+        $w("#reviewsList").expand();
+
+        if (Number(rated) == 1) {
+            $item("#s1b").show();
+            $item("#s2b").hide();
+            $item("#s3b").hide();
+            $item("#s4b").hide();
+            $item("#s5b").hide();
+
+            //$item("#b1b").hide();
+            //$item("#b2b").show();
+            //$item("#b3b").show();
+            //$item("#b4b").show();
+            //$item("#b5b").show();
+
+        }
+
+        if (Number(rated) == 2) {
+            $item("#s1b").show();
+            $item("#s2b").show();
+            $item("#s3b").hide();
+            $item("#s4b").hide();
+            $item("#s5b").hide();
+
+            //$item("#b1b").hide();
+            //$item("#b2b").hide();
+            //$item("#b3b").show();
+            //$item("#b4b").show();
+            //$item("#b5b").show();
+
+        }
+
+        if (Number(rated) == 3) {
+            $item("#s1b").show();
+            $item("#s2b").show();
+            $item("#s3b").show();
+            $item("#s4b").hide();
+            $item("#s5b").hide();
+
+            //$item("#b1b").hide();
+            //$item("#b2b").hide();
+            //$item("#b3b").hide();
+            //$item("#b4b").show();
+            //$item("#b5b").show();
+
+        }
+
+        if (Number(rated) == 4) {
+
+            $item("#s1b").show();
+            $item("#s2b").show();
+            $item("#s3b").show();
+            $item("#s4b").show();
+            $item("#s5b").hide();
+
+            //$item("#b1b").hide();
+            //$item("#b2b").hide();
+            //$item("#b3b").hide();
+            //$item("#b4b").hide();
+            //$item("#b5b").show();
+
+        }
+
+        if (Number(rated) == 5) {
+            $item("#s1b").show();
+            $item("#s2b").show();
+            $item("#s3b").show();
+            $item("#s4b").show();
+            $item("#s5b").show();
+
+            //$item("#b1b").hide();
+            //$item("#b2b").hide();
+            //$item("#b3b").hide();
+            //$item("#b4b").hide();
+            //$item("#b5b").hide();
+
+        }
+
+        $item("#reviewsList").expand();
+        $item("#line18").expand();
+
+    })
 
 }
 
 export function loadMore_click(event) {
-	loadMoreFunction()
+    loadMoreFunction()
 }
 
-export function loadMoreFunction(){
+export function loadMoreFunction() {
     console.log("loadMore")
-	session.setItem("Clicked","Start")
+    session.setItem("Clicked", "Start")
     console.log("Current Count: ", count)
 
+    let allItems = ratingsApproved.length
+    let total = ratingsApproved.length
+    console.log("All Items: ", allItems, total)
+    console.log(ratingsApproved[0])
+
+    if (ratingsApproved !== undefined && ratingsApproved !== "") {
+
+        console.log("Data: ", ratingsApproved, count)
+        let newItems = [];
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        if (ratingsApproved[count] !== undefined && count < allItems) {
+            console.log("Added: ", ratingsApproved[count])
+            newItems.push(ratingsApproved[count])
+            count++
+            console.log("Count", allItems, total)
+            session.setItem("Clicked", "Pending")
+        }
+
+        let getStatus = session.getItem("Clicked")
+
+        if ($w('#reviewsList').data.length < 3 || (count == total && getStatus == "Start")) { 
+
+            console.log("RESTART")
+
+            count = 0
+            //count ++
+            let thisTotal = 3
+
+            console.log("This Person: ", ratingsApproved[count])
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart 2: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart 3: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (count == 3) {
+
+                let reviewsList = $w('#reviewsList')
+
+                reviewsList.data = newItems;
 
-								let allItems = ratingsApproved.length
-								let total = ratingsApproved.length
-                                console.log("All Items: ", allItems, total)
-                                console.log(ratingsApproved[0])
-
-                                
-                                
-								
-								if(ratingsApproved !== undefined && ratingsApproved !== ""){
-									
-									console.log("Data: ", ratingsApproved, count)
-									let newItems = [];
-
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
-
-											if(ratingsApproved[count] !== undefined && count < allItems){
-												console.log("Added: ", ratingsApproved[count])
-												newItems.push(ratingsApproved[count])
-												count++
-												console.log("Count", allItems, total)
-												session.setItem("Clicked","Pending")
-											}
-
-                                            if($w('#reviewsList').data.length < 3){
-
-                                    
-										console.log("RESTART")
-
-										count = 0
-										//count ++
-										let thisTotal = 3
-
-                                        console.log("This Person: ", ratingsApproved[count])
-										if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added Restart: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-                                        }
-
-                                        if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added Restart 2: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-                                        }
-
-                                        if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added Restart 3: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-                                        }
-
-                                        if(count == 3){
+                console.log("Reviews Data Count is 3: ", reviewsList.data)
 
-                                            let reviewsList = $w('#reviewsList')
-										
-													reviewsList.data = newItems;
+                reviewsList.onItemReady(($item, itemData) => {
 
-													console.log("Reviews Data: ", reviewsList.data)
+                    let rated = itemData.rating
 
-													reviewsList.onItemReady(($item, itemData) => {
+                    $item('#reviewerName').text = itemData.name;
+                    $item('#reviewerText').text = itemData.comment;
+                    $w("#reviewsList").expand();
+
+                    if (Number(rated) == 1) {
+                        $item("#s1b").show();
+                        $item("#s2b").hide();
+                        $item("#s3b").hide();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").show();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 2) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").hide();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").show();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
 
+                    }
 
-														 let rated = itemData.rating
+                    if (Number(rated) == 3) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").hide();
+                        $item("#s5b").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").show();
+                        //$item("#b5b").show();
 
-                                                        $item('#reviewerName').text = itemData.name;
-                                                        $item('#reviewerText').text = itemData.comment;
-                                                        $w("#reviewsList").expand();
+                    }
 
-                                                            if(Number(rated) == 1){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").hide();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+                    if (Number(rated) == 4) {
+
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").show();
+                        $item("#s5b").hide();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").show();
+
+                    }
+
+                    if (Number(rated) == 5) {
+                        $item("#s1b").show();
+                        $item("#s2b").show();
+                        $item("#s3b").show();
+                        $item("#s4b").show();
+                        $item("#s5b").show();
+
+                        //$item("#b1b").hide();
+                        //$item("#b2b").hide();
+                        //$item("#b3b").hide();
+                        //$item("#b4b").hide();
+                        //$item("#b5b").hide();
+
+                    }
+
+                })
+
+            }
+
+        }
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").show();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+        let reviewsList = $w('#reviewsList')
+
+        reviewsList.data = newItems;
+        console.log("Reviews Data: ", reviewsList.data)
+
+        reviewsList.onItemReady(($item, itemData) => {
+
+            let rated = itemData.rating
+
+            $item('#reviewerName').text = itemData.name;
+            $item('#reviewerText').text = itemData.comment;
+            $w("#reviewsList").expand();
+
+            if (Number(rated) == 1) {
+                $item("#s1b").show();
+                $item("#s2b").hide();
+                $item("#s3b").hide();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").show();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
+
+            }
 
-                                                            }
+            if (Number(rated) == 2) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").hide();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
 
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").show();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
 
-                                                            if(Number(rated) == 2){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+            }
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+            if (Number(rated) == 3) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").hide();
+                $item("#s5b").hide();
 
-                                                            }
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").show();
+                //$item("#b5b").show();
 
+            }
 
-                                                            if(Number(rated) == 3){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").show();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+            if (Number(rated) == 4) {
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").hide();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").show();
+                $item("#s5b").hide();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").show();
 
-                                                            }
+            }
+
+            if (Number(rated) == 5) {
+                $item("#s1b").show();
+                $item("#s2b").show();
+                $item("#s3b").show();
+                $item("#s4b").show();
+                $item("#s5b").show();
+
+                //$item("#b1b").hide();
+                //$item("#b2b").hide();
+                //$item("#b3b").hide();
+                //$item("#b4b").hide();
+                //$item("#b5b").hide();
 
+            }
+
+        })
+        session.setItem("Clicked", "End")
+
+        
+        /*
+        if (count == total && getStatus == "Start") { 
+            console.log("Finished", ratingsApproved)
+
+            count = 0
+
+            let thisTotal = 3
+            console.log("Counts", count, thisTotal)
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+            }
+
+
+            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                console.log("Added: ", ratingsApproved[count])
+                newItems.push(ratingsApproved[count])
+                count++
+                console.log(count)
+            }
 
-                                                            if(Number(rated) == 4){
+            if (count == 3) {
 
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").hide();
+                let reviewsList = $w('#reviewsList')
 
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").show();
+                reviewsList.data = newItems;
+                console.log("Reviews Data Refreshed: ", reviewsList.data)
 
-                                                            }
+                reviewsList.onItemReady(($item, itemData) => {
 
+                    reviewsList.forEachItem(($item, itemData, index) => {
 
-                                                            if(Number(rated) == 5){
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").show();
+                        let rated = itemData.rating
 
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").hide();
+                        $item('#reviewerName').text = itemData.name;
+                        $item('#reviewerText').text = itemData.comment;
+                        $w("#reviewsList").expand();
 
-                                                            }
+                        if (Number(rated) == 1) {
+                            $item("#s1b").show();
+                            $item("#s2b").hide();
+                            $item("#s3b").hide();
+                            $item("#s4b").hide();
+                            $item("#s5b").hide();
 
-                                                    })
+                            //$item("#b1b").hide();
+                            //$item("#b2b").show();
+                            //$item("#b3b").show();
+                            //$item("#b4b").show();
+                            //$item("#b5b").show();
 
-                                        }
+                        }
 
+                        if (Number(rated) == 2) {
+                            $item("#s1b").show();
+                            $item("#s2b").show();
+                            $item("#s3b").hide();
+                            $item("#s4b").hide();
+                            $item("#s5b").hide();
 
+                            //$item("#b1b").hide();
+                            //$item("#b2b").hide();
+                            //$item("#b3b").show();
+                            //$item("#b4b").show();
+                            //$item("#b5b").show();
 
+                        }
 
+                        if (Number(rated) == 3) {
+                            $item("#s1b").show();
+                            $item("#s2b").show();
+                            $item("#s3b").show();
+                            $item("#s4b").hide();
+                            $item("#s5b").hide();
 
-                                    }
+                            //$item("#b1b").hide();
+                            //$item("#b2b").hide();
+                            //$item("#b3b").hide();
+                            //$item("#b4b").show();
+                            //$item("#b5b").show();
 
-													let reviewsList = $w('#reviewsList')
-										
-													reviewsList.data = newItems;
-													console.log("Reviews Data: ", reviewsList.data)
+                        }
 
-													reviewsList.onItemReady(($item, itemData) => {
+                        if (Number(rated) == 4) {
 
+                            $item("#s1b").show();
+                            $item("#s2b").show();
+                            $item("#s3b").show();
+                            $item("#s4b").show();
+                            $item("#s5b").hide();
 
-														 let rated = itemData.rating
+                            //$item("#b1b").hide();
+                            //$item("#b2b").hide();
+                            //$item("#b3b").hide();
+                            //$item("#b4b").hide();
+                            //$item("#b5b").show();
 
-                                                        $item('#reviewerName').text = itemData.name;
-                                                        $item('#reviewerText').text = itemData.comment;
-                                                        $w("#reviewsList").expand();
+                        }
 
-                                                            if(Number(rated) == 1){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").hide();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+                        if (Number(rated) == 5) {
+                            $item("#s1b").show();
+                            $item("#s2b").show();
+                            $item("#s3b").show();
+                            $item("#s4b").show();
+                            $item("#s5b").show();
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").show();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+                            //$item("#b1b").hide();
+                            //$item("#b2b").hide();
+                            //$item("#b3b").hide();
+                            //$item("#b4b").hide();
+                            //$item("#b5b").hide();
 
-                                                            }
+                        }
 
+                    });
 
-                                                            if(Number(rated) == 2){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+                })
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+            }
 
-                                                            }
+            if (reviewsList.data.length < 3) {
 
+                $w('#loadMore').hide();
 
-                                                            if(Number(rated) == 3){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").show();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
+            } else {
 
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").hide();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
+                console.log("Show Button Greater than 3 Line 971")
 
-                                                            }
+                $w('#loadMore').show();
+            }
 
+        }
+        */
 
-                                                            if(Number(rated) == 4){
-
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").hide();
-
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").show();
-
-                                                            }
-
-
-                                                            if(Number(rated) == 5){
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").show();
-
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").hide();
-
-                                                            }
-														
-						
-													})
-													session.setItem("Clicked","End")
-
-													
-
-										
-
-
-									let getStatus = session.getItem("Clicked")
-
-                                    
-
-									if(count == total && getStatus =="Start"){
-										console.log("Finished", ratingsApproved)
-
-										count = 0
-										
-										let thisTotal = 3
-										console.log("Counts", count, thisTotal)
-
-
-										if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-									}
-
-									if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-									}
-
-									if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-									}
-
-									if(ratingsApproved[count] !== undefined && count <= thisTotal){
-										console.log("Added: ", ratingsApproved[count])
-										newItems.push(ratingsApproved[count])
-										count++
-										console.log(count)
-									}
-
-										if(count == 3){
-										
-
-											let reviewsList = $w('#reviewsList')
-										
-										reviewsList.data = newItems;
-										console.log("Reviews Data Refreshed: ", reviewsList.data)
-
-										reviewsList.onItemReady(($item, itemData) => {
-
-
-											reviewsList.forEachItem( ($item, itemData, index) => {
-
-                                                 let rated = itemData.rating
-
-                                                        $item('#reviewerName').text = itemData.name;
-                                                        $item('#reviewerText').text = itemData.comment;
-                                                        $w("#reviewsList").expand();
-
-                                                            if(Number(rated) == 1){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").hide();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
-
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").show();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
-
-                                                            }
-
-
-                                                            if(Number(rated) == 2){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").hide();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
-
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").show();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
-
-                                                            }
-
-
-                                                            if(Number(rated) == 3){
-                                                                $item("#s1b").show();
-                                                                $item("#s2b").show();
-                                                                $item("#s3b").show();
-                                                                $item("#s4b").hide();
-                                                                $item("#s5b").hide();
-
-                                                                //$item("#b1b").hide();
-                                                                //$item("#b2b").hide();
-                                                                //$item("#b3b").hide();
-                                                                //$item("#b4b").show();
-                                                                //$item("#b5b").show();
-
-                                                            }
-
-
-                                                            if(Number(rated) == 4){
-
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").hide();
-
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").show();
-
-                                                            }
-
-
-                                                            if(Number(rated) == 5){
-                                                                    $item("#s1b").show();
-                                                                    $item("#s2b").show();
-                                                                    $item("#s3b").show();
-                                                                    $item("#s4b").show();
-                                                                    $item("#s5b").show();
-
-                                                                    //$item("#b1b").hide();
-                                                                    //$item("#b2b").hide();
-                                                                    //$item("#b3b").hide();
-                                                                    //$item("#b4b").hide();
-                                                                    //$item("#b5b").hide();
-
-                                                            }
-
-													
-													} );
-
-													
-
-											})
-
-										}
-
-
-                                        if(reviewsList.data.length < 3){
-
-                                            $w('#loadMore').hide();
-
-                                        } else {
-
-                                            console.log("Show Button Greater than 3 Line 971")
-
-                                            $w('#loadMore').show();
-                                        }
-
-
-
-
-
-
-									}
-
-
-								}
-								
-
-							
+    }
 
 }
 
-
 export function getAgentRatingsAverage(id) {
-
 
     wixData.query("Team")
         .eq("_id", id)
@@ -987,7 +879,7 @@ export function getAgentRatingsAverage(id) {
             let oneProgress = 0;
 
             if (userRatings !== undefined) {
-               
+
                 let totalCount = userRatings.length;
 
                 userRatings.forEach(function (rating) {
@@ -995,7 +887,6 @@ export function getAgentRatingsAverage(id) {
 
                     if (rating.status == "Approved") {
 
-                        
                         approvedTotal++
                         ratings.push(rating);
                         console.log("Pushed")
@@ -1004,45 +895,41 @@ export function getAgentRatingsAverage(id) {
                         average.push(ratingNumber);
                         console.log("Rating: ", rating)
 
-                        if(Number(rating.rating) == 1){
+                        if (Number(rating.rating) == 1) {
 
-                                     oneProgress++
+                            oneProgress++
 
-                                 }
+                        }
 
-                                 if(Number(rating.rating) == 2){
+                        if (Number(rating.rating) == 2) {
 
-                                     twoProgress++
+                            twoProgress++
 
-                                 }
+                        }
 
-                                 if(Number(rating.rating) == 3){
+                        if (Number(rating.rating) == 3) {
 
-                                     threeProgress++
+                            threeProgress++
 
-                                 }
+                        }
 
-                                 if(Number(rating.rating) == 4){
+                        if (Number(rating.rating) == 4) {
 
-                                     fourProgress++
+                            fourProgress++
 
-                                 }
+                        }
 
-                                 if(Number(rating.rating) == 5){
+                        if (Number(rating.rating) == 5) {
 
-                                     fiveProgress++
+                            fiveProgress++
 
-                                 }
-
+                        }
 
                     }
 
                     console.log("Current Ratings: ", ratings)
 
                     allRatings.push(rating) //All User Ratings
-
-                                
-
 
                     if (sidebarcount == totalCount && ratings.length > 0) {
                         let totalPushed = ratings.length;
@@ -1066,14 +953,12 @@ export function getAgentRatingsAverage(id) {
 
                         console.log("ALL TOTAL PROGRESS: ", fiveProgress, fourProgress, threeProgress, twoProgress, oneProgress, approvedTotal)
 
-
                         agentAverage = gradeTotal / Number(totalPushed); //Does not count hidden reviews
                         console.log("Totals", ratings.length, totalCount, agentAverage)
 
                         //agentAverage = gradeTotal / totalCount;
                         let roundedAverage = (Math.round(agentAverage * 2) / 2).toFixed(1)
                         $w("#agentAverage").text = roundedAverage.toString();
-
 
                         if (Number(roundedAverage) == 1) {
                             $w("#s1").show();
@@ -1111,7 +996,6 @@ export function getAgentRatingsAverage(id) {
                             $w("#s4").hide();
                             $w("#s5").hide();
 
-
                         }
 
                         if (Number(roundedAverage) == 3) {
@@ -1120,7 +1004,6 @@ export function getAgentRatingsAverage(id) {
                             $w("#s3").show();
                             $w("#s4").hide();
                             $w("#s5").hide();
-
 
                         }
 
@@ -1131,7 +1014,6 @@ export function getAgentRatingsAverage(id) {
                             $w("#s3").show();
                             $w("#s4").show();
                             $w("#s5").hide();
-
 
                         }
 

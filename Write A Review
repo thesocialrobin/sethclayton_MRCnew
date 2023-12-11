@@ -435,4 +435,4 @@ export function closeLightbox_click(event) {
         wixWindow.lightbox.close(reviewed);
 }
 
-
+ 

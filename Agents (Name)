@@ -667,31 +667,11 @@ export function getReviewsOne(email, status) {
 
                     let allApprovedRatings = ratingsApproved.length;
 
-                    const finishedCount = async () => {
+                    const finishedCount = () => {
 
-                        if (countedTotal == totalRatingsCount) {
+                        console.log("Finished Count Running", ratingsApproved.length, count)
 
-                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                                newItems.push(ratingsApproved[count])
-                                console.log("Current Count 1: ", count)
-                                count++
-                                console.log("Updated: ", count, allApprovedRatings)
-                            }
-
-                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                                newItems.push(ratingsApproved[count])
-                                console.log("Current Count 2: ", count)
-                                count++
-                            }
-
-                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                                newItems.push(ratingsApproved[count])
-                                console.log("Current Count 3: ", count)
-                                count++
-                                console.log("Current Count of Third: ", count)
-                            }
-
-                            if (count == 3 || allApprovedRatings == count) {
+                        if (count == 3 || ratingsApproved.length == count) {
 
                                 console.log("Current Count of Loaded Is: ", count)
 
@@ -797,16 +777,9 @@ export function getReviewsOne(email, status) {
 
                                 console.log("Show Button: ", count, allApprovedRatings);
 
-                            } // if count is 3
-
-                            if (allApprovedRatings > 3) {
-
-                                console.log("Show Button Greater than 3 Line 391")
-                                $w('#loadMoret1').show();
-                                console.log("Current Count of Loaded: ", count)
                             }
 
-                        }
+                        
 
                     }
 
@@ -833,7 +806,7 @@ export function getReviewsOne(email, status) {
 
                         console.log("This Person: ", ratingsApproved[count])
 
-                        finishedCount()
+                        finishedCount();
 
                     }
 
@@ -848,6 +821,38 @@ export function getReviewsOne(email, status) {
                     }
                     */
 
+                    if (countedTotal == totalRatingsCount) {
+
+                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                                newItems.push(ratingsApproved[count])
+                                console.log("Current Count 1: ", count)
+                                count++
+                                console.log("Updated: ", count, allApprovedRatings)
+                            }
+
+                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                                newItems.push(ratingsApproved[count])
+                                console.log("Current Count 2: ", count)
+                                count++
+                            }
+
+                            if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                                newItems.push(ratingsApproved[count])
+                                console.log("Current Count 3: ", count)
+                                count++
+                                console.log("Current Count of Third: ", count)
+                            }
+
+                            finishedCount();
+
+                            if (allApprovedRatings > 3) {
+
+                                console.log("Show Button Greater than 3 Line 391")
+                                $w('#loadMoret1').show();
+                                console.log("Current Count of Loaded: ", count)
+                            }
+
+                        }
                     
 
                 }) //end of foreach

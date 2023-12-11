@@ -16,6 +16,7 @@ ratings = [];
 average = [];
 let context = wixWindow.lightbox.getContext();
 console.log("Received: ", context)
+let toAgent
 
 session.setItem("agentName", context.name)
 session.setItem("Reviewed", "No")
@@ -25,6 +26,7 @@ $w.onReady(function () {
     let userId = context._id;
     let userName = context.name
     let email = context.email
+    toAgent = context.email
     $w("#userName").text = userName 
     $w("#userName").show();
     console.log("Confirmation: ", userName, userId)
@@ -271,13 +273,14 @@ export function submitReview_click(event) {
                 //$w("#submitReview").disable();
                 $w("#submitted").expand();
                 createContact();
-                let toAgent = userId
+                //let toAgent = userId
+                console.log("Sending to Agent: ", toAgent)
 
-                //----RE ACTIVATE THE BELOW ON 12/3 AFTER THE CONFIRMATION EMAAIL IS CREATED----//
+               
 
                 
 
-                confirmationEmail(toAgent).then((resolvedContact) => { //change to confirmationEmail for golive
+                confirmationEmail(toAgent).then((resolvedContact) => { 
                     console.log(resolvedContact);
 
                     let body = `You've received a new review from ${reviewName}. `;
@@ -300,8 +303,9 @@ export function submitReview_click(event) {
                         }
                     }
 
-                    myEmailContactFunction(emailId, contactId, options).then(() => {
+                    myEmailContactFunction(emailId, contactId, options).then((error) => {
                         console.log("Email submission completed.")
+                        console.log("Error:", error)
                         session.setItem('Reviewed', "Reviewed");
                          $w("#submitReview").label = "Submitted!"
                          $w("#submitReview").disable();
@@ -354,13 +358,14 @@ export function sendAutomation(userId) {
 }
 
 function uniqueId() {
+
     // desired length of Id
     var idStrLen = 32;
-    // always start with a letter -- base 36 makes for a nice shortcut
+   
     var idStr = (Math.floor((Math.random() * 25)) + 10).toString(36) + "-";
-    // add a timestamp in milliseconds (base 36 again) as the base
+    
     idStr += (new Date()).getTime().toString(36) + "-";
-    // similar to above, complete the Id using random, alphanumeric characters
+    
     do {
         idStr += (Math.floor((Math.random() * 35))).toString(36);
     } while (idStr.length < idStrLen);
@@ -430,13 +435,4 @@ export function closeLightbox_click(event) {
         wixWindow.lightbox.close(reviewed);
 }
 
-
-
-export function closeBox_click(event) {
-	 let userId = context._id;
-    let reviewed = session.getItem("Reviewed")
-    
-        wixWindow.lightbox.close(reviewed);
-    
-}
 

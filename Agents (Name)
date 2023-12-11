@@ -224,65 +224,11 @@ export function getReviews(email, status) { //--Template Three--//
 
                     let allApprovedRatings = ratingsApproved.length;
 
-                    if (rating.status == "Approved") {
+                    const finishedCount = () => {
 
-                        //approvedCount++
+                        console.log("Finished Count Running", ratingsApproved.length, count)
 
-                        ratingsApproved.push(rating); //Remove for final push
-                        console.log("Approved", ratingsApproved) //Remove for final push
-
-                        console.log("Current Ratings: ", ratings)
-
-                        allRatings.push(rating) //All User Ratings
-
-                        console.log("This Rating: ", rating.rating)
-
-                        //**Written Reviews Widget**//
-
-                        console.log("Totals Approved: ", allApprovedRatings)
-                        console.log("Totals Counted Total: ", countedTotal)
-                        console.log("Totals Ratings: ", totalRatingsCount)
-
-                        console.log("New Items: ", newItems)
-
-                        console.log("This Person: ", ratingsApproved[count])
-
-                    }
-
-                    //here
-
-                    /*
-                    if(count == totalCount){
-
-                        loadRepeaterData(ratingsApproved)
-
-                    
-
-                    }
-                    */
-
-                    if (countedTotal == totalRatingsCount) {
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 1: ", count)
-                            count++
-                        }
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 2: ", count)
-                            count++
-                        }
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 3: ", count)
-                            count++
-                            console.log("Current Count of Third: ", count)
-                        }
-
-                        if (count == 3) {
+                        if (count == 3 || ratingsApproved.length == count) {
 
                             console.log("Current Count of Loaded Is: ", count)
 
@@ -390,6 +336,70 @@ export function getReviews(email, status) { //--Template Three--//
 
                         } // if count is 3
 
+                    }
+
+                    if (rating.status == "Approved") {
+
+                        //approvedCount++
+
+                        ratingsApproved.push(rating); //Remove for final push
+                        console.log("Approved", ratingsApproved) //Remove for final push
+
+                        console.log("Current Ratings: ", ratings)
+
+                        allRatings.push(rating) //All User Ratings
+
+                        console.log("This Rating: ", rating.rating)
+
+                        //**Written Reviews Widget**//
+
+                        console.log("Totals Approved: ", allApprovedRatings)
+                        console.log("Totals Counted Total: ", countedTotal)
+                        console.log("Totals Ratings: ", totalRatingsCount)
+
+                        console.log("New Items: ", newItems)
+
+                        console.log("This Person: ", ratingsApproved[count])
+
+                        finishedCount();
+
+                    }
+
+                    //here
+
+                    /*
+                    if(count == totalCount){
+
+                        loadRepeaterData(ratingsApproved)
+
+                    
+
+                    }
+                    */
+
+                    if (countedTotal == totalRatingsCount) {
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 1: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of Third: ", count)
+                        }
+
+                        finishedCount();
+
                         if (allApprovedRatings > 3) {
 
                             console.log("Show Button Greater than 3 Line 391")
@@ -446,65 +456,11 @@ export function getReviewsTwo(email, status) {
 
                     let allApprovedRatings = ratingsApproved.length;
 
-                    if (rating.status == "Approved") {
+                    const finishedCount = () => {
 
-                        //approvedCount++
+                        console.log("Finished Count Running", ratingsApproved.length, count)
 
-                        ratingsApproved.push(rating); //Remove for final push
-                        console.log("Approved", ratingsApproved) //Remove for final push
-
-                        console.log("Current Ratings: ", ratings)
-
-                        allRatings.push(rating) //All User Ratings
-
-                        console.log("This Rating: ", rating.rating)
-
-                        //**Written Reviews Widget**//
-
-                        console.log("Totals Approved: ", allApprovedRatings)
-                        console.log("Totals Counted Total: ", countedTotal)
-                        console.log("Totals Ratings: ", totalRatingsCount)
-
-                        console.log("New Items: ", newItems)
-
-                        console.log("This Person: ", ratingsApproved[count])
-
-                    }
-
-                    //here
-
-                    /*
-                    if(count == totalCount){
-
-                        loadRepeaterData(ratingsApproved)
-
-                    
-
-                    }
-                    */
-
-                    if (countedTotal == totalRatingsCount) {
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 1: ", count)
-                            count++
-                        }
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 2: ", count)
-                            count++
-                        }
-
-                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
-                            newItems.push(ratingsApproved[count])
-                            console.log("Current Count 3: ", count)
-                            count++
-                            console.log("Current Count of Third: ", count)
-                        }
-
-                        if (count == 3) {
+                        if (count == 3 || ratingsApproved.length == count) {
 
                             console.log("Current Count of Loaded Is: ", count)
 
@@ -611,6 +567,71 @@ export function getReviewsTwo(email, status) {
                             console.log("Show Button: ", count, allApprovedRatings);
 
                         } // if count is 3
+
+                    }
+
+                    if (rating.status == "Approved") {
+
+                        //approvedCount++
+
+                        ratingsApproved.push(rating); //Remove for final push
+                        console.log("Approved", ratingsApproved) //Remove for final push
+
+                        console.log("Current Ratings: ", ratings)
+
+                        allRatings.push(rating) //All User Ratings
+
+                        console.log("This Rating: ", rating.rating)
+
+                        //**Written Reviews Widget**//
+
+                        console.log("Totals Approved: ", allApprovedRatings)
+                        console.log("Totals Counted Total: ", countedTotal)
+                        console.log("Totals Ratings: ", totalRatingsCount)
+
+                        console.log("New Items: ", newItems)
+
+                        console.log("This Person: ", ratingsApproved[count])
+
+                        finishedCount();
+
+                    }
+
+                    //here
+
+                    /*
+                    if(count == totalCount){
+
+                        loadRepeaterData(ratingsApproved)
+
+                    
+
+                    }
+                    */
+
+                    if (countedTotal == totalRatingsCount) {
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 1: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
+
+                        if (ratingsApproved[count] !== undefined && count <= thisTotal) {
+                            newItems.push(ratingsApproved[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of Third: ", count)
+                        }
+
+                        finishedCount();
+                        
 
                         if (allApprovedRatings > 3) {
 

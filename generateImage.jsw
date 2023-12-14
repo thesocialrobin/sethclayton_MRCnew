@@ -539,28 +539,12 @@ export async function generatePostCard(templateId, agentName, agentEmail, agentP
 
 export async function generateAgentMap(templateId, agentName, states) {
     var headers = {}
-    headers['Authorization'] = "Bearer bb_pr_3ba9cea84027fac83f04385c088ad3"
+    headers['Authorization'] = "Bearer bb_pr_a587ce3699cb4d5aa49bab2e5f02df"
     headers['Content-Type'] = "application/json"
 
     var raw = JSON.stringify({
         "template": templateId,
-        "modifications": [{
-                "name": "agentName",
-                "text": agentName
-            },
-            {
-                "name": "agentEmail",
-                "text": agentEmail
-            },
-            {
-                "name": "agentPhone",
-                "text": agentPhone
-            },
-            {
-                "name": "agentPhoto",
-                "image_url": agentPhoto
-            }
-        ]
+        "modifications": states
     });
 
     var requestOptions = {

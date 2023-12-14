@@ -202,6 +202,9 @@ $w.onReady(async function () {
 
                     // Update the repeater with the modified states
                     selectedStates = updatedStates;
+                    newStates = updatedStates;
+                    console.log("Map Generation Check Deleted Item: ", newStates)
+
                     updateRepeater();
 
                     // Enable the save button and hide the repeater if needed

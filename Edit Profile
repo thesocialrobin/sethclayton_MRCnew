@@ -8,6 +8,7 @@ let userId = user.id;
 let uploadedPhotoUrl;
 let isDeleting = false
 let isUpdating = false
+let newStates = [];
 
 let debounceTimeout;
 
@@ -140,6 +141,7 @@ $w.onReady(async function () {
         $w('#disclaimer').value = item.disclaimer
 
         let selectedStates = item.states || []; // Fetch the states from the 'Team' collection
+        newStates = item.states || [] // Prep for map generation
 
         function updateRepeater() {
             console.log("Before updating repeater - current data:", $w("#statesRepeater").data);
@@ -166,7 +168,11 @@ $w.onReady(async function () {
             let selectedState = $w("#stateSelection").value;
             if (selectedState && !selectedStates.includes(selectedState)) {
                 selectedStates.push(selectedState);
+                newStates.push(selectedState);
+
                 console.log(selectedStates); // Check if the state is added to the array
+                console.log("Map Generation Check:", newStates);
+
                 updateRepeater();
                 $w("#stateSelection").value = ""; // Reset the dropdown
                 $w("#statesRepeater").show();
@@ -503,7 +509,6 @@ export function generateNewMap(){
 
     let templateId = "l9E7G65kGlx25PLe3R";
     let agentName = session.getItem("userName");
-    let newStates
     let fileName = agentName + templateId;
 
         generateAgentMap(templateId, agentName, newStates).then((image) => {

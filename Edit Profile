@@ -510,8 +510,11 @@ export function generateNewMap(){
     let templateId = "l9E7G65kGlx25PLe3R";
     let agentName = session.getItem("userName");
     let fileName = agentName + templateId;
+    let updateMap = newStates.map((state) => ({name: state, color: "#1576FF"}));
+    console.log("Map Vector Prep: ", updateMap);
 
-        generateAgentMap(templateId, agentName, newStates).then((image) => {
+    
+        generateAgentMap(templateId, agentName, updateMap).then((image) => {
 
                        
                         //--log process--//
@@ -534,6 +537,18 @@ export function generateNewMap(){
                         //--end log process--//
                         var imageUrl = image.fileUrl
                         console.log("Map Url:", imageUrl, image)
+
+                        let thisId = session.getItem("id")
+                wixData.get("Team", thisId)
+                    .then((toUpdate) => {
+
+                        toUpdate.activeStates = image.fileUrl
+
+                        console.log(toUpdate);
+                        wixData.update('Team', toUpdate).then((res) => {
+                            console.log('Map image updated');
+                        })
+                    })
 
 
 

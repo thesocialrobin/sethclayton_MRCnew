@@ -615,6 +615,18 @@ export function generateNewMap(){
                                             let errorMsg = err;
                                         });
 
+                                          let thisId = session.getItem("id")
+                                            wixData.get("Team", thisId)
+                                                .then((toUpdate) => {
+
+                                                    toUpdate.activeStates = src;
+
+                                                    console.log(toUpdate);
+                                                    wixData.update('Team', toUpdate).then((res) => {
+                                                        console.log('Map image updated');
+                                                    })
+                                                })
+
                                     //--end log process--//
 
                                 })

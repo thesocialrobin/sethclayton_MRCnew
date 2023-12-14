@@ -168,7 +168,7 @@ $w.onReady(async function () {
             let selectedState = $w("#stateSelection").value;
             if (selectedState && !selectedStates.includes(selectedState)) {
                 selectedStates.push(selectedState);
-                newStates.push(selectedState);
+                //newStates.push(selectedState);
 
                 console.log(selectedStates); // Check if the state is added to the array
                 console.log("Map Generation Check:", newStates);

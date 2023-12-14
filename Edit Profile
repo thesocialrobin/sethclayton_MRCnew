@@ -550,6 +550,10 @@ export function generateNewMap(){
                         console.log(toUpdate);
                         wixData.update('Team', toUpdate).then((res) => {
                             console.log('Map image updated');
+                             $w("#licensingSave").label = "Saved";
+                             setTimeout(() => {
+                                 $w("#licensingSave").enable()
+                             }, 5000);
                         })
                     })
 
@@ -627,6 +631,10 @@ export function generateNewMap(){
                                                     console.log(toUpdate);
                                                     wixData.update('Team', toUpdate).then((res) => {
                                                         console.log('Map image updated');
+                                                        $w("#licensingSave").label = "Saved";
+                                                        setTimeout(() => {
+                                                            $w("#licensingSave").enable()
+                                                        }, 5000);
                                                     })
                                                 })
 

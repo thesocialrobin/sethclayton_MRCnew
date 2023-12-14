@@ -1,0 +1,608 @@
+import wixData from 'wix-data';
+import wixUsers from 'wix-users';
+import { session } from 'wix-storage';
+import { generateAgentMap } from "backend/generateImage";
+
+let user = wixUsers.currentUser;
+let userId = user.id;
+let uploadedPhotoUrl;
+let isDeleting = false
+let isUpdating = false
+
+let debounceTimeout;
+
+export function seoDescription_keyPress(event) {
+    // Clear any previous timeouts
+    clearTimeout(debounceTimeout);
+
+    // Set a new timeout to update the description after a short delay
+    debounceTimeout = setTimeout(loadChanges, 100);
+}
+
+export function loadChanges() {
+    let seoDescription = $w('#seoDescription').value;
+
+    if (seoDescription !== "") {
+        $w('#currentDescription').text = 'Current SEO Description: ' + seoDescription;
+    }
+}
+
+function formatPhoneNumber(phoneNumberString) {
+    var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+        return '(' + match[1] + ') ' + match[2] + '-' + match[3];
+    }
+    return null;
+}
+
+function capitalizeFirstLetter(string) {
+    return string.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+//Personal
+$w.onReady(async function () {
+
+    var email = await wixUsers.currentUser.getEmail()
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+        session.setItem("userName", res.items[0].name)
+    })
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var item = res.items[0]
+
+        $w('#name').value = item.name
+        $w('#epicenter').value = item.epicenter
+        $w('#phone').value = item.phone
+        $w('#bio').value = item.bio
+        $w('#publicEmail').value = item.publicEmail
+        $w('#photo').src = item.photo
+
+        // Initially disable the save button
+        $w('#personalSave').disable();
+
+        // Enable the save button when a new option is selected
+        const inputs = ['#name', '#epicenter', '#phone', '#bio', '#publicEmail'];
+        inputs.forEach(input => {
+            $w(input).onChange(() => {
+                $w('#personalSave').enable();
+            });
+        });
+
+        $w('#uploadButton1').onChange(() => {
+            if ($w('#uploadButton1').value.length > 0) {
+                $w('#uploadButton1').uploadFiles().then((res) => {
+                    uploadedPhotoUrl = res[0].fileUrl; // Store the uploaded photo URL
+                    $w('#photo').src = uploadedPhotoUrl;
+                    $w('#personalSave').enable();
+                });
+            }
+        });
+
+        $w('#personalSave').onClick(async () => {
+            if ($w('#name').valid && $w('#epicenter').valid && $w('#phone').valid && $w('#publicEmail').valid && $w('#bio').valid) {
+                let thisId = session.getItem("id")
+                wixData.get("Team", thisId)
+                    .then((toUpdate) => {
+
+                        toUpdate.name = capitalizeFirstLetter($w('#name').value);
+                        toUpdate.phone = formatPhoneNumber($w('#phone').value)
+                        toUpdate.publicEmail = $w('#publicEmail').value
+                        toUpdate.epicenter = $w('#epicenter').value
+                        toUpdate.bio = $w('#bio').value
+                        if (typeof uploadedPhotoUrl !== 'undefined') {
+                            toUpdate.photo = uploadedPhotoUrl
+                        }
+
+                        console.log(toUpdate);
+                        wixData.update('Team', toUpdate).then((res) => {
+                            console.log('updated');
+                            $w("#personalSave").label = "Saved";
+                            setTimeout(() => {
+                                $w("#personalSave").label = "Save"; // Reset the label after 2 seconds
+                            }, 2000);
+
+                            // Disable the save button again after saving
+                            $w('#personalSave').disable();
+
+                            // Update the input fields to reflect the changes
+                            $w('#name').value = res.name
+                            $w('#epicenter').value = res.epicenter
+                            $w('#phone').value = res.phone
+                            $w('#bio').value = res.bio
+                            $w('#publicEmail').value = res.publicEmail
+                            $w('#photo').src = res.photo
+                        })
+                    })
+            }
+
+        })
+    })
+});
+
+//Licensing
+$w.onReady(async function () {
+    var email = await wixUsers.currentUser.getEmail();
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id;
+        session.setItem("id", itemId);
+    });
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var item = res.items[0]
+
+        $w('#npn').value = item.npn
+        $w('#carriers').value = item.carriers
+        $w('#disclaimer').value = item.disclaimer
+
+        let selectedStates = item.states || []; // Fetch the states from the 'Team' collection
+
+        function updateRepeater() {
+            console.log("Before updating repeater - current data:", $w("#statesRepeater").data);
+            $w("#statesRepeater").data = []; // Clear the repeater
+            $w("#statesRepeater").data = selectedStates.map((state, index) => ({ _id: index.toString(), state: state }));
+            console.log("Repeater updated successfully:", selectedStates);
+        }
+
+        updateRepeater();
+
+        $w('#licensingSave').disable();
+
+        $w('#stateSelection').onChange(() => {
+            $w('#licensingSave').enable();
+        });
+        $w('#carriers').onChange(() => {
+            $w('#licensingSave').enable();
+        });
+        $w('#npn').onChange(() => {
+            $w('#licensingSave').enable();
+        });
+
+        $w("#stateSelection").onChange((event) => {
+            let selectedState = $w("#stateSelection").value;
+            if (selectedState && !selectedStates.includes(selectedState)) {
+                selectedStates.push(selectedState);
+                console.log(selectedStates); // Check if the state is added to the array
+                updateRepeater();
+                $w("#stateSelection").value = ""; // Reset the dropdown
+                $w("#statesRepeater").show();
+            }
+        });
+
+        $w("#statesRepeater").onItemReady(($item, itemData, index) => {
+            $item("#stateText").text = itemData.state;
+            let removeButton = $item("#removeButton")
+
+            let onClick = (function (itemData) {
+                return function () {
+                    if (isDeleting || isUpdating) {
+                        return;
+                    }
+                    isDeleting = true;
+
+                    console.log("Before removal - selectedStates:", selectedStates);
+
+                    // Get the state to remove
+                    let stateToRemove = itemData.state;
+
+                    // Create a new array without the state to be removed
+                    let updatedStates = selectedStates.filter(state => state.toLowerCase() !== stateToRemove.toLowerCase());
+
+                    console.log("After removal - updatedStates:", updatedStates);
+
+                    // Update the repeater with the modified states
+                    selectedStates = updatedStates;
+                    updateRepeater();
+
+                    // Enable the save button and hide the repeater if needed
+                    $w('#licensingSave').enable();
+                    if (selectedStates.length === 0) {
+                        $w("#statesRepeater").hide();
+                    }
+
+                    // Enable the remove button for the current repeater item
+                    removeButton.enable();
+
+                    isDeleting = false;
+                };
+            })(itemData);
+
+            removeButton.onClick(onClick);
+        });
+
+        $w('#licensingSave').onClick(() => {
+
+            generateNewMap();
+
+            if ($w('#npn').valid && $w('#carriers').valid) {
+                let thisId = session.getItem("id");
+                wixData.get("Team", thisId)
+                    .then((toUpdate) => {
+
+                        toUpdate.npn = $w('#npn').value;
+                        toUpdate.carriers = $w('#carriers').value;
+                        toUpdate.states = selectedStates;
+                        updateDisclaimer(toUpdate)
+                            .then((updatedUser) => {
+                                console.log("Updated Disclaimer:", updatedUser.disclaimer);
+
+                                console.log(toUpdate);
+                                wixData.update('Team', toUpdate).then((res) => {
+                                    console.log('updated');
+                                    $w("#licensingSave").label = "Saved";
+                                    setTimeout(() => {
+                                        $w("#licensingSave").label = "Save"; // Reset the label after 2 seconds
+                                    }, 2000);
+
+                                    // Disable the save button again after saving
+                                    $w('#licensingSave').disable();
+
+                                    $w('#npn').value = res.npn
+                                    $w('#carriers').value = res.carriers
+                                    $w('#disclaimer').value = res.disclaimer
+                                    updateRepeater();
+                                });
+                            });
+                    });
+            }
+        });
+    });
+});
+
+//Links
+$w.onReady(async function () {
+
+    var email = await wixUsers.currentUser.getEmail()
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+    })
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var item = res.items[0]
+
+        $w('#calendlyUrl').value = item.calendlyUrl
+        $w('#shoppingLink').value = item.shoppingLink
+        $w('#facebookUrl').value = item.facebookUrl
+        $w('#linkedinUrl').value = item.linkedinUrl
+        $w('#instagramUrl').value = item.instagramUrl
+        $w('#xurl').value = item.xurl
+
+        // Initially disable the save button
+        $w('#linksSave').disable();
+
+        // Enable the save button when a new option is selected
+        const inputs = ['#calendlyUrl', '#facebookUrl', '#linkedinUrl', '#instagramUrl', '#xurl', '#shoppingLink'];
+        inputs.forEach(input => {
+            $w(input).onChange(() => {
+                $w('#linksSave').enable();
+            });
+        });
+
+        $w('#linksSave').onClick(async () => {
+                let thisId = session.getItem("id")
+                wixData.get("Team", thisId)
+                    .then((toUpdate) => {
+
+                        toUpdate.calendlyUrl = $w('#calendlyUrl').value
+                        toUpdate.shoppingLink = $w('#shoppingLink').value
+                        toUpdate.facebookUrl = $w('#facebookUrl').value
+                        toUpdate.linkedinUrl = $w('#linkedinUrl').value
+                        toUpdate.instagramUrl = $w('#instagramUrl').value
+                        toUpdate.xurl = $w('#xurl').value
+
+                        console.log(toUpdate);
+                        wixData.update('Team', toUpdate).then((res) => {
+                            console.log('updated');
+                            $w("#linksSave").label = "Saved";
+                            setTimeout(() => {
+                                $w("#linksSave").label = "Save"; // Reset the label after 2 seconds
+                            }, 2000);
+
+                            // Disable the save button again after saving
+                            $w('#linksSave').disable();
+
+                            // Update the input fields to reflect the changes
+                            $w('#calendlyUrl').value = res.calendlyUrl
+                            $w('#shoppingLink').value = res.shoppingLink
+                            $w('#facebookUrl').value = res.facebookUrl
+                            $w('#linkedinUrl').value = res.linkedinUrl
+                            $w('#instagramUrl').value = res.instagramUrl
+                            $w('#xurl').value = res.xurl
+                        })
+                    })
+            }
+
+        )
+    })
+});
+
+//SEO 
+$w.onReady(async function () {
+
+    var email = await wixUsers.currentUser.getEmail()
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+    })
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+            var item = res.items[0]
+
+            $w('#seoDescription').value = item.seoDescription
+            $w('#currentDescription').text = 'Current SEO Description: ' + item.seoDescription;
+            $w('#seoKeywords').value = item.seoKeywords
+
+            // Initially disable the save button
+            $w('#seoSave').disable();
+
+            // Enable the save button when a new option is selected
+            const inputs = ['#seoDescription', '#seoKeywords'];
+            inputs.forEach(input => {
+                $w(input).onChange(() => {
+                    $w('#seoSave').enable();
+                });
+            });
+
+            $w('#seoSave').onClick(async () => {
+                    let thisId = session.getItem("id")
+                    wixData.get("Team", thisId)
+                        .then((toUpdate) => {
+
+                            toUpdate.seoDescription = $w('#seoDescription').value
+                            toUpdate.seoKeywords = $w('#seoKeywords').value
+
+                            console.log(toUpdate);
+                            wixData.update('Team', toUpdate).then((res) => {
+                                console.log('updated');
+                                $w("#seoSave").label = "Saved";
+                                setTimeout(() => {
+                                    $w("#seoSave").label = "Save"; // Reset the label after 2 seconds
+                                }, 2000);
+
+                                // Disable the save button again after saving
+                                $w('#seoSave').disable();
+
+                                // Update the input fields to reflect the changes
+                                $w('#seoDescription').value = res.seoDescription
+                                $w('#currentDescription').text = 'Current SEO Description: ' + res.seoDescription;
+                                $w('#seoKeywords').value = res.seoKeywords
+                            })
+                        })
+                }
+
+            )
+        }
+
+    )
+});
+
+//Templates
+$w.onReady(async function () {
+
+    var email = await wixUsers.currentUser.getEmail()
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+    })
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var item = res.items[0]
+
+        $w('#templateDropdown').value = item.template
+        $w('#currentTemplate').text = 'Current Template: ' + item.template
+
+        // Initially disable the save button
+        $w('#templateSave').disable();
+
+        // Enable the save button when a new option is selected
+        $w('#templateDropdown').onChange(() => {
+            $w('#templateSave').enable();
+        });
+
+        $w('#templateSave').onClick(() => {
+            if ($w('#templateDropdown').valid) {
+                let thisId = session.getItem("id")
+                wixData.get("Team", thisId)
+                    .then((toUpdate) => {
+
+                        toUpdate.template = $w('#templateDropdown').value
+
+                        console.log(toUpdate);
+                        wixData.update('Team', toUpdate).then((res) => {
+                            console.log('updated');
+                            $w("#templateSave").label = "Saved";
+                            setTimeout(() => {
+                                $w("#templateSave").label = "Save"; // Reset the label after 2 seconds
+                            }, 2000);
+                            // Update the currentTemplate text to display the new template value
+                            $w('#currentTemplate').text = 'Current Template: ' + toUpdate.template;
+                            // Disable the save button again after saving
+                            $w('#templateSave').disable();
+                        })
+                    })
+            }
+
+        })
+    })
+});
+
+//Plans Per Carrier 
+function updateDisclaimer(userData) {
+    return new Promise((resolve, reject) => {
+        if (userData && userData.states && userData.carriers) {
+            let states = userData.states;
+            let carriers = userData.carriers;
+
+            if (states.length > 0 && carriers.length > 0) {
+                wixData.query("CarrierPlanData")
+                    .hasSome("state", states)
+                    .hasSome("carrier_name", carriers)
+                    .find()
+                    .then((results) => {
+                        if (results.totalCount > 0) {
+                            let totalPlans = 0;
+
+                            // Loop through the results to calculate totalPlans
+                            results.items.forEach((item) => {
+                                let planCount = item.totalPlanCount;
+                                totalPlans += planCount;
+                            });
+
+                            // Set the calculated disclaimer text to the userData object
+                            userData.disclaimer = `I do not offer every plan in your area. Currently, I represent ${carriers.length} organizations which offer ${totalPlans} products in your area. Please contact Medicare.gov, 1-800-MEDICARE, or your local State Health Insurance Program (SHIP) to get information on all of your options.`;
+                        } else {
+                            userData.disclaimer = "No carrier data found.";
+                        }
+
+                        resolve(userData);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        userData.disclaimer = "Error fetching carrier data.";
+                        reject(userData);
+                    });
+            } else {
+                userData.disclaimer = "No states or carriers found.";
+                resolve(userData);
+            }
+        } else {
+            userData.disclaimer = "Invalid user data.";
+            reject(userData);
+        }
+    });
+}
+
+async function fetchLicensedStatesForAgent(agentId) {
+    try {
+        let result = await wixData.query("Team")
+                                 .eq("_id", agentId)
+                                 .find();
+
+        if (result.items.length > 0) {
+            // Assuming the licensed states are stored in an array field
+            return result.items[0].states; 
+        } else {
+            console.log("No agent found with the given ID.");
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching licensed states:", error);
+        throw error;
+    }
+}
+
+export function generateNewMap(){
+
+    let templateId = "l9E7G65kGlx25PLe3R";
+    let agentName = session.getItem("userName");
+    let newStates
+    let fileName = agentName + templateId;
+
+        generateAgentMap(templateId, agentName, newStates).then((image) => {
+
+                       
+                        //--log process--//
+                        let logResults = {
+                            "type": "Edit",
+                            "log": "Map Generation: ",
+                            templateId,
+                            fileName
+                        };
+
+                        wixData.insert("devLog", logResults)
+                            .then((results) => {
+                                let item = results; //see item below
+
+                            })
+                            .catch((err) => {
+                                let errorMsg = err;
+                            });
+
+                        //--end log process--//
+                        var imageUrl = image.fileUrl
+                        console.log("Map Url:", imageUrl, image)
+
+
+
+
+                    }).catch((err) => {
+
+                        console.log("Error: ", err, fileName)
+
+                        setTimeout(() => { //delay to allow upload of the file for media manager
+
+                            wixData.query("devLog")
+                                .eq("filename", fileName)
+                                .startsWith("log", "Upload Map Image")
+                                .descending("_createdDate")
+                                .find()
+                                .then((results) => {
+                                    console.log("Results: ", results)
+                                    let items = results.items
+                                    let itemUrl = items[0].url;
+
+                                    //--log process--//
+                                    let logResultsMap = {
+                                        "type": "Query",
+                                        "log": "Map Generation Completed within Error: ",
+                                        items,
+                                        itemUrl,
+                                        fileName,
+                                    };
+
+                                    wixData.insert("devLog", logResultsMap)
+                                        .then((results) => {
+                                            let item = results; //see item below
+
+                                        })
+                                        .catch((err) => {
+                                            let errorMsg = err;
+                                        });
+
+                                    //--end log process--//
+
+                                    
+                                    var formatUrl = itemUrl.split("/")[3];
+                                    var redirect = `https://static.wixstatic.com/media/${formatUrl}?dn=${agentName+templateId}`;
+                                    let src = `https://static.wixstatic.com/media/${formatUrl}`;
+
+                                    //$item('#generate').hide();
+                                    //$item('#download').show();
+
+                                    console.log("Url: ", redirect)
+
+                                    //--log process--//
+                                    let logResultsEnd = {
+                                        "type": "Completed Action",
+                                        "log": "Map Completed Destination: ",
+                                        redirect
+                                    };
+
+                                    wixData.insert("devLog", logResultsEnd)
+                                        .then((results) => {
+                                            let item = results; //see item below
+
+                                        })
+                                        .catch((err) => {
+                                            let errorMsg = err;
+                                        });
+
+                                    //--end log process--//
+
+                                })
+                        }, 1500)
+
+                        //---------------------------------------Break Fix---------------------------------------//
+
+                    })
+
+
+}

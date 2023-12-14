@@ -1,0 +1,651 @@
+import { fetch } from "wix-fetch";
+import wixData from 'wix-data';
+import { mediaManager } from 'wix-media-backend';
+const axios = require("axios");
+
+export async function generateImageQr(templateId, agentName, agentEmail, agentPhone, agentPhoto, qrCode) {
+    var headers = {}
+    headers['Authorization'] = "Bearer bb_pr_3ba9cea84027fac83f04385c088ad3"
+    headers['Content-Type'] = "application/json"
+
+    var raw = JSON.stringify({
+        "template": templateId,
+        "modifications": [{
+                "name": "agentName",
+                "text": agentName
+            },
+            {
+                "name": "agentEmail",
+                "text": agentEmail
+            },
+            {
+                "name": "agentPhone",
+                "text": agentPhone
+            },
+            {
+                "name": "agentPhoto",
+                "image_url": agentPhoto
+            },
+            {
+                "name": "qrCode",
+                "image_url": qrCode
+            }
+        ]
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    console.log('fetching');
+
+    return await fetch("https://sync.api.bannerbear.com/v2/images", requestOptions)
+        .then(async (response) => {
+
+            //--log process--//
+                          let logResults2 = {
+                              "type": "Success",
+                              "log": "API Banner Bear Social Media Success: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+            console.log(await response);
+
+              if (response.status >= 200 && response.status <= 299) {
+            var body = await response.json()
+            var imageUrl = body.image_url
+            console.log(body)
+            //return uploadImage(imageUrl, agentName + templateId).then(info => { //return then function added as break fix
+            return Promise.all([uploadImage(imageUrl, agentName + templateId)])
+            .then(info => {
+                            
+                            let url = (info[0].fileUrl).toString()
+                            let filename = agentName + templateId;
+                            //next - in events, query devLog sorted by newest entries where log entry matches filename and use that as the url for the download url.
+                            
+                             //--log process--//
+                          let logResultsBreakFix = {
+                              "type": "Process",
+                              "log": "Upload Social Media Image: ", info, url, filename
+                            };
+
+                            wixData.insert("devLog", logResultsBreakFix)
+                            .then( (results) => {
+                              let item = results; //see item below
+                             
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                             //--end log process--//
+                        
+                        //return url;
+                        });
+
+              } else {
+
+                    //--log process--//
+                          let logResults3 = {
+                              "type": "Error",
+                              "log": "API Banner Bear Social Media Error: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults3)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
+                        throw Error(response.statusText);
+                                }
+        })
+        
+        .catch(error => console.log('error', error));
+}
+
+export async function generateImage(templateId, agentName, agentEmail, agentPhone, agentPhoto) {
+    var headers = {}
+    headers['Authorization'] = "Bearer bb_pr_3ba9cea84027fac83f04385c088ad3"
+    headers['Content-Type'] = "application/json"
+
+    var raw = JSON.stringify({
+        "template": templateId,
+        "modifications": [{
+                "name": "agentName",
+                "text": agentName
+            },
+            {
+                "name": "agentEmail",
+                "text": agentEmail
+            },
+            {
+                "name": "agentPhone",
+                "text": agentPhone
+            },
+            {
+                "name": "agentPhoto",
+                "image_url": agentPhoto
+            }
+        ]
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    console.log('fetching');
+
+    return await fetch("https://sync.api.bannerbear.com/v2/images", requestOptions)
+        .then(async (response) => {
+
+            //--log process--//
+                          let logResults2 = {
+                              "type": "Success",
+                              "log": "API Banner Bear Social Media Success: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+            console.log(await response);
+
+              if (response.status >= 200 && response.status <= 299) {
+            var body = await response.json()
+            var imageUrl = body.image_url
+            console.log(body)
+            //return uploadImage(imageUrl, agentName + templateId).then(info => { //return then function added as break fix
+            return Promise.all([uploadImage(imageUrl, agentName + templateId)])
+            .then(info => {
+                            
+                            let url = (info[0].fileUrl).toString()
+                            let filename = agentName + templateId;
+                            //next - in events, query devLog sorted by newest entries where log entry matches filename and use that as the url for the download url.
+                            
+                             //--log process--//
+                          let logResultsBreakFix = {
+                              "type": "Process",
+                              "log": "Upload Social Media Image: ", info, url, filename
+                            };
+
+                            wixData.insert("devLog", logResultsBreakFix)
+                            .then( (results) => {
+                              let item = results; //see item below
+                             
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                             //--end log process--//
+                        
+                        //return url;
+                        });
+
+              } else {
+
+                    //--log process--//
+                          let logResults3 = {
+                              "type": "Error",
+                              "log": "API Banner Bear Social Media Error: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults3)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
+                        throw Error(response.statusText);
+                                }
+        })
+        
+        .catch(error => console.log('error', error));
+}
+
+export async function generateEventImage(templateId, agentName, agentEmail, agentPhone, agentPhoto, venueName, address, date, time, eventImage, eventTitle, eventSummary) {
+    var headers = {}
+    headers['Authorization'] = "Bearer bb_pr_9a88dff17c49396b08b0563b9c328d"
+    headers['Content-Type'] = "application/json"
+
+    var raw = JSON.stringify({
+        "template": templateId,
+        "modifications": [{
+                "name": "agentName",
+                "text": agentName
+            },
+            {
+                "name": "agentEmail",
+                "text": agentEmail
+            },
+            {
+                "name": "agentPhone",
+                "text": agentPhone
+            },
+            {
+                "name": "agentPhoto",
+                "image_url": agentPhoto
+            },
+            {
+                "name": "venueName",
+                "text": venueName
+            },
+            {
+                "name": "address",
+                "text": address
+            },
+            {
+                "name": "date",
+                "text": date
+            },
+            {
+                "name": "time",
+                "text": time
+            },
+            {
+                "name": "eventImage",
+                "image_url": eventImage
+            },
+            {
+                "name": "eventTitle",
+                "text": eventTitle
+            },
+            {
+                "name": "eventSummary",
+                "text": eventSummary
+            }
+        ]
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    console.log('fetching');
+
+    await fetch("https://sync.api.bannerbear.com/v2/images", requestOptions)
+        .then(async (response) => {
+                       
+            //--log process--//
+                          let logResults1 = {
+                              "type": "Result",
+                              "log": "API Banner Bear Event Result: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults1, imageUrl)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+              //--end log process--//
+            
+            //return uploadImage(imageUrl, agentName + templateId)
+                 if (response.status >= 200 && response.status <= 299) {
+                     //--log process--//
+                          let logResults2 = {
+                              "type": "Success",
+                              "log": "API Banner Bear Event Success: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                        var body = await response.json()
+                        var imageUrl = body.image_url
+                        console.log(body)
+
+                       return Promise.all([uploadEventImage(imageUrl, agentName + templateId)])
+                        .then(info => {
+
+                            let url = (info[0].fileUrl).toString()
+                            let filename = agentName + templateId;
+                            //next - in events, query devLog sorted by newest entries where log entry matches filename and use that as the url for the download url.
+                            
+                             //--log process--//
+                          let logResults = {
+                              "type": "Process",
+                              "log": "Upload Event Image: ", info, url, filename
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              return url;
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                             //--end log process--//
+
+                        //return url;
+                        });
+                     
+                //return await Promise.all([uploadEventImage(imageUrl, agentName + templateId)]) 
+
+                } else {
+                    //--log process--//
+                          let logResults3 = {
+                              "type": "Error",
+                              "log": "API Banner Bear Event Error: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults3)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
+                        throw Error(response.statusText);
+                                }
+
+        })
+        .catch(error => console.log('error', error));
+}
+
+export async function uploadImage(image, fileName) {
+    //--log process--//
+                          let logResults2 = {
+                              "type": "Success",
+                              "log": "Social Media Buffer Begin: ", image, fileName,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+    const response = await axios.get(image, {responseType: "arraybuffer"});
+    const buffer = Buffer.from(response.data)
+    return mediaManager.upload("/Images", buffer, fileName + ".png", {
+        "mediaOptions": {
+            "mimeType": "image/png",
+            "mediaType": "image"
+        },
+        "metadataOptions": {
+            "isPrivate": false,
+            "isVisitorUpload": false
+        }
+    })
+}
+
+export async function uploadEventImage (image, fileName) {
+    //--log process--//
+                          let logResults0 = {
+                              "type": "Process",
+                              "log": "Event Media Buffer Begin: ", image, fileName,
+                            };
+
+                            wixData.insert("devLog", logResults0)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+    //--end log process--//
+    const response = await axios.get(image, {responseType: "arraybuffer"});
+    const buffer = Buffer.from(response.data)
+
+    //--log process--//
+                          let logResults = {
+                              "type": "Process",
+                              "log": "Event Media Buffer Success: ", response,
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+    //--end log process--//
+
+    return mediaManager.upload("/Images", buffer, fileName + ".png", {
+        "mediaOptions": {
+            "mimeType": "image/png",
+            "mediaType": "image"
+        },
+        "metadataOptions": {
+            "isPrivate": false,
+            "isVisitorUpload": false
+        }
+    })
+}
+
+
+export async function generatePostCard(templateId, agentName, agentEmail, agentPhone, agentPhoto, qrCode) {
+    var headers = {}
+    headers['Authorization'] = "Bearer bb_pr_88fbd7e0af9bd44f6e27d33fb3817b"
+    headers['Content-Type'] = "application/json"
+
+    var raw = JSON.stringify({
+        "template": templateId,
+        "modifications": [{
+                "name": "agentName",
+                "text": agentName
+            },
+            {
+                "name": "agentEmail",
+                "text": agentEmail
+            },
+            {
+                "name": "agentPhone",
+                "text": agentPhone
+            },
+            {
+                "name": "agentPhoto",
+                "image_url": agentPhoto
+            },
+            {
+                "name": "qrCode",
+                "image_url": qrCode
+            }
+        ]
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    console.log('fetching');
+
+    return await fetch("https://sync.api.bannerbear.com/v2/images", requestOptions)
+        .then(async (response) => {
+            console.log(await response);
+            var body = await response.json()
+            var imageUrl = body.image_url
+            console.log(body)
+            return uploadImage(imageUrl, agentName + templateId)
+        })
+        .catch(error => {
+
+    //--log process--//
+                          let logResults = {
+                              "type": "Process",
+                              "log": "Event Postcard Buffer Failure: ", error,
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+    //--end log process--//
+          
+          
+          return error.json()});
+}
+
+export async function generateAgentMap(templateId, agentName, states) {
+    var headers = {}
+    headers['Authorization'] = "Bearer bb_pr_3ba9cea84027fac83f04385c088ad3"
+    headers['Content-Type'] = "application/json"
+
+    var raw = JSON.stringify({
+        "template": templateId,
+        "modifications": [{
+                "name": "agentName",
+                "text": agentName
+            },
+            {
+                "name": "agentEmail",
+                "text": agentEmail
+            },
+            {
+                "name": "agentPhone",
+                "text": agentPhone
+            },
+            {
+                "name": "agentPhoto",
+                "image_url": agentPhoto
+            }
+        ]
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    console.log('fetching');
+
+    return await fetch("https://sync.api.bannerbear.com/v2/images", requestOptions)
+        .then(async (response) => {
+
+            //--log process--//
+                          let logResultsMap = {
+                              "type": "Success",
+                              "log": "API Banner Bear Map Success: ", response,
+                            };
+
+                            wixData.insert("devLog", logResultsMap)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+            console.log(await response);
+
+              if (response.status >= 200 && response.status <= 299) {
+            var body = await response.json()
+            var imageUrl = body.image_url
+            console.log(body)
+            //return uploadImage(imageUrl, agentName + templateId).then(info => { //return then function added as break fix
+            return Promise.all([uploadImage(imageUrl, agentName + templateId)])
+            .then(info => {
+                            
+                            let url = (info[0].fileUrl).toString()
+                            let filename = agentName + templateId;
+                            //next - in events, query devLog sorted by newest entries where log entry matches filename and use that as the url for the download url.
+                            
+                             //--log process--//
+                          let logResultsBreakFix = {
+                              "type": "Process",
+                              "log": "Upload Map Image: ", info, url, filename
+                            };
+
+                            wixData.insert("devLog", logResultsBreakFix)
+                            .then( (results) => {
+                              let item = results; //see item below
+                             
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                             //--end log process--//
+                        
+                        //return url;
+                        });
+
+              } else {
+
+                    //--log process--//
+                          let logResultsMap2 = {
+                              "type": "Error",
+                              "log": "API Banner Bear Map Error: ", response,
+                            };
+
+                            wixData.insert("devLog", logResultsMap2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
+                        throw Error(response.statusText);
+                                }
+        })
+        
+        .catch(error => console.log('error', error));
+}

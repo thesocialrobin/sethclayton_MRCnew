@@ -197,7 +197,7 @@ $w.onReady(async function () {
                 .then((toUpdate) => {
 
                     toUpdate.npn = $w('#npn').value;
-                    toUpdate.carriers = $w('#carriers').value;
+                    toUpdate.carriers = carrierList;
                     toUpdate.states = selectedStates;
                     toUpdate.carrierLogos = newCarriers;
                     updateDisclaimer(toUpdate)

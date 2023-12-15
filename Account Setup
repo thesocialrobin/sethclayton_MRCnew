@@ -62,7 +62,7 @@ $w.onReady(async function () {
 
             wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
 
-                    newCarriers.push({ src: thisCarrier.items[0].logo})
+                    newCarriers.push(thisCarrier.items[0]._id)
                     carrierList.push(thisCarrier.items[0].carrier)
                     console.log("This logo", thisCarrier.items[0].logo)
                     console.log("Carrier Logos", newCarriers)
@@ -199,6 +199,7 @@ $w.onReady(async function () {
                     toUpdate.npn = $w('#npn').value;
                     toUpdate.carriers = $w('#carriers').value;
                     toUpdate.states = selectedStates;
+                    toUpdate.carrierLogos = newCarriers;
                     updateDisclaimer(toUpdate)
                         .then((updatedUser) => {
                             console.log("Updated Disclaimer:", updatedUser.disclaimer);

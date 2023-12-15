@@ -518,7 +518,7 @@ export function generateNewMap(){
 
     
         generateAgentMap(templateId, agentName, updateMap).then((image) => {
-
+            $w("#licensingSave").label = "Updating Map...";
                        
                         //--log process--//
                         let logResults = {
@@ -550,7 +550,7 @@ export function generateNewMap(){
                         console.log(toUpdate);
                         wixData.update('Team', toUpdate).then((res) => {
                             console.log('Map image updated');
-                             $w("#licensingSave").label = "Saved";
+                             $w("#licensingSave").label = "Saving...";
                              setTimeout(() => {
                                  $w("#licensingSave").enable()
                              }, 5000);

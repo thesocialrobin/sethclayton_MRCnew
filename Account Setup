@@ -15,6 +15,23 @@ let newStates = [];
 
 $w.onReady(async function () {
 
+    let opts = $w("#carriers").options;
+    $w("#carriers").options = [];
+    let optionsArray = []
+    wixData.query('CarrierLogos').find().then((populateCarriers) => {
+        var allCarriers = populateCarriers.items
+        console.log("All Carriers", allCarriers)
+
+        populateCarriers.items.forEach(function(carrier) {
+            console.log("This Carrier: ", carrier.carrier)
+            optionsArray.push({ label: carrier.carrier , value: carrier._id });              
+			$w("#carriers").options = optionsArray;
+
+        })
+        
+    })
+
+
     var email = await wixUsers.currentUser.getEmail()
 
     wixData.query('Team').eq('email', email).find().then((res) => {

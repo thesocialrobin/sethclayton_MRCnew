@@ -10,12 +10,14 @@ let userId = user.id;
 let isDeleting = false
 let isUpdating = false
 let newStates = [];
+let newCarriers
+let carrierList
 
 //Personal State
 
 $w.onReady(async function () {
 
-    let opts = $w("#carriers").options;
+    
     $w("#carriers").options = [];
     let optionsArray = []
     wixData.query('CarrierLogos').find().then((populateCarriers) => {
@@ -48,6 +50,32 @@ $w.onReady(async function () {
                 $w('#imageUpload').reset()
             })
         }
+    })
+
+    $w('#carriers').onChange(() => {
+
+        newCarriers = [];
+        carrierList = [];
+        let selectedCarriers = $w("#carriers").value;
+
+        selectedCarriers.forEach(function(carrier) {
+
+            wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
+
+                    newCarriers.push({ src: thisCarrier.items[0].logo})
+                    carrierList.push(thisCarrier.items[0].carrier)
+                    console.log("This logo", thisCarrier.items[0].logo)
+                    console.log("Carrier Logos", newCarriers)
+                    console.log("All Carriers", carrierList)
+
+                })
+
+            
+        
+        })
+
+
+        
     })
 
     $w('#personalCont').onClick(() => {

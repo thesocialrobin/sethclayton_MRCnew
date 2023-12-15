@@ -20,7 +20,7 @@ $w.onReady(function () {
     $w("#leaveReview3").enable();
     $w("#leaveReview2").enable();
     $w("#leaveReview1").enable();
-    // Get the user's selected template from the dataset
+    
     $w('#agentsDataset').onReady(() => {
         const userTemplate = $w('#agentsDataset').getCurrentItem().template;
         session.setItem("Template",userTemplate)
@@ -82,7 +82,7 @@ $w.onReady(function () {
         default:
             stateName = 'Template1'; // default state
         }
-        $w('#templateMultistateBox').changeState(stateName); // Change the state name as needed
+        $w('#templateMultistateBox').changeState(stateName);
 
         if (itemData.achievements === undefined || itemData.achievements === "") {
             $w('#t3achievements').hide()
@@ -109,6 +109,27 @@ $w.onReady(function () {
             $w('#t2x').collapse()
             $w('#t3x').collapse()
         }
+
+    let userCarrierLogos = itemData.carrierLogos;
+    let galleryLogos = [];
+
+
+    userCarrierLogos.forEach(function(carrier) {
+
+            wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
+
+                    galleryLogos.push({src: thisCarrier.items[0].logo})
+                    console.log("This logo", thisCarrier.items[0].logo)
+                    console.log("Carrier Logos", galleryLogos)
+                    $w('#carrierst1').items = galleryLogos;
+                    $w('#carrierst2').items = galleryLogos;
+                    $w('#carrierst3').items = galleryLogos;
+
+                })
+
+            
+        
+        })
 
     });
 });

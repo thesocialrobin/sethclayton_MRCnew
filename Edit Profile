@@ -25,23 +25,6 @@ export function seoDescription_keyPress(event) {
 
 export function loadChanges() {
 
-
-    $w("#carriers").options = []; //Loads carriers list automatically
-    let optionsArray = []
-    wixData.query('CarrierLogos').find().then((populateCarriers) => {
-        var allCarriers = populateCarriers.items
-        console.log("All Carriers", allCarriers)
-
-        populateCarriers.items.forEach(function(carrier) {
-            console.log("This Carrier: ", carrier.carrier)
-            optionsArray.push({ label: carrier.carrier , value: carrier._id });              
-			$w("#carriers").options = optionsArray;
-
-        })
-        
-    })
-
-
     let seoDescription = $w('#seoDescription').value;
 
     if (seoDescription !== "") {
@@ -65,6 +48,10 @@ function capitalizeFirstLetter(string) {
 //Personal
 $w.onReady(async function () {
 
+    $w("#carriers").options = []; //Loads carriers list automatically
+    let optionsArray = []
+    
+
     var email = await wixUsers.currentUser.getEmail()
 
     wixData.query('Team').eq('email', email).find().then((res) => {
@@ -83,11 +70,33 @@ $w.onReady(async function () {
         $w('#publicEmail').value = item.publicEmail
         $w('#photo').src = item.photo
 
+
+        wixData.query('CarrierLogos').find().then((populateCarriers) => {
+        var allCarriers = populateCarriers.items
+        let carrierCount = allCarriers.length
+        let count = 0;
+        console.log("All Carriers", allCarriers)
+
         carrierListSelected = [];
         carrierListSelected = item.carrierLogos;
         console.log("Carrier List Selected: ", carrierListSelected)
 
-        findCarrierMatch();
+        populateCarriers.items.forEach(function(carrier) {
+            count++
+            console.log("This Carrier: ", carrier.carrier)
+            optionsArray.push({ label: carrier.carrier , value: carrier._id });              
+			$w("#carriers").options = optionsArray;
+            console.log("All options loaded", $w("#carriers").options, count, allCarriers.length)
+
+            if(count == allCarriers.length){
+
+                findCarrierMatch();
+
+            }
+
+        })
+        
+        })
 
 
         // Initially disable the save button
@@ -132,6 +141,7 @@ $w.onReady(async function () {
                             $w("#personalSave").label = "Saved";
                             setTimeout(() => {
                                 $w("#personalSave").label = "Save"; // Reset the label after 2 seconds
+                                
                             }, 2000);
 
                             // Disable the save button again after saving
@@ -197,6 +207,7 @@ $w.onReady(async function () {
 
             selectedCarriers.forEach(function(carrier) {
                 count++
+                console.log("This Carrier: ", carrier, selectedCarriers)
 
                 wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
 
@@ -290,7 +301,11 @@ $w.onReady(async function () {
 
                         toUpdate.npn = $w('#npn').value;
                         toUpdate.carriers = carrierList;
+                        toUpdate.carrierLogos = newCarriers;
                         toUpdate.states = selectedStates;
+                        carrierListSelected = [];
+                        carrierListSelected = newCarriers;
+
                         updateDisclaimer(toUpdate)
                             .then((updatedUser) => {
                                 console.log("Updated Disclaimer:", updatedUser.disclaimer);
@@ -301,6 +316,7 @@ $w.onReady(async function () {
                                     $w("#licensingSave").label = "Saved";
                                     setTimeout(() => {
                                         $w("#licensingSave").label = "Save"; // Reset the label after 2 seconds
+                                        $w("#licensingSave").enable();
                                     }, 2000);
 
                                     // Disable the save button again after saving
@@ -308,7 +324,7 @@ $w.onReady(async function () {
 
                                     $w('#npn').value = res.npn
                                     //$w('#carriers').value = res.carriers
-                                    findCarrierMatch()
+                                    findCarrierMatch();
                                     $w('#disclaimer').value = res.disclaimer
                                     updateRepeater();
                                 });
@@ -689,8 +705,9 @@ export function findCarrierMatch(){
 
                 let selected = null;
                 selected = [];
+                console.log("Selected List: ", carrierListSelected)
 
-                selected.forEach(carrier => {
+                carrierListSelected.forEach(carrier => {
             
                     let carrierArray = $w("#carriers").options;
 
@@ -702,9 +719,12 @@ export function findCarrierMatch(){
                     console.log("Match Found: ", findMatch)
                     let objIndex = carrierArray.findIndex((item => item.value === carrier));
                     selected.push(objIndex);
+                    $w("#carriers").selectedIndices = null;
                     $w("#carriers").selectedIndices = selected;
                     console.log("Carrier Selections Found: ", selected)
                     }
+
+
                 });
 
             }

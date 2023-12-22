@@ -50,6 +50,7 @@ $w.onReady(async function () {
 
     $w("#carriers").options = []; //Loads carriers list automatically
     let optionsArray = []
+
     
 
     var email = await wixUsers.currentUser.getEmail()
@@ -70,34 +71,41 @@ $w.onReady(async function () {
         $w('#publicEmail').value = item.publicEmail
         $w('#photo').src = item.photo
 
-
         wixData.query('CarrierLogos').find().then((populateCarriers) => {
-        var allCarriers = populateCarriers.items
-        let carrierCount = allCarriers.length
-        let count = 0;
-        console.log("All Carriers", allCarriers)
+            var allCarriers = populateCarriers.items
+            let carrierCount = allCarriers.length
+            let count = 0;
+            console.log("All Carriers", allCarriers)
 
-        carrierListSelected = [];
-        carrierListSelected = item.carrierLogos;
-        console.log("Carrier List Selected: ", carrierListSelected)
+            carrierListSelected = [];
+            carrierListSelected = item.carrierLogos;
+            console.log("Carrier List Selected: ", carrierListSelected)
 
-        populateCarriers.items.forEach(function(carrier) {
-            count++
-            console.log("This Carrier: ", carrier.carrier)
-            optionsArray.push({ label: carrier.carrier , value: carrier._id });              
-			$w("#carriers").options = optionsArray;
-            console.log("All options loaded", $w("#carriers").options, count, allCarriers.length)
+            populateCarriers.items.forEach(function (carrier) {
+                count++
+                console.log("This Carrier: ", carrier.carrier)
+                optionsArray.push({ label: carrier.carrier, value: carrier._id });
+                $w("#carriers").options = optionsArray;
+                console.log("All options loaded", $w("#carriers").options, count, allCarriers.length)
 
-            if(count == allCarriers.length){
+               //findCarrierMatch();
 
-                findCarrierMatch();
 
-            }
+                if (count == allCarriers.length) {
+
+                    setTimeout(()=>{
+                        findCarrierMatch();
+                    },1000)
+
+                 
+
+                }
+
+            })
 
         })
+
         
-        })
-
 
         // Initially disable the save button
         $w('#personalSave').disable();
@@ -137,24 +145,39 @@ $w.onReady(async function () {
 
                         console.log(toUpdate);
                         wixData.update('Team', toUpdate).then((res) => {
-                            console.log('updated');
-                            $w("#personalSave").label = "Saved";
-                            setTimeout(() => {
-                                $w("#personalSave").label = "Save"; // Reset the label after 2 seconds
-                                
-                            }, 2000);
+                                console.log('updated');
+                                $w("#personalSave").label = "Saved";
 
-                            // Disable the save button again after saving
-                            $w('#personalSave').disable();
+                                $w("#message").show("float");
+                                $w("#successIcon").show();
+                                $w("#alert").text = "Profile Updated Successfully";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 3000);
 
-                            // Update the input fields to reflect the changes
-                            $w('#name').value = res.name
-                            $w('#epicenter').value = res.epicenter
-                            $w('#phone').value = res.phone
-                            $w('#bio').value = res.bio
-                            $w('#publicEmail').value = res.publicEmail
-                            $w('#photo').src = res.photo
-                        })
+                                // Disable the save button again after saving
+                                $w('#personalSave').disable();
+
+                                // Update the input fields to reflect the changes
+                                $w('#name').value = res.name
+                                $w('#epicenter').value = res.epicenter
+                                $w('#phone').value = res.phone
+                                $w('#bio').value = res.bio
+                                $w('#publicEmail').value = res.publicEmail
+                                $w('#photo').src = res.photo
+                            })
+                            .catch((error) => {
+                                console.error('Error while saving:', error);
+                                // Display the error message to the user
+                                $w("#message").show("float");
+                                $w("#errorIcon").show();
+                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                }, 3000);
+
+                            });
                     })
             }
 
@@ -205,27 +228,26 @@ $w.onReady(async function () {
             let totalCount = selectedCarriers.length;
             let count = 0
 
-            selectedCarriers.forEach(function(carrier) {
+            selectedCarriers.forEach(function (carrier) {
                 count++
                 console.log("This Carrier: ", carrier, selectedCarriers)
 
                 wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
 
-                        newCarriers.push(thisCarrier.items[0]._id)
-                        carrierList.push(thisCarrier.items[0].carrier)
-                        console.log("This logo", thisCarrier.items[0].logo)
-                        console.log("Carrier Logos", newCarriers)
-                        console.log("All Carriers", carrierList)
+                    newCarriers.push(thisCarrier.items[0]._id)
+                    carrierList.push(thisCarrier.items[0].carrier)
+                    console.log("This logo", thisCarrier.items[0].logo)
+                    console.log("Carrier Logos", newCarriers)
+                    console.log("All Carriers", carrierList)
 
-                    })
+                })
 
-                if(count == totalCount){
+                if (count == totalCount) {
                     $w('#licensingSave').enable();
                 }
-            
+
             })
 
-            
         });
         $w('#npn').onChange(() => {
             $w('#licensingSave').enable();
@@ -312,22 +334,37 @@ $w.onReady(async function () {
 
                                 console.log(toUpdate);
                                 wixData.update('Team', toUpdate).then((res) => {
-                                    console.log('updated');
-                                    $w("#licensingSave").label = "Saved";
-                                    setTimeout(() => {
-                                        $w("#licensingSave").label = "Save"; // Reset the label after 2 seconds
-                                        $w("#licensingSave").enable();
-                                    }, 2000);
+                                        console.log('updated');
+                                        $w("#licensingSave").label = "Saved";
 
-                                    // Disable the save button again after saving
-                                    $w('#licensingSave').disable();
+                                        $w("#message").show("float");
+                                        $w("#successIcon").show();
+                                        $w("#alert").text = "Profile Updated Successfully";
+                                        setTimeout(() => {
+                                            $w("#message").hide("float");
+                                            $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
+                                        }, 3000);
 
-                                    $w('#npn').value = res.npn
-                                    //$w('#carriers').value = res.carriers
-                                    findCarrierMatch();
-                                    $w('#disclaimer').value = res.disclaimer
-                                    updateRepeater();
-                                });
+                                        // Disable the save button again after saving
+                                        $w('#licensingSave').disable();
+
+                                        $w('#npn').value = res.npn
+                                        //$w('#carriers').value = res.carriers
+                                        findCarrierMatch();
+                                        $w('#disclaimer').value = res.disclaimer
+                                        updateRepeater();
+                                    })
+                                    .catch((error) => {
+                                        console.error('Error while saving:', error);
+                                        // Display the error message to the user
+                                        $w("#message").show("float");
+                                        $w("#errorIcon").show();
+                                        $w("#alert").text = "Error Updating Profile. Try Again!";
+                                        setTimeout(() => {
+                                            $w("#message").hide("float");
+                                        }, 3000);
+
+                                    });
                             });
                     });
             }
@@ -380,23 +417,39 @@ $w.onReady(async function () {
 
                         console.log(toUpdate);
                         wixData.update('Team', toUpdate).then((res) => {
-                            console.log('updated');
-                            $w("#linksSave").label = "Saved";
-                            setTimeout(() => {
-                                $w("#linksSave").label = "Save"; // Reset the label after 2 seconds
-                            }, 2000);
+                                console.log('updated');
+                                $w("#linksSave").label = "Saved";
 
-                            // Disable the save button again after saving
-                            $w('#linksSave').disable();
+                                $w("#message").show("float");
+                                $w("#successIcon").show();
+                                $w("#alert").text = "Profile Updated Successfully";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 3000);
 
-                            // Update the input fields to reflect the changes
-                            $w('#calendlyUrl').value = res.calendlyUrl
-                            $w('#shoppingLink').value = res.shoppingLink
-                            $w('#facebookUrl').value = res.facebookUrl
-                            $w('#linkedinUrl').value = res.linkedinUrl
-                            $w('#instagramUrl').value = res.instagramUrl
-                            $w('#xurl').value = res.xurl
-                        })
+                                // Disable the save button again after saving
+                                $w('#linksSave').disable();
+
+                                // Update the input fields to reflect the changes
+                                $w('#calendlyUrl').value = res.calendlyUrl
+                                $w('#shoppingLink').value = res.shoppingLink
+                                $w('#facebookUrl').value = res.facebookUrl
+                                $w('#linkedinUrl').value = res.linkedinUrl
+                                $w('#instagramUrl').value = res.instagramUrl
+                                $w('#xurl').value = res.xurl
+                            })
+                            .catch((error) => {
+                                console.error('Error while saving:', error);
+                                // Display the error message to the user
+                                $w("#message").show("float");
+                                $w("#errorIcon").show();
+                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                }, 3000);
+
+                            });
                     })
             }
 
@@ -406,63 +459,74 @@ $w.onReady(async function () {
 
 //SEO 
 $w.onReady(async function () {
-
-    var email = await wixUsers.currentUser.getEmail()
-
-    wixData.query('Team').eq('email', email).find().then((res) => {
-        var itemId = res.items[0]._id
-        session.setItem("id", itemId)
-    })
+    var email = await wixUsers.currentUser.getEmail();
 
     wixData.query('Team').eq('email', email).find().then((res) => {
-            var item = res.items[0]
+        var itemId = res.items[0]._id;
+        session.setItem("id", itemId);
+    });
 
-            $w('#seoDescription').value = item.seoDescription
-            $w('#currentDescription').text = 'Current SEO Description: ' + item.seoDescription;
-            $w('#seoKeywords').value = item.seoKeywords
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var item = res.items[0];
 
-            // Initially disable the save button
-            $w('#seoSave').disable();
+        $w('#seoDescription').value = item.seoDescription;
+        $w('#currentDescription').text = 'Current SEO Description: ' + item.seoDescription;
+        $w('#seoKeywords').value = item.seoKeywords;
 
-            // Enable the save button when a new option is selected
-            const inputs = ['#seoDescription', '#seoKeywords'];
-            inputs.forEach(input => {
-                $w(input).onChange(() => {
-                    $w('#seoSave').enable();
-                });
+        // Initially disable the save button
+        $w('#seoSave').disable();
+
+        // Enable the save button when a new option is selected
+        const inputs = ['#seoDescription', '#seoKeywords'];
+        inputs.forEach(input => {
+            $w(input).onChange(() => {
+                $w('#seoSave').enable();
             });
+        });
 
-            $w('#seoSave').onClick(async () => {
-                    let thisId = session.getItem("id")
-                    wixData.get("Team", thisId)
-                        .then((toUpdate) => {
+        $w('#seoSave').onClick(async () => {
+            let thisId = session.getItem("id");
+            wixData.get("Team", thisId).then((toUpdate) => {
+                toUpdate.seoDescription = $w('#seoDescription').value;
+                toUpdate.seoKeywords = $w('#seoKeywords').value;
 
-                            toUpdate.seoDescription = $w('#seoDescription').value
-                            toUpdate.seoKeywords = $w('#seoKeywords').value
+                console.log(toUpdate);
+                wixData.update('Team', toUpdate).then((res) => {
+                        console.log('updated');
+                        $w("#seoSave").label = "Saved";
 
-                            console.log(toUpdate);
-                            wixData.update('Team', toUpdate).then((res) => {
-                                console.log('updated');
-                                $w("#seoSave").label = "Saved";
-                                setTimeout(() => {
-                                    $w("#seoSave").label = "Save"; // Reset the label after 2 seconds
-                                }, 2000);
+                        // Show the success message for 5 seconds
+                        $w("#message").show("float");
+                        $w("#successIcon").show();
+                        $w("#alert").text = "Profile Updated Successfully";
+                        setTimeout(() => {
+                            $w("#message").hide("float");
+                            $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
+                        }, 3000);
 
-                                // Disable the save button again after saving
-                                $w('#seoSave').disable();
+                        // Disable the save button again after saving
+                        $w('#seoSave').disable();
 
-                                // Update the input fields to reflect the changes
-                                $w('#seoDescription').value = res.seoDescription
-                                $w('#currentDescription').text = 'Current SEO Description: ' + res.seoDescription;
-                                $w('#seoKeywords').value = res.seoKeywords
-                            })
-                        })
-                }
+                        // Update the input fields to reflect the changes
+                        $w('#seoDescription').value = res.seoDescription;
+                        $w('#currentDescription').text = 'Current SEO Description: ' + res.seoDescription;
+                        $w('#seoKeywords').value = res.seoKeywords;
 
-            )
-        }
+                    })
+                    .catch((error) => {
+                        console.error('Error while saving:', error);
+                        // Display the error message to the user
+                        $w("#message").show("float");
+                        $w("#errorIcon").show();
+                        $w("#alert").text = "Error Updating Profile. Try Again!";
+                        setTimeout(() => {
+                            $w("#message").hide("float");
+                        }, 3000);
 
-    )
+                    });
+            });
+        });
+    });
 });
 
 //Templates
@@ -499,16 +563,32 @@ $w.onReady(async function () {
 
                         console.log(toUpdate);
                         wixData.update('Team', toUpdate).then((res) => {
-                            console.log('updated');
-                            $w("#templateSave").label = "Saved";
-                            setTimeout(() => {
-                                $w("#templateSave").label = "Save"; // Reset the label after 2 seconds
-                            }, 2000);
-                            // Update the currentTemplate text to display the new template value
-                            $w('#currentTemplate').text = 'Current Template: ' + toUpdate.template;
-                            // Disable the save button again after saving
-                            $w('#templateSave').disable();
-                        })
+                                console.log('updated');
+                                $w("#templateSave").label = "Saved";
+
+                                $w("#message").show("float");
+                                $w("#successIcon").show();
+                                $w("#alert").text = "Profile Updated Successfully";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 3000);
+                                // Update the currentTemplate text to display the new template value
+                                $w('#currentTemplate').text = 'Current Template: ' + toUpdate.template;
+                                // Disable the save button again after saving
+                                $w('#templateSave').disable();
+                            })
+                            .catch((error) => {
+                                console.error('Error while saving:', error);
+                                // Display the error message to the user
+                                $w("#message").show("float");
+                                $w("#errorIcon").show();
+                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                setTimeout(() => {
+                                    $w("#message").hide("float");
+                                }, 3000);
+
+                            });
                     })
             }
 
@@ -698,36 +778,37 @@ export function generateNewMap() {
 
 }
 
-export function findCarrierMatch(){
+export function findCarrierMatch() {
 
-    	
-            if(carrierListSelected !== undefined && carrierListSelected !== ""){
+    if (carrierListSelected !== undefined && carrierListSelected !== "") {
 
-                let selected = null;
-                selected = [];
-                console.log("Selected List: ", carrierListSelected)
+        let selected = null;
+        selected = [];
+        console.log("Selected List: ", carrierListSelected)
 
-                carrierListSelected.forEach(carrier => {
-            
-                    let carrierArray = $w("#carriers").options;
+        carrierListSelected.forEach(carrier => {
 
-                    //Carrier Selections
+            let carrierArray = $w("#carriers").options;
 
-                    let findMatch = carrierArray.find(item=> item.value === carrier)
+            //Carrier Selections
 
-                    if (findMatch){
-                    console.log("Match Found: ", findMatch)
-                    let objIndex = carrierArray.findIndex((item => item.value === carrier));
-                    selected.push(objIndex);
-                    $w("#carriers").selectedIndices = null;
-                    $w("#carriers").selectedIndices = selected;
-                    console.log("Carrier Selections Found: ", selected)
-                    }
+            let findMatch = carrierArray.find(item => item.value === carrier)
 
-
-                });
-
+            if (findMatch) {
+                console.log("Match Found: ", findMatch)
+                let objIndex = carrierArray.findIndex((item => item.value === carrier));
+                selected.push(objIndex);
+                $w("#carriers").selectedIndices = null;
+                $w("#carriers").selectedIndices = selected;
+                console.log("Carrier Selections Found: ", selected)
             }
+
+        });
 
     }
 
+}
+
+export function close_click(event) {
+    $w("#message").hide();
+}

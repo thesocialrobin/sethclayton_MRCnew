@@ -1,0 +1,81 @@
+import wixUsers from 'wix-users';
+import wixData from 'wix-data';
+import wixLocation from 'wix-location';
+import {session} from 'wix-storage';
+import wixWindow from 'wix-window';
+let stripePurpose
+let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
+
+let context = wixWindow.lightbox.getContext();
+
+$w.onReady(function () {
+    let stripePurpose = session.getItem("stripePurpose");
+    if(stripePurpose == "Subscribe"){
+        $w('#stripePayment').changeState("Main");
+        let plan = context.plan;
+        let planSelection = context.planSelection
+        console.log("Plan Details: ", plan, planSelection)
+
+        wixData.query("stripeSubscriptions")
+                    .eq("title", planSelection)  
+                    .eq("duration", plan)     
+                    .eq("type", mode)  
+                    .find() 
+                    .then((results) => { 
+
+                         let apiId = results.items[0].apiId
+                         console.log("Found ID", apiId)
+                         console.log("Found plan", results)
+
+                    })
+
+
+    }
+
+
+    
+
+});
+
+export function toCard_click(event) {
+
+        let firstName = $w("#firstName").value;
+        let lastName = $w("#lastName").value;
+        let street = $w("#street").value;
+        let city = $w("#city").value;
+        let state = $w("#state").value;
+
+	if($w("#firstName").value.length > 0 && $w("#lastName").value.length > 0 && $w("#street").value.length > 0  && $w("#city").value.length > 0 && $w("#state").valid){
+        $w('#stripePayment').changeState("Card");
+    }
+}
+
+export function cardNumber_keyPress(event) {
+	if ($w('#cardNumber').value.length === 15) {
+	 $w("#mm").focus();
+	}
+}
+
+export function mm_keyPress(event) {
+	if ($w('#mm').value.length === 1) {
+	 $w("#yyyy").focus();
+	}
+}
+export function yyyy_keyPress(event) {
+	if ($w('#yyyy').value.length === 3) {
+	 $w("#cvc").focus();
+	 $w("#errorCard").text = "3-digit CVC is printed on the signature panel on the back of the card; for American Express cards it is the 4-digit number above the card number."
+	 $w("#errorCard").show();
+	
+	}
+}
+
+export function cvc_keyPress(event) {
+	if ($w('#cvc').value.length === 2) {
+	$w("#errorCard").show();
+	$w("#errorCard").text = ""
+	 $w("#errorCard").hide();
+	  $w("#errorCard").text = "Error"
+	} 
+}
+

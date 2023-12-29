@@ -12,8 +12,82 @@ let isUpdating = false
 let newStates = [];
 let newCarriers
 let carrierList
+let stripeSubscription
 
 //Personal State
+
+
+export function essentialPlan_click(event) {
+	session.setItem("Plan Selection", "Essential");
+    setTimeout(()=>{
+    checkSwitch();
+    },500)
+    
+}
+
+export function freePlan_click(event) {
+	session.setItem("Plan Selection", "Free");
+    setTimeout(()=>{
+    checkSwitch();
+    },500)
+}
+
+export function checkSwitch(){
+    let planSelection = session.getItem("Plan Selection");
+	let isChecked1 = $w("#billingSwitch").checked;
+    console.log("Checking Switch", isChecked1, planSelection)
+
+	if(!isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
+		session.setItem("Plan", "Monthly") ////-----DURATION--/////
+        $w("#essentialPlan").label = "Selected";
+        $w("#freePlan").label = "Select Plan";
+		console.log(session.getItem("Plan"), planSelection, isChecked1);
+        executePayment();
+
+	} else if (!isChecked1 && planSelection == "Free"){ ////-----FREE-----/////
+        $w("#freePlan").label = "Selected";
+        $w("#essentialPlan").label = "Select Plan";
+		session.setItem("Plan", "Free")
+        console.log(session.getItem("Plan"), planSelection, isChecked1);
+        //executeDashboard(); //Confirm with Seth and redirect
+
+	} else if (isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
+		session.setItem("Plan", "Annual") ////-----DURATION-----/////
+        $w("#freePlan").label = "Select Plan";
+		$w("#essentialPlan").label = "Selected";
+        console.log(session.getItem("Plan"), planSelection, isChecked1);
+        executePayment();
+		
+	} 
+}
+
+export function executePayment(){
+    console.log("Payment Executed")
+
+    session.setItem("stripePurpose", "Subscribe");
+
+    let subscriptionData = {
+        "planSelection": session.getItem("Plan Selection"),
+        "plan": session.getItem("Plan")
+
+    }
+    console.log("Subscription Data", subscriptionData)
+
+    wixWindow.openLightbox('Payment', subscriptionData)
+        .then((data) => {
+
+            let receivedData = data;
+
+            console.log("Data Received: ", receivedData)
+
+            if (receivedData === "Error") {
+
+                //--Code TBD--//
+
+            }
+        });
+
+}
 
 $w.onReady(async function () {
 
@@ -506,3 +580,5 @@ export function generateNewMap() {
     })
 
 }
+
+

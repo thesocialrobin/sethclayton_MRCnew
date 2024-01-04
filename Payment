@@ -3,13 +3,43 @@ import wixData from 'wix-data';
 import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
-let stripePurpose
+import {stripeToken} from 'public/stripe.js';
+import {createCustomer, createSubscription, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod} from 'backend/stripeProcessor.jsw';
+
 let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
+let stripePurpose
+let apiKeyPk
+let apiKeySk
 
 let context = wixWindow.lightbox.getContext();
+var email 
+var planId
 
-$w.onReady(function () {
-    let stripePurpose = session.getItem("stripePurpose");
+$w.onReady(async function () {
+
+//-------set below for live or test Stripe----//
+
+let stripeMode = "test";   //value is "test" or "live"
+
+if(stripeMode == "test"){
+
+    apiKeyPk = "stripeTestPk";
+    apiKeySk = "stripeTestSk";
+
+
+} else if(stripeMode == "live"){
+
+    apiKeyPk = "stripeLivePk";
+    apiKeySk = "stripeLiveSk";
+
+}
+
+//--------------------end--------------------//
+
+
+    email = await wixUsers.currentUser.getEmail();
+    console.log("E-mail confirmation: ", email)
+    stripePurpose = session.getItem("stripePurpose");
     if(stripePurpose == "Subscribe"){
         $w('#stripePayment').changeState("Main");
         let plan = context.plan;
@@ -24,8 +54,10 @@ $w.onReady(function () {
                     .then((results) => { 
 
                          let apiId = results.items[0].apiId
+                         planId = apiId
                          console.log("Found ID", apiId)
                          console.log("Found plan", results)
+                         console.log("Plan Logged:", planId)
 
                     })
 
@@ -39,30 +71,30 @@ $w.onReady(function () {
 
 export function toCard_click(event) {
 
-        let firstName = $w("#firstName").value;
-        let lastName = $w("#lastName").value;
+        let cardName = $w("#cardName").value;
+        let zip = $w("#zip").value;
         let street = $w("#street").value;
         let city = $w("#city").value;
         let state = $w("#state").value;
 
-	if($w("#firstName").value.length > 0 && $w("#lastName").value.length > 0 && $w("#street").value.length > 0  && $w("#city").value.length > 0 && $w("#state").valid){
+	if($w("#cardName").value.length > 0 && $w("#zip").value.length > 4 && $w("#street").value.length > 0  && $w("#city").value.length > 0 && $w("#state").valid){
         $w('#stripePayment').changeState("Card");
     }
 }
 
 export function cardNumber_keyPress(event) {
-	if ($w('#cardNumber').value.length === 15) {
+	if ($w('#cardNumber').value.length === 16) {
 	 $w("#mm").focus();
 	}
 }
 
 export function mm_keyPress(event) {
-	if ($w('#mm').value.length === 1) {
+	if ($w('#mm').value.length === 2) {
 	 $w("#yyyy").focus();
 	}
 }
 export function yyyy_keyPress(event) {
-	if ($w('#yyyy').value.length === 3) {
+	if ($w('#yyyy').value.length === 4) {
 	 $w("#cvc").focus();
 	 $w("#errorCard").text = "3-digit CVC is printed on the signature panel on the back of the card; for American Express cards it is the 4-digit number above the card number."
 	 $w("#errorCard").show();
@@ -78,4 +110,184 @@ export function cvc_keyPress(event) {
 	  $w("#errorCard").text = "Error"
 	} 
 }
+
+
+export function submit_click(event) {
+
+    if(stripePurpose == "Subscribe"){
+        subscribeMain()
+    }
+
+}
+
+//-------------------------------------------------------Main Subscription-------------------------------------------------------//
+
+export function subscribeMain(){
+
+    //$w('#submitLoader').show();
+	$w('#submit').disable();
+	$w('#processorText').text = "Subscribing...";
+	$w('#processorText').expand();
+	setTimeout(()=>{
+		createCardToken();
+	},200)
+
+}
+
+//-------------------------------------------------------Encode & Create Card Token-------------------------------------------------------//
+
+function createCardToken() {
+	console.log("Create card token");
+	$w("#processorText").text = 'Validating card details';
+	let name = $w("#cardName").value;
+	let card = $w('#cardNumber').value;
+	let mm = $w("#mm").value;
+	let yyyy = $w("#yyyy").value;
+	let cvc = $w("#cvc").value;
+	let line1 = $w("#street").value;
+	let city = $w("#city").value;
+	let state = $w("#state").value;
+	let zip = $w("#zip").value;
+	createToken(name, card, mm, yyyy, cvc, line1, city, state, zip)
+	.then( (response) => {
+		console.log("Token Response", response)
+		if(response.id !== undefined) {
+			let token = response.id;
+			let lastFour = response.card.last4;
+			let brand = response.card.brand;
+			let cardId = response.card.id;
+			customerCreation(token, lastFour, brand, cardId);
+		} else {
+            $w('#processorText').text = "Token Error: Customer Not Subscribed";
+			$w('#processorText').expand();
+			console.log("Error: ", response)
+			$w("#submit").enable();
+		}
+	});
+}
+
+function createToken(name, card, mm, yyyy, cvc, line1, city, state, zip) {
+
+    $w('#processorText').text = "Creating Subscription...";
+	console.log("Token Begin");
+	let cardObject = {
+		"name": name,
+		"number": card,
+		"exp_month": mm,
+		"exp_year": yyyy,
+		"cvc": cvc,
+		"address_line1": line1,
+		"address_city": city,
+		"address_state": state,
+		"address_zip": zip,
+	};
+	return stripeToken(cardObject, apiKeyPk)
+	.then( (response) => {
+		return response;
+	});
+}
+
+//-----------------------------------------------------------------Create Customer-----------------------------------------------------------------//
+
+async function customerCreation(token, lastFour, brand, cardId) {
+
+	createCustomer(token, email, apiKeySk)
+	.then( (response) => {
+        $w('#processorText').text = "Confirming Details...";
+		if(response.id !== undefined) {
+			console.log("Create customer");
+			let cus = response.id;
+			subscription(cus, lastFour, brand);
+		} else {
+			$w('#processorText').text = "Customer Error: Customer Not Subscribed";
+			$w('#processorText').expand();
+			console.log("Error: ", response)
+			$w("#submit").enable();
+		}
+	});
+}
+
+//-----------------------------------------------------------------Subscribe-----------------------------------------------------------------//
+
+async function subscription(cus, lastFour, brand, coupon) {
+	let plan = [];
+	let data = {
+		plan: planId,
+		quantity: 1
+	};
+	await plan.push(data);
+	createSubscription(cus, plan, apiKeySk)
+	.then( (response) => {
+		if(response.id !== undefined && response.status === 'active') {
+			let subStatus = 'ACTIVE';
+            $w('#processorText').text = "Finalizing Subscription...";
+			signUpMember(response, cus, lastFour, brand, subStatus);
+		} else if(response.id !== undefined && response.status !== 'active') {
+			let subStatus = 'PENDING';
+			//signUpMember(response, cus, lastFour, brand, subStatus);	
+            $w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+			$w('#processorText').expand();
+			console.log("Error: ", response)
+			$w("#submit").enable();
+		} else {
+			$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+			$w('#processorText').expand();
+			console.log("Error: ", response)
+			$w("#submit").enable();
+		}
+	});
+}
+
+
+
+async function signUpMember(response, cus, lastFour, brand, subStatus) {
+
+
+            let thisId = session.getItem("id")
+
+            wixData.get("Team", thisId)
+                .then((toUpdate) => {
+                    $w('#processorText').text = "Updating Dashboard...";
+
+                    toUpdate.customerId = cus;
+                    toUpdate.subscriptionId = response.id;
+                    toUpdate.lastFour = String(lastFour);
+                    toUpdate.cardType = brand;
+                    toUpdate.subscriptionStatus = subStatus;
+
+                    console.log(toUpdate);
+
+                    wixData.update('Team', toUpdate).then((res) => {
+                        console.log('updated');
+                        $w("#submit").label = "Subscribed!";
+
+                        // After 2 seconds, change the state of the multistate box to 'licensing'
+                        setTimeout(() => {
+                            $w('#processorText').text = "Taking to Dashboard...";
+
+                        }, 1000);
+
+                        setTimeout(() => {
+
+                            wixLocation.to('/account/boost-dashboard');
+
+                        }, 2000);
+                    })
+
+                })
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 

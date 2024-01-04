@@ -1,19 +1,33 @@
-//stripeProcessor.jsw
-
 import stripe from 'stripe';
 //import {getSecret} from 'wix-secrets-backend';
+import wixSecretsBackend from 'wix-secrets-backend';
+import wixData from 'wix-data';
 
-
-const key = require("stripe")("sk_test_51L9FTlJK0SbxJv9lcRm7j2ZiiMPjC3HpcRao9EXV0g9mtLEfBD5ToPChkuC7MoTO2CC4zOAs0dEHopl4X3IWqJAy00TguZY9Ok", {
-  apiVersion: '2019-12-03;orders_beta=v3'
-})
-
-//const key = require("stripe")("sk_test_rueVuXDItYzjpnXD2NdTbCAN00uHmT2v9Q")
 
 //---------------------------------------------Create Customer---------------------------------------------//
 
-export function createCustomer(token, emailId) {
-	return key.customers.create({
+export async function createCustomer(token, emailId, apiKeySk) {
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Customer Creation", apiKeySk, emailId
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+	return await key.customers.create({
 		email: emailId,
 		source: token
 	})
@@ -32,7 +46,26 @@ export function createCustomer(token, emailId) {
 
 //--------------------------------------------------Create Order-----------------------------------------------//
 
-export async function createOrder(cus, items){
+export async function createOrder(cus, items, apiKeySk){
+  //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Create Order", apiKeySk, cus
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
 
 const order = await key.orders.create({
   currency: 'usd',
@@ -58,9 +91,12 @@ return order
 
 }
 
-export function payOrder(orderId, cus){
+export async function payOrder(orderId, cus, apiKeySk){
 
-	return key.orders.pay(
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+	return await key.orders.pay(
 	orderId, {customer: cus}
 	)
 	.then( function(err, order) {
@@ -76,9 +112,12 @@ export function payOrder(orderId, cus){
 
 }
 
-export async function finalizeOrder(orderId, total){
+export async function finalizeOrder(orderId, total, apiKeySk){
 
-		return key.orders.submit(
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+		return await key.orders.submit(
 	orderId, {expected_total: total}
 	)
 	.then( function(err, order) {
@@ -94,6 +133,23 @@ export async function finalizeOrder(orderId, total){
 }
 
 export function createMethod(token){
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Create Method", 
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
 	return stripe.paymentMethods.create({
   type: 'card',
   card: {token},
@@ -113,6 +169,23 @@ export function createMethod(token){
 }
 
 export async function retrieveMethod(cus){
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Retrieve Method", cus
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
 	const paymentMethods = await stripe.customers.listPaymentMethods(
   'cus_Ltavktp7G5muyL',
   {type: 'card'}
@@ -134,10 +207,28 @@ export async function retrieveMethod(cus){
 	
 }
 
-export async function payIntentComplete(intentId, cardId){
-	//replace cardID for token up top and down below
+export async function payIntentComplete(intentId, cardId, apiKeySk){
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Payment Intent", apiKeySk
+                            };
 
-	return key.paymentIntents.confirm(intentId,
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+	return await key.paymentIntents.confirm(intentId,
   {payment_method: cardId}
 )
 .then( function(err, intent) {
@@ -155,8 +246,30 @@ export async function payIntentComplete(intentId, cardId){
 
 //---------------------------------------------Create Subscription---------------------------------------------//
 
-export function createSubscription(cus, plan) {
-	return key.subscriptions.create({
+export async function createSubscription(cus, plan, apiKeySk) {
+       //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Subscription Creation", apiKeySk, cus, plan
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+     
+
+	return await key.subscriptions.create({
 		customer: cus,
 		items: plan
 	})
@@ -171,12 +284,14 @@ export function createSubscription(cus, plan) {
 	});
 }
 
-export function createSubscriptionwInvoiceItems(cus, items) {
+export async function createSubscriptionwInvoiceItems(cus, items, apiKeySk) {
 
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
     //--For Future addons--//
 
 	let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
-	return key.subscriptions.create({
+	return await key.subscriptions.create({
 		customer: cus,
 		items: subscription,
 		add_invoice_items: items
@@ -190,4 +305,47 @@ export function createSubscriptionwInvoiceItems(cus, items) {
 	.catch( (err) => {
 		return err;
 	});
+}
+
+export async function getAPIKey(apiKeyType) {
+  return wixSecretsBackend.getSecret(apiKeyType)
+    .then((secret) => {
+         //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Success", apiKeyType
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+      return secret
+    })
+    .catch((error) => {
+      console.error(error);
+       //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Error", apiKeyType, error
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+      return error
+    });
 }

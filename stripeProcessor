@@ -1,0 +1,193 @@
+//stripeProcessor.jsw
+
+import stripe from 'stripe';
+//import {getSecret} from 'wix-secrets-backend';
+
+
+const key = require("stripe")("sk_test_51L9FTlJK0SbxJv9lcRm7j2ZiiMPjC3HpcRao9EXV0g9mtLEfBD5ToPChkuC7MoTO2CC4zOAs0dEHopl4X3IWqJAy00TguZY9Ok", {
+  apiVersion: '2019-12-03;orders_beta=v3'
+})
+
+//const key = require("stripe")("sk_test_rueVuXDItYzjpnXD2NdTbCAN00uHmT2v9Q")
+
+//---------------------------------------------Create Customer---------------------------------------------//
+
+export function createCustomer(token, emailId) {
+	return key.customers.create({
+		email: emailId,
+		source: token
+	})
+	.then( function(err, customer) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(customer);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}
+
+
+
+//--------------------------------------------------Create Order-----------------------------------------------//
+
+export async function createOrder(cus, items){
+
+const order = await key.orders.create({
+  currency: 'usd',
+  line_items: items,
+  payment: {settings: {payment_method_types: ['card']}},
+  customer: cus
+});
+
+return order
+
+/*
+
+		return key.orders.pay(order.id, {
+				customer: cus
+			}, (err, order) => {
+					if (err || !order) {
+						return(err);
+					}
+				return Promise.resolve(order);	
+		})
+		
+		*/
+
+}
+
+export function payOrder(orderId, cus){
+
+	return key.orders.pay(
+	orderId, {customer: cus}
+	)
+	.then( function(err, order) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(order);
+	})
+	.catch( (err) => {
+		return err;
+	})
+
+
+}
+
+export async function finalizeOrder(orderId, total){
+
+		return key.orders.submit(
+	orderId, {expected_total: total}
+	)
+	.then( function(err, order) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(order);
+	})
+	.catch( (err) => {
+		return err;
+	})
+
+}
+
+export function createMethod(token){
+	return stripe.paymentMethods.create({
+  type: 'card',
+  card: {token},
+})
+.then( function(err, method) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(method);
+	})
+	.catch( (err) => {
+		return err;
+	})
+
+
+
+}
+
+export async function retrieveMethod(cus){
+	const paymentMethods = await stripe.customers.listPaymentMethods(
+  'cus_Ltavktp7G5muyL',
+  {type: 'card'}
+);
+
+
+	return stripe.customers.listPaymentMethods(cus,
+  {type: "card"}
+)
+.then( function(err, card) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(card);
+	})
+	.catch( (err) => {
+		return err;
+	})
+	
+}
+
+export async function payIntentComplete(intentId, cardId){
+	//replace cardID for token up top and down below
+
+	return key.paymentIntents.confirm(intentId,
+  {payment_method: cardId}
+)
+.then( function(err, intent) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(intent);
+	})
+	.catch( (err) => {
+		return err;
+	})
+	
+}
+
+
+//---------------------------------------------Create Subscription---------------------------------------------//
+
+export function createSubscription(cus, plan) {
+	return key.subscriptions.create({
+		customer: cus,
+		items: plan
+	})
+	.then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}
+
+export function createSubscriptionwInvoiceItems(cus, items) {
+
+    //--For Future addons--//
+
+	let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
+	return key.subscriptions.create({
+		customer: cus,
+		items: subscription,
+		add_invoice_items: items
+	})
+	.then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}

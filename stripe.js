@@ -1,10 +1,9 @@
-//stripe.js
-
 import {fetch} from 'wix-fetch';
-import wixSecretsBackend from 'wix-secrets-backend';
 
 
-export async function stripeToken(cardObject) {
+export async function stripeToken(cardObject, apiKeyPk) {
+
+      
 
     //const mySecret = await getSecret("myApiKeyName");
 
@@ -14,7 +13,7 @@ export async function stripeToken(cardObject) {
 		method: 'post',
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded",
-			"Authorization": "Bearer " + apiKey
+			"Authorization": "Bearer " + apiKeyPk
 		},
 		body: values
 	});
@@ -38,13 +37,3 @@ function encodeCard(cardObject) {
 	return encoded.substr(0, encoded.length - 1);
 }
 
-export function getAPIKey(apiKeyType) {
-  return wixSecretsBackend.getSecret(apiKeyType)
-    .then((secret) => {
-      return secret
-    })
-    .catch((error) => {
-      console.error(error);
-      return error
-    });
-}

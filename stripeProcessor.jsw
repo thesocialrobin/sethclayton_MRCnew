@@ -6,7 +6,7 @@ import wixData from 'wix-data';
 
 //---------------------------------------------Create Customer---------------------------------------------//
 
-export async function createCustomer(token, emailId, apiKeySk) {
+export async function createCustomer(token, emailId, apiKeySk,agentName) {
       //--log process--//
                           let logResults = {
                               "type": "Stripe Log",
@@ -29,7 +29,8 @@ export async function createCustomer(token, emailId, apiKeySk) {
 
 	return await key.customers.create({
 		email: emailId,
-		source: token
+		source: token,
+    name:agentName
 	})
 	.then( function(err, customer) {
 		if (err) {

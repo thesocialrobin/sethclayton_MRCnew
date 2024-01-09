@@ -80,7 +80,7 @@ let thisId = session.getItem("id")
             wixData.get("Team", thisId)
                 .then((toUpdate) => {
 
-                    toUpdate.subscriptionId = "FREE"
+                    toUpdate.subscriptionId = "FREE";
                     console.log(toUpdate);
                     wixData.update('Team', toUpdate).then((res) => {
                         console.log('updated');
@@ -118,13 +118,18 @@ export function executePayment(){
     wixWindow.openLightbox('Payment', subscriptionData)
         .then((data) => {
 
-            let receivedData = data;
+            let receivedData = data.lightBoxSend1;
 
             console.log("Data Received: ", receivedData)
 
             if (receivedData === "Error") {
 
                 //--Code TBD--//
+
+            } else if (receivedData === "Success"){
+
+                $w("#accountSetup").changeState("personalInfo");
+                 wixWindow.scrollTo(0, 0);
 
             }
         });

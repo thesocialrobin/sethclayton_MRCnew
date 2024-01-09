@@ -169,11 +169,11 @@ export function createMethod(token){
 
 }
 
-export async function retrieveMethod(cus){
+export async function retrieveMethod(cus, apiKeySk){
       //--log process--//
                           let logResults = {
                               "type": "Stripe Log",
-                              "log": "Retrieve Method", cus
+                              "log": "Retrieve Payment Methods", cus, apiKeySk
                             };
 
                             wixData.insert("devLog", logResults)
@@ -187,24 +187,50 @@ export async function retrieveMethod(cus){
 
        //--end log process--//
 
-	const paymentMethods = await stripe.customers.listPaymentMethods(
-  'cus_Ltavktp7G5muyL',
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+    const paymentMethods = await key.customers.listPaymentMethods(
+  cus,
   {type: 'card'}
 );
 
+	return await key.customers.listPaymentMethods(cus,
+  {type: 'card'})
+	
+}
 
-	return stripe.customers.listPaymentMethods(cus,
-  {type: "card"}
-)
-.then( function(err, card) {
-		if (err) {
-			return Promise.resolve(err); //does not work
-		}
-			return Promise.resolve(card);
-	})
-	.catch( (err) => {
-		return err;
-	})
+export async function retrieveSubscription(cus,apiKeySk){
+
+   let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+    var subscriptions = await key.subscriptions.list({customer: 'cus', limit: 10})
+
+  
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Retrieve Subscription", cus, apiKeySk, subscriptions
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+//cancelled let stripeSub = await stripe.subscriptions.list({customer: customerId, status: "canceled"});
+ 
+
+
+	return await key.subscriptions.list({customer: 'cus', limit: 10})
 	
 }
 

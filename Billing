@@ -1,0 +1,81 @@
+import wixUsers from 'wix-users';
+import wixData from 'wix-data';
+import wixLocation from 'wix-location';
+import {session} from 'wix-storage';
+import wixWindow from 'wix-window';
+import {stripeToken} from 'public/stripe.js';
+import { retrieveMethod, retrieveSubscription } from 'backend/stripeProcessor.jsw';
+
+let apiKeyPk
+let apiKeySk
+
+var email 
+var planId
+
+$w.onReady(async function () {
+
+//-------set below for live or test Stripe----//
+
+let stripeMode = "test";   //value is "test" or "live"
+
+if(stripeMode == "test"){
+
+    apiKeyPk = "stripeTestPk";
+    apiKeySk = "stripeTestSk";
+
+
+} else if(stripeMode == "live"){
+
+    apiKeyPk = "stripeLivePk";
+    apiKeySk = "stripeLiveSk";
+
+}
+
+//--------------------end--------------------//
+	
+	email = await wixUsers.currentUser.getEmail();
+
+	wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+        session.setItem("userName", res.items[0].name)
+		session.setItem("cus", res.items[0].customerId)
+
+		let cus = res.items[0].customerId;
+		console.log("Customer", cus)
+
+	
+		retrieveMethod(cus, apiKeySk)
+	.then( (response) => {
+        
+			console.log("Stripe Methods:", response, response.data[0].id);
+			let allItems = response.data
+			
+			
+			allItems.forEach(method => {
+
+				//query card type
+				let cardType = method.card.brand; //visa
+				let cardExpMonth = method.card.exp_month;
+				let cardExpYear = method.card.exp_year;
+				let cardlast4 = method.card.last4;
+
+				
+			})			
+			
+	});
+
+	
+
+	retrieveSubscription(cus, apiKeySk)
+			.then( (subscriptions) => {
+				
+					console.log("Stripe Subscriptions:", subscriptions);
+					
+					
+			});
+
+
+    })
+
+});

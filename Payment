@@ -38,6 +38,13 @@ if(stripeMode == "test"){
 
 
     email = await wixUsers.currentUser.getEmail();
+
+	wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+        session.setItem("userName", res.items[0].name)
+    })
+
     console.log("E-mail confirmation: ", email)
     stripePurpose = session.getItem("stripePurpose");
     if(stripePurpose == "Subscribe"){
@@ -76,6 +83,7 @@ export function toCard_click(event) {
         let street = $w("#street").value;
         let city = $w("#city").value;
         let state = $w("#state").value;
+		
 
 	if($w("#cardName").value.length > 0 && $w("#zip").value.length > 4 && $w("#street").value.length > 0  && $w("#city").value.length > 0 && $w("#state").valid){
         $w('#stripePayment').changeState("Card");
@@ -140,6 +148,8 @@ function createCardToken() {
 	console.log("Create card token");
 	$w("#processorText").text = 'Validating card details';
 	let name = $w("#cardName").value;
+	
+	let signupName = session.getItem("userName");
 	let card = $w('#cardNumber').value;
 	let mm = $w("#mm").value;
 	let yyyy = $w("#yyyy").value;
@@ -156,7 +166,7 @@ function createCardToken() {
 			let lastFour = response.card.last4;
 			let brand = response.card.brand;
 			let cardId = response.card.id;
-			customerCreation(token, lastFour, brand, cardId);
+			customerCreation(token, lastFour, brand, cardId,signupName);
 		} else {
             $w('#processorText').text = "Token Error: Customer Not Subscribed";
 			$w('#processorText').expand();
@@ -189,9 +199,9 @@ function createToken(name, card, mm, yyyy, cvc, line1, city, state, zip) {
 
 //-----------------------------------------------------------------Create Customer-----------------------------------------------------------------//
 
-async function customerCreation(token, lastFour, brand, cardId) {
+async function customerCreation(token, lastFour, brand, cardId,agentName) {
 
-	createCustomer(token, email, apiKeySk)
+	createCustomer(token, email, apiKeySk, agentName)
 	.then( (response) => {
         $w('#processorText').text = "Confirming Details...";
 		if(response.id !== undefined) {
@@ -263,13 +273,15 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
 
                         // After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
-                            $w('#processorText').text = "Taking to Dashboard...";
+                            $w('#processorText').text = "Taking to Account Setup...";
 
                         }, 1000);
 
                         setTimeout(() => {
 
-                            wixLocation.to('/account/boost-dashboard');
+                            wixWindow.lightbox.close( {
+								"lightBoxSend1": "Success",
+							} );
 
                         }, 2000);
                     })

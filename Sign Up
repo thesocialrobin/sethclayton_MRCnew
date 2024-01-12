@@ -1,0 +1,69 @@
+import wixUsers from 'wix-users';
+import wixData from 'wix-data';
+import wixLocation from 'wix-location';
+
+$w.onReady(function () {
+    
+    $w("#register").onClick(() => {
+        // Change the button text to "Loading..."
+        $w("#register").label = "Loading...";
+
+        let firstName = $w("#firstName").value;
+        let lastName = $w("#lastName").value;
+        let phone = $w("#phone").value;
+        let email = $w("#email").value;
+        let password = $w("#password").value;
+
+        // Capitalize the first letter of the first name and last name
+        firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+        lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
+
+        // Combine the first name and last name into a full name
+        let fullName = `${firstName} ${lastName}`;
+
+        // Format the phone number to match (555) 123-4567
+        phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
+
+        // Check if the email already exists in the 'Team' collection
+        wixData.query('Team')
+            .eq('email', email)
+            .find()
+            .then(res => {
+                if (res.items.length > 0) {
+                    // If the email exists, display an error message
+                    $w("#error").text = "This email is already registered.";
+                    $w("#error").expand();
+                    setTimeout(() => {
+                        $w("#error").collapse(); // Hide the error message after 3 seconds
+                    }, 3000);
+
+                    // Reset the button text to "Register"
+                    $w("#register").label = "Register";
+                } else {
+                    // If the email does not exist, register the user
+                    wixUsers.register(email, password, {
+                            contactInfo: {
+                                firstName: firstName,
+                                lastName: lastName,
+                                phones: [phone]
+                            }
+                        })
+                        .then((result) => {
+                            // Add the user data to the 'Team' collection
+                            wixData.insert('Team', {
+                                    name: fullName,
+                                    phone: phone,
+                                    email: email,
+                                })
+                                .then(() => {
+                                    // Redirect the user to the 'account-setup' page
+                                    wixLocation.to("/account/account-setup");
+                                });
+                        })
+                        .catch( (err) => {
+                            console.log("Error Inserting User: ", err)
+	                    });
+                }
+            });
+    });
+});

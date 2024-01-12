@@ -50,18 +50,62 @@ if(stripeMode == "test"){
         
 			console.log("Stripe Methods:", response, response.data[0].id);
 			let allItems = response.data
+			//$w("#agentCards").data = allItems
 			
-			
-			allItems.forEach(method => {
+			let cardData = [];
 
-				//query card type
-				let cardType = method.card.brand; //visa
-				let cardExpMonth = method.card.exp_month;
-				let cardExpYear = method.card.exp_year;
-				let cardlast4 = method.card.last4;
+			let agentCards = $w("#agentCards");
+			
+			agentCards.onItemReady(($item, itemData) => {
+			
+				allItems.forEach(method => {
+
+					console.log(
+								"Method: ", method
+							)
+
+
+					//query card type
+					let cardType = method.card.brand; //visa
+					let cardExpMonth = method.card.exp_month;
+					let cardExpYear = method.card.exp_year;
+					let cardlast4 = method.card.last4;
+
+
+						wixData.query('cardTypes').eq('title', cardType).find().then((cardResults) => {
+
+							console.log(
+								"Results: ", cardResults
+							)
+
+							var cardLogoImage = cardResults.items[0].logo
+							$item('#cardImage').src = itemData.cardLogoImage;
+
+							let newCard = {
+									"_id": unixCode(),
+									"cardType": cardType,
+									"cardExpMonth": cardExpMonth,
+									"cardExpYear": cardExpYear,
+									"cardlast4": cardlast4,
+									"cardLogoImage": cardLogoImage,
+									}
+
+									cardData.push(newCard)
+
+									$w("#agentCards").data = cardData
+									console.log("Card Data: ", cardData)
+
+									$item('#mainCardData').text = itemData.cardType.toUpperCase() + " ending in " + itemData.cardlast4.toString();
+									$item('#expiration').text = "Expires " + itemData.cardExpMonth.toString() + "/" + itemData.cardExpYear.toString()
+
+						})
 
 				
-			})			
+
+					
+				})	
+
+			})		
 			
 	});
 
@@ -71,6 +115,22 @@ if(stripeMode == "test"){
 			.then( (subscriptions) => {
 				
 					console.log("Stripe Subscriptions:", subscriptions);
+					let allItems = subscriptions.data
+			
+			
+			allItems.forEach(subscription => {
+
+				//query card type
+				
+				let planId = subscription.plan.id; //price_xx matches stripeSubscriptions database
+				let status = subscription.status; //active
+				let price = "$" + ((subscription.plan.amount) / 100).toString();
+				let interval = subscription.plan.interval; //month or year
+
+				console.log("Plan Details: ", planId, status, price, interval)
+
+				
+			})		
 					
 					
 			});
@@ -79,3 +139,9 @@ if(stripeMode == "test"){
     })
 
 });
+
+
+function unixCode (){ 
+  var timeStamp = Math.floor(Date.now()/1000);
+  return timeStamp.toString(); 
+}

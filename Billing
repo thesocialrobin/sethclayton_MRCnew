@@ -55,8 +55,9 @@ if(stripeMode == "test"){
 			let cardData = [];
 
 			let agentCards = $w("#agentCards");
+			$w("#agentCards").data = [];
 			
-			agentCards.onItemReady(($item, itemData) => {
+			
 			
 				allItems.forEach(method => {
 
@@ -79,7 +80,7 @@ if(stripeMode == "test"){
 							)
 
 							var cardLogoImage = cardResults.items[0].logo
-							$item('#cardImage').src = itemData.cardLogoImage;
+							
 
 							let newCard = {
 									"_id": unixCode(),
@@ -95,8 +96,14 @@ if(stripeMode == "test"){
 									$w("#agentCards").data = cardData
 									console.log("Card Data: ", cardData)
 
+									agentCards.onItemReady(($item, itemData) => {
+
 									$item('#mainCardData').text = itemData.cardType.toUpperCase() + " ending in " + itemData.cardlast4.toString();
 									$item('#expiration').text = "Expires " + itemData.cardExpMonth.toString() + "/" + itemData.cardExpYear.toString()
+									$item('#cardImage').src = itemData.cardLogoImage;
+
+
+									})
 
 						})
 
@@ -105,7 +112,7 @@ if(stripeMode == "test"){
 					
 				})	
 
-			})		
+				
 			
 	});
 
@@ -116,6 +123,11 @@ if(stripeMode == "test"){
 				
 					console.log("Stripe Subscriptions:", subscriptions);
 					let allItems = subscriptions.data
+
+					let subscriptionData = [];
+
+					let agentSubscriptions = $w("#agentSubscription");
+					$w("#agentSubscription").data = [];
 			
 			
 			allItems.forEach(subscription => {
@@ -127,10 +139,54 @@ if(stripeMode == "test"){
 				let price = "$" + ((subscription.plan.amount) / 100).toString();
 				let interval = subscription.plan.interval; //month or year
 
-				console.log("Plan Details: ", planId, status, price, interval)
+				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									var planLogoImage = planResults.items[0].logo
+									var planName = planResults.items[0].title
+
+						
+
+						let newSubscription = {
+											"_id": unixCode(),
+											"planId": subscription.plan.id,
+											"status": subscription.status,
+											"price": "$" + ((subscription.plan.amount) / 100).toString(),
+											"interval": subscription.plan.interval,
+											"planLogoImage": planLogoImage
+
+											}
+
+											subscriptionData.push(newSubscription);
+
+											$w("#agentSubscription").data = subscriptionData;
+									
+
+									agentSubscriptions.onItemReady(($item, itemData) => {
+
+									$item('#price').text = itemData.price;
+									$item('#interval').text = "/" + itemData.interval
+									
+									$item('#planName').text = planName;
+
+									if(itemData.planLogoImage != undefined){
+
+										$item('#subscriptionImage').src = itemData.planLogoImage;
+										$item('#subscriptionImage').expand()
+
+									}
+
+
+									})
+
+
+				})
 
 				
-			})		
+				})		
 					
 					
 			});

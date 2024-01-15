@@ -431,7 +431,15 @@ export function getReviews(email, status) { //--Template Three--//
                     }
 
                 }) //end of foreach
-            }
+            } else if (userRatings == undefined) {
+
+            console.log("No Ratings Found On Load")
+
+            $w("#reviewst1").collapse();
+            $w("#reviewst2").collapse();
+            $w("#reviewst3").collapse();
+
+        }
 
         })
 

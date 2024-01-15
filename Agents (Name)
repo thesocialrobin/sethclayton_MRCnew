@@ -270,6 +270,7 @@ export function getReviews(email, status) { //--Template Three--//
                                     $item('#reviewerName').text = itemData.name;
                                     $item('#reviewerText').text = itemData.comment;
                                     $w("#reviewsList").expand();
+                                    $w("#reviewst3").expand();
 
                                     
 
@@ -431,6 +432,9 @@ export function getReviews(email, status) { //--Template Three--//
                     }
 
                 }) //end of foreach
+
+               
+
             } else if (userRatings == undefined) {
 
             console.log("No Ratings Found On Load")
@@ -510,8 +514,7 @@ export function getReviewsTwo(email, status) {
                                     $item('#reviewerNamet2').text = itemData.name;
                                     $item('#reviewerTextt2').text = itemData.comment;
                                     $w("#reviewsListt2").expand();
-
-                                    
+                                    $w("#reviewst2").expand();           
 
                                     if (Number(rated) == 1) {
                                         $item("#s1bt2").show();
@@ -742,6 +745,7 @@ export function getReviewsOne(email, status) {
                                         $item('#reviewerNamet1').text = itemData.name;
                                         $item('#reviewerTextt1').text = itemData.comment;
                                         $w("#reviewsListt1").expand();
+                                        $w("#reviewst1").expand();
 
                                         
 

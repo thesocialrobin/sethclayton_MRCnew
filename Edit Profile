@@ -322,7 +322,7 @@ $w.onReady(async function () {
                         toUpdate.npn = $w('#npn').value;
                         toUpdate.carriers = carrierList;
                         toUpdate.carrierLogos = newCarriers;
-                        toUpdate.states = selectedStates;
+                        toUpdate.states = newStates;
                         carrierListSelected = [];
                         carrierListSelected = newCarriers;
 

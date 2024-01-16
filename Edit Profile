@@ -148,11 +148,9 @@ $w.onReady(async function () {
                                 console.log('updated');
                                 $w("#personalSave").label = "Saved";
 
-                                $w("#message").show("float");
-                                $w("#successIcon").show();
-                                $w("#alert").text = "Profile Updated Successfully";
+                                $w("#successMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#successMessage").hide("float");
                                     $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
                                 }, 3000);
 
@@ -170,11 +168,9 @@ $w.onReady(async function () {
                             .catch((error) => {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
-                                $w("#message").show("float");
-                                $w("#errorIcon").show();
-                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                $w("#errorMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#errorMessage").hide("float");
                                 }, 3000);
 
                             });
@@ -314,7 +310,9 @@ $w.onReady(async function () {
 
         $w('#licensingSave').onClick(() => {
 
-            generateNewMap();
+            $w("#licensingSave").label = "Saving";
+            $w("#licensingSave").disable();
+            
 
             if ($w('#npn').valid && $w('#carriers').valid) {
                 let thisId = session.getItem("id");
@@ -335,13 +333,12 @@ $w.onReady(async function () {
                                 console.log(toUpdate);
                                 wixData.update('Team', toUpdate).then((res) => {
                                         console.log('updated');
-                                        $w("#licensingSave").label = "Saved";
+                                        //$w("#licensingSave").label = "Saved";
+                                        generateNewMap();
 
-                                        $w("#message").show("float");
-                                        $w("#successIcon").show();
-                                        $w("#alert").text = "Profile Updated Successfully";
+                                        $w("#successMessage").show("float");
                                         setTimeout(() => {
-                                            $w("#message").hide("float");
+                                            $w("#successMessage").hide("float");
                                             $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
                                         }, 3000);
 
@@ -357,11 +354,9 @@ $w.onReady(async function () {
                                     .catch((error) => {
                                         console.error('Error while saving:', error);
                                         // Display the error message to the user
-                                        $w("#message").show("float");
-                                        $w("#errorIcon").show();
-                                        $w("#alert").text = "Error Updating Profile. Try Again!";
+                                        $w("#errorMessage").show("float");
                                         setTimeout(() => {
-                                            $w("#message").hide("float");
+                                            $w("#errorMessage").hide("float");
                                         }, 3000);
 
                                     });
@@ -420,11 +415,9 @@ $w.onReady(async function () {
                                 console.log('updated');
                                 $w("#linksSave").label = "Saved";
 
-                                $w("#message").show("float");
-                                $w("#successIcon").show();
-                                $w("#alert").text = "Profile Updated Successfully";
+                                $w("#successMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#successMessage").hide("float");
                                     $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
                                 }, 3000);
 
@@ -442,11 +435,9 @@ $w.onReady(async function () {
                             .catch((error) => {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
-                                $w("#message").show("float");
-                                $w("#errorIcon").show();
-                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                $w("#errorMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#errorMessage").hide("float");
                                 }, 3000);
 
                             });
@@ -496,11 +487,9 @@ $w.onReady(async function () {
                         $w("#seoSave").label = "Saved";
 
                         // Show the success message for 5 seconds
-                        $w("#message").show("float");
-                        $w("#successIcon").show();
-                        $w("#alert").text = "Profile Updated Successfully";
+                        $w("#successMessage").show("float");
                         setTimeout(() => {
-                            $w("#message").hide("float");
+                            $w("#successMessage").hide("float");
                             $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
                         }, 3000);
 
@@ -516,11 +505,9 @@ $w.onReady(async function () {
                     .catch((error) => {
                         console.error('Error while saving:', error);
                         // Display the error message to the user
-                        $w("#message").show("float");
-                        $w("#errorIcon").show();
-                        $w("#alert").text = "Error Updating Profile. Try Again!";
+                        $w("#errorMessage").show("float");
                         setTimeout(() => {
-                            $w("#message").hide("float");
+                            $w("#errorMessage").hide("float");
                         }, 3000);
 
                     });
@@ -566,11 +553,9 @@ $w.onReady(async function () {
                                 console.log('updated');
                                 $w("#templateSave").label = "Saved";
 
-                                $w("#message").show("float");
-                                $w("#successIcon").show();
-                                $w("#alert").text = "Profile Updated Successfully";
+                                $w("#successMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#successMessage").hide("float");
                                     $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
                                 }, 3000);
                                 // Update the currentTemplate text to display the new template value
@@ -581,11 +566,9 @@ $w.onReady(async function () {
                             .catch((error) => {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
-                                $w("#message").show("float");
-                                $w("#errorIcon").show();
-                                $w("#alert").text = "Error Updating Profile. Try Again!";
+                                $w("#errorMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#message").hide("float");
+                                    $w("#errorMessage").hide("float");
                                 }, 3000);
 
                             });
@@ -809,6 +792,10 @@ export function findCarrierMatch() {
 
 }
 
-export function close_click(event) {
-    $w("#message").hide();
+export function sucessClose_click(event) {
+	$w("#successMessage").hide();
+}
+
+export function errorClose_click(event) {
+	$w("#errorClose").hide(); 
 }

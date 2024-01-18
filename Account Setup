@@ -49,7 +49,7 @@ export function checkSwitch(){
         $w("#essentialPlan").label = "Select Plan";
 		session.setItem("Plan", "Free")
         console.log(session.getItem("Plan"), planSelection, isChecked1);
-        //executeFreeDashboard(); //Confirm with Seth and redirect
+        executeFreeDashboard(); //Confirm with Seth and redirect
 
 	} else if (isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
 		session.setItem("Plan", "Annual") ////-----DURATION-----/////
@@ -88,13 +88,14 @@ let thisId = session.getItem("id")
 
                         // After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
-                            $w("#freePlan").label = "Taking to Dashboard...";
+                            $w("#freePlan").label = "Continuing Setup";
 
                         }, 1000);
 
                         setTimeout(() => {
 
-                            wixLocation.to('/account/boost-dashboard');
+                           $w("#accountSetup").changeState("personalInfo");
+                            wixWindow.scrollTo(0, 0);
 
                         }, 2000);
                     })
@@ -441,6 +442,9 @@ export function loadChanges() {
 }
 
 function updateDisclaimer(userData) {
+
+    console.log("User Data Submitted : ", userData);
+    
     return new Promise((resolve, reject) => {
         if (userData && userData.states && userData.carriers) {
             let states = userData.states;

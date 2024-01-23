@@ -51,8 +51,6 @@ $w.onReady(async function () {
     $w("#carriers").options = []; //Loads carriers list automatically
     let optionsArray = []
 
-    
-
     var email = await wixUsers.currentUser.getEmail()
 
     wixData.query('Team').eq('email', email).find().then((res) => {
@@ -88,24 +86,19 @@ $w.onReady(async function () {
                 $w("#carriers").options = optionsArray;
                 console.log("All options loaded", $w("#carriers").options, count, allCarriers.length)
 
-               //findCarrierMatch();
-
+                //findCarrierMatch();
 
                 if (count == allCarriers.length) {
 
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         findCarrierMatch();
-                    },1000)
-
-                 
+                    }, 1000)
 
                 }
 
             })
 
         })
-
-        
 
         // Initially disable the save button
         $w('#personalSave').disable();
@@ -129,6 +122,9 @@ $w.onReady(async function () {
         });
 
         $w('#personalSave').onClick(async () => {
+            $w('#personalSave').disable();
+            $w("#personalSave").label = "Updating Profile...";
+
             if ($w('#name').valid && $w('#epicenter').valid && $w('#phone').valid && $w('#publicEmail').valid && $w('#bio').valid) {
                 let thisId = session.getItem("id")
                 wixData.get("Team", thisId)
@@ -151,11 +147,8 @@ $w.onReady(async function () {
                                 $w("#successMessage").show("float");
                                 setTimeout(() => {
                                     $w("#successMessage").hide("float");
-                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
-                                }, 3000);
-
-                                // Disable the save button again after saving
-                                $w('#personalSave').disable();
+                                    $w("#personalSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 6000);
 
                                 // Update the input fields to reflect the changes
                                 $w('#name').value = res.name
@@ -169,9 +162,10 @@ $w.onReady(async function () {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
                                 $w("#errorMessage").show("float");
+                                $w('#personalSave').enable();
                                 setTimeout(() => {
                                     $w("#errorMessage").hide("float");
-                                }, 3000);
+                                }, 6000);
 
                             });
                     })
@@ -234,7 +228,7 @@ $w.onReady(async function () {
                     carrierList.push(thisCarrier.items[0].carrier)
                     console.log("This logo", thisCarrier.items[0].logo)
                     console.log("Carrier Logos", newCarriers)
-                    console.log("All Carriers", carrierList)
+                    console.log("Changed User Carriers", carrierList)
 
                 })
 
@@ -309,58 +303,47 @@ $w.onReady(async function () {
         });
 
         $w('#licensingSave').onClick(() => {
-
-            $w("#licensingSave").label = "Saving";
-            $w("#licensingSave").disable();
-            
+            $w('#licensingSave').disable();
+            $w("#licensingSave").label = "Updating Profile...";
 
             if ($w('#npn').valid && $w('#carriers').valid) {
                 let thisId = session.getItem("id");
                 wixData.get("Team", thisId)
                     .then((toUpdate) => {
-
                         toUpdate.npn = $w('#npn').value;
                         toUpdate.carriers = carrierList;
                         toUpdate.carrierLogos = newCarriers;
-                        toUpdate.states = newStates;
+                        toUpdate.states = selectedStates;
                         carrierListSelected = [];
                         carrierListSelected = newCarriers;
 
-                        updateDisclaimer(toUpdate)
-                            .then((updatedUser) => {
-                                console.log("Updated Disclaimer:", updatedUser.disclaimer);
+                        // console.log("Updating Disclaimer:", toUpdate.disclaimer);
 
-                                console.log(toUpdate);
-                                wixData.update('Team', toUpdate).then((res) => {
-                                        console.log('updated');
-                                        //$w("#licensingSave").label = "Saved";
-                                        generateNewMap();
+                        console.log("Data: ", carrierList, newCarriers, newStates, selectedStates)
 
-                                        $w("#successMessage").show("float");
-                                        setTimeout(() => {
-                                            $w("#successMessage").hide("float");
-                                            $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
-                                        }, 3000);
+                        wixData.update('Team', toUpdate).then((res) => {
+                                console.log('Updated Team:', res);
 
-                                        // Disable the save button again after saving
-                                        $w('#licensingSave').disable();
+                                generateNewMap();
+                                updateDisclaimer(newStates, carrierList, thisId)
 
-                                        $w('#npn').value = res.npn
-                                        //$w('#carriers').value = res.carriers
-                                        findCarrierMatch();
-                                        $w('#disclaimer').value = res.disclaimer
-                                        updateRepeater();
-                                    })
-                                    .catch((error) => {
-                                        console.error('Error while saving:', error);
-                                        // Display the error message to the user
-                                        $w("#errorMessage").show("float");
-                                        setTimeout(() => {
-                                            $w("#errorMessage").hide("float");
-                                        }, 3000);
+                                $w('#npn').value = res.npn;
+                                //$w('#carriers').value = res.carriers;
+                                findCarrierMatch();
+                                $w('#disclaimer').value = res.disclaimer;
+                                updateRepeater();
+                            })
+                            .catch((error) => {
+                                console.error('Error while saving:', error);
+                                // Display the error message to the user
+                                $w("#errorMessage").show("float");
+                                $w('#licensingSave').enable();
+                                setTimeout(() => {
+                                    $w("#errorMessage").hide("float");
+                                }, 6000);
 
-                                    });
                             });
+
                     });
             }
         });
@@ -399,6 +382,9 @@ $w.onReady(async function () {
         });
 
         $w('#linksSave').onClick(async () => {
+                $w('#linksSave').disable();
+                $w("#linksSave").label = "Updating Profile...";
+
                 let thisId = session.getItem("id")
                 wixData.get("Team", thisId)
                     .then((toUpdate) => {
@@ -414,15 +400,13 @@ $w.onReady(async function () {
                         wixData.update('Team', toUpdate).then((res) => {
                                 console.log('updated');
                                 $w("#linksSave").label = "Saved";
-
                                 $w("#successMessage").show("float");
                                 setTimeout(() => {
                                     $w("#successMessage").hide("float");
-                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
-                                }, 3000);
+                                    $w("#linksSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 6000);
 
-                                // Disable the save button again after saving
-                                $w('#linksSave').disable();
+                
 
                                 // Update the input fields to reflect the changes
                                 $w('#calendlyUrl').value = res.calendlyUrl
@@ -436,9 +420,10 @@ $w.onReady(async function () {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
                                 $w("#errorMessage").show("float");
+                                $w('#linksSave').enable();
                                 setTimeout(() => {
                                     $w("#errorMessage").hide("float");
-                                }, 3000);
+                                }, 6000);
 
                             });
                     })
@@ -476,6 +461,9 @@ $w.onReady(async function () {
         });
 
         $w('#seoSave').onClick(async () => {
+            $w('#seoSave').disable();
+            $w("#seoSave").label = "Updating Profile...";
+
             let thisId = session.getItem("id");
             wixData.get("Team", thisId).then((toUpdate) => {
                 toUpdate.seoDescription = $w('#seoDescription').value;
@@ -491,10 +479,7 @@ $w.onReady(async function () {
                         setTimeout(() => {
                             $w("#successMessage").hide("float");
                             $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
-                        }, 3000);
-
-                        // Disable the save button again after saving
-                        $w('#seoSave').disable();
+                        }, 6000);
 
                         // Update the input fields to reflect the changes
                         $w('#seoDescription').value = res.seoDescription;
@@ -506,9 +491,10 @@ $w.onReady(async function () {
                         console.error('Error while saving:', error);
                         // Display the error message to the user
                         $w("#errorMessage").show("float");
+                        $w('#seoSave').enable();
                         setTimeout(() => {
                             $w("#errorMessage").hide("float");
-                        }, 3000);
+                        }, 6000);
 
                     });
             });
@@ -541,6 +527,9 @@ $w.onReady(async function () {
         });
 
         $w('#templateSave').onClick(() => {
+            $w('#templateSave').disable();
+            $w("#templateSave").label = "Updating Profile...";
+
             if ($w('#templateDropdown').valid) {
                 let thisId = session.getItem("id")
                 wixData.get("Team", thisId)
@@ -556,20 +545,20 @@ $w.onReady(async function () {
                                 $w("#successMessage").show("float");
                                 setTimeout(() => {
                                     $w("#successMessage").hide("float");
-                                    $w("#seoSave").label = "Save"; // Reset the label after 5 seconds
-                                }, 3000);
+                                    $w("#templateSave").label = "Save"; // Reset the label after 5 seconds
+                                }, 6000);
                                 // Update the currentTemplate text to display the new template value
                                 $w('#currentTemplate').text = 'Current Template: ' + toUpdate.template;
-                                // Disable the save button again after saving
-                                $w('#templateSave').disable();
+                                
                             })
                             .catch((error) => {
                                 console.error('Error while saving:', error);
                                 // Display the error message to the user
                                 $w("#errorMessage").show("float");
+                                $w('#templateSave').enable();
                                 setTimeout(() => {
                                     $w("#errorMessage").hide("float");
-                                }, 3000);
+                                }, 6000);
 
                             });
                     })
@@ -580,49 +569,82 @@ $w.onReady(async function () {
 });
 
 //Plans Per Carrier 
-function updateDisclaimer(userData) {
-    return new Promise((resolve, reject) => {
-        if (userData && userData.states && userData.carriers) {
-            let states = userData.states;
-            let carriers = userData.carriers;
+function updateDisclaimer(newStates, carrierList, thisId) {
 
-            if (states.length > 0 && carriers.length > 0) {
-                wixData.query("CarrierPlanData")
-                    .hasSome("state", states)
-                    .hasSome("carrier_name", carriers)
-                    .find()
-                    .then((results) => {
-                        if (results.totalCount > 0) {
-                            let totalPlans = 0;
+    console.log("User Data Submitted : ", newStates, carrierList);
 
-                            // Loop through the results to calculate totalPlans
-                            results.items.forEach((item) => {
-                                let planCount = item.totalPlanCount;
-                                totalPlans += planCount;
-                            });
+    if (newStates && carrierList) {
+        let states = newStates;
+        let carriers = carrierList;
 
-                            // Set the calculated disclaimer text to the userData object
-                            userData.disclaimer = `I do not offer every plan in your area. Currently, I represent ${carriers.length} organizations which offer ${totalPlans} products in your area. Please contact Medicare.gov, 1-800-MEDICARE, or your local State Health Insurance Program (SHIP) to get information on all of your options.`;
-                        } else {
-                            userData.disclaimer = "No carrier data found.";
-                        }
+        if (states.length > 0 && carriers.length > 0) {
+            wixData.query("CarrierPlanData")
+                .hasSome("state", states)
+                .hasSome("carrier_name", carriers)
+                .find()
+                .then((results) => {
+                    console.log("Search Results: ", results)
+                    if (results.totalCount > 0) {
+                        let totalPlans = 0;
 
-                        resolve(userData);
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        userData.disclaimer = "Error fetching carrier data.";
-                        reject(userData);
-                    });
-            } else {
-                userData.disclaimer = "No states or carriers found.";
-                resolve(userData);
-            }
+                        // Loop through the results to calculate totalPlans
+                        results.items.forEach((item) => {
+                            let planCount = item.totalPlanCount;
+                            totalPlans += planCount;
+                        });
+
+                        wixData.get("Team", thisId)
+                            .then((toUpdate) => {
+
+                                // Set the calculated disclaimer text to the userData object
+                                toUpdate.disclaimer = `I do not offer every plan in your area. Currently, I represent ${carriers.length} organizations which offer ${totalPlans} products in your area. Please contact Medicare.gov, 1-800-MEDICARE, or your local State Health Insurance Program (SHIP) to get information on all of your options.`;
+
+                                wixData.update('Team', toUpdate).then((res) => {
+                                    console.log('Dislcaimer updated: ', res);
+                                    $w('#disclaimer').value = res.disclaimer;
+
+                                })
+                            })
+
+                    } else {
+                        wixData.get("Team", thisId)
+                            .then((toUpdate) => {
+
+                                toUpdate.disclaimer = "No carrier data found.";
+                                wixData.update('Team', toUpdate).then((res) => {
+                                    console.log('Dislcaimer updated: ', res);
+                                    $w('#disclaimer').value = res.disclaimer;
+
+                                })
+
+                            })
+                    }
+
+                })
+                .catch((error) => {
+                    console.error(error);
+                    wixData.get("Team", thisId)
+                        .then((toUpdate) => {
+                            toUpdate.disclaimer = "Error fetching carrier data.";
+                            $w('#disclaimer').value = "Error fetching carrier data."
+                        })
+
+                });
         } else {
-            userData.disclaimer = "Invalid user data.";
-            reject(userData);
+
+            wixData.get("Team", thisId)
+                .then((toUpdate) => {
+                    toUpdate.disclaimer = "No states or carriers found.";
+                    wixData.update('Team', toUpdate).then((res) => {
+                        console.log('Dislcaimer updated: ', res);
+                        $w('#disclaimer').value = "No states or carriers found."
+
+                    })
+
+                })
         }
-    });
+    }
+
 }
 
 export function generateNewMap() {
@@ -634,7 +656,6 @@ export function generateNewMap() {
     console.log("Map Vector Prep: ", updateMap);
 
     generateAgentMap(templateId, agentName, updateMap).then((image) => {
-        $w("#licensingSave").label = "Updating Map...";
 
         //--log process--//
         let logResults = {
@@ -666,10 +687,7 @@ export function generateNewMap() {
                 console.log(toUpdate);
                 wixData.update('Team', toUpdate).then((res) => {
                     console.log('Map image updated');
-                    $w("#licensingSave").label = "Saving...";
-                    setTimeout(() => {
-                        $w("#licensingSave").enable()
-                    }, 5000);
+
                 })
             })
 
@@ -742,18 +760,23 @@ export function generateNewMap() {
 
                             console.log(toUpdate);
                             wixData.update('Team', toUpdate).then((res) => {
-                                console.log('Map image updated');
+                                console.log('Map image updated successfully');
                                 $w("#licensingSave").label = "Saved";
+                                $w("#successMessage").show("float");
                                 setTimeout(() => {
-                                    $w("#licensingSave").disable()
-                                }, 5000);
+                                    $w("#successMessage").hide("float");
+                                    $w("#licensingSave").label = "Save";
+                                }, 6000);
+
+                                $w('#licensingSave').disable();
+
                             })
                         })
 
                     //--end log process--//
 
                 })
-        }, 1500)
+        }, 3000)
 
         //---------------------------------------Break Fix---------------------------------------//
 
@@ -784,6 +807,48 @@ export function findCarrierMatch() {
                 $w("#carriers").selectedIndices = null;
                 $w("#carriers").selectedIndices = selected;
                 console.log("Carrier Selections Found: ", selected)
+
+                //Push selection into carrierList for user to save - will clear once user changes options
+
+                newCarriers = [];
+                carrierList = [];
+
+                let selectedCarriers = $w("#carriers").value;
+                let totalCount = selectedCarriers.length;
+                let count = 0
+
+                selectedCarriers.forEach(function (carrier) {
+                    count++
+                    console.log("This Carrier: ", carrier, selectedCarriers)
+
+                    wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
+
+                        let findMatchCarrierLogo = newCarriers.find(item=> item === thisCarrier.items[0]._id)
+                        let findMatchCarrierList = carrierList.find(item=> item === thisCarrier.items[0].carrier)
+
+                        if(!findMatchCarrierLogo){
+                            newCarriers.push(thisCarrier.items[0]._id)
+                            console.log("No Duplicate, Push Logo")
+                            console.log("This logo", thisCarrier.items[0].logo)
+                            console.log("User Carrier Logos", newCarriers)
+                        }
+
+                        if(!findMatchCarrierList){
+                            carrierList.push(thisCarrier.items[0].carrier)
+                            console.log("No Duplicate, Push to List")
+                            console.log("User Carriers", carrierList)
+                        }
+
+
+                    })
+
+                    if (count == totalCount) {
+                        $w('#licensingSave').enable();
+                    }
+
+                })
+
+
             }
 
         });
@@ -793,9 +858,9 @@ export function findCarrierMatch() {
 }
 
 export function sucessClose_click(event) {
-	$w("#successMessage").hide();
+    $w("#successMessage").hide();
 }
 
 export function errorClose_click(event) {
-	$w("#errorClose").hide(); 
+    $w("#errorClose").hide();
 }

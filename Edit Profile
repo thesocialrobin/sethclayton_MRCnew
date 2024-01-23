@@ -244,6 +244,9 @@ $w.onReady(async function () {
         });
 
         $w("#stateSelection").onChange((event) => {
+
+            session.setItem("stateChange", "Yes");
+            
             let selectedState = $w("#stateSelection").value;
             if (selectedState && !selectedStates.includes(selectedState)) {
                 selectedStates.push(selectedState);
@@ -324,7 +327,15 @@ $w.onReady(async function () {
                         wixData.update('Team', toUpdate).then((res) => {
                                 console.log('Updated Team:', res);
 
-                                generateNewMap();
+                               let mapGenCheck = session.getItem("stateChange");
+
+                               if(mapGenCheck == "Yes"){
+
+                                   generateNewMap();
+
+                               }
+
+                                
                                 updateDisclaimer(newStates, carrierList, thisId)
 
                                 $w('#npn').value = res.npn;

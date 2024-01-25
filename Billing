@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import { retrieveMethod, retrieveSubscription } from 'backend/stripeProcessor.jsw';
+import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/stripeProcessor.jsw';
 
 let apiKeyPk
 let apiKeySk
@@ -116,6 +116,77 @@ if(stripeMode == "test"){
 			
 	});
 
+	retrieveInvoices(cus,apiKeySk)
+	.then( (invoices) => {
+				
+					console.log("Stripe Invoices:", invoices);
+					let allItems = invoices.data
+
+					let invoiceData = [];
+
+					let agentInvoices = $w("#agentInvoices");
+					$w("#agentInvoices").data = [];
+
+					allItems.forEach(invoice => {
+
+						let subscriptionId = invoice.lines.data[0].price.id;
+						let invoicePdf = invoice.invoice_pdf;
+						let amount = "$" + (invoice.total / 100).toString() + " USD";
+						let date = formatDate(new Date(invoice.effective_at*1000));
+						console.log("Date: ", date)
+
+						if(subscriptionId){
+
+							wixData.query('stripeSubscriptions').eq('apiId', subscriptionId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									var planName = planResults.items[0].title
+
+						
+
+										let newInvoice = {
+											"_id": unixCode(),
+											"planName": planName,
+											"invoicePdf": invoice.invoice_pdf,
+											"amount": "$" + (invoice.total / 100).toString() + " USD",
+											"date": date
+
+											}
+
+											invoiceData.push(newInvoice);
+
+											$w("#agentInvoices").data = invoiceData;
+											$w("#agentInvoices").expand()
+									
+
+									agentInvoices.onItemReady(($item, itemData) => {
+
+									$item('#invoicePrice').text = itemData.amount;
+									$item('#subscriptionName').text = itemData.planName;
+									$item('#invoiceDate').text = itemData.date;
+									
+									$item('#download').link = itemData.invoicePdf;
+
+									
+
+
+									})
+
+
+							})
+
+						} else {
+							//await Seth's feedback
+						}
+
+					})
+
+
+	})
+
 	
 
 	retrieveSubscription(cus, apiKeySk)
@@ -200,4 +271,17 @@ if(stripeMode == "test"){
 function unixCode (){ 
   var timeStamp = Math.floor(Date.now()/1000);
   return timeStamp.toString(); 
+}
+
+function formatDate (date) {
+		var d = new Date(date),
+        month = date.toLocaleString('default', { month: 'long' }),
+        day = ' ' + d.getDate(),
+        year = " " + d.getFullYear();
+
+    
+    if (day.length < 2) day = '0' + day;
+	let thisDate = month + " " + day + "," + year;
+
+    return thisDate
 }

@@ -170,6 +170,8 @@ export function createMethod(token){
 }
 
 export async function retrieveMethod(cus, apiKeySk){
+
+  /*
       //--log process--//
                           let logResults = {
                               "type": "Stripe Log",
@@ -186,6 +188,8 @@ export async function retrieveMethod(cus, apiKeySk){
                             } );
 
        //--end log process--//
+
+       */
 
 
     let apiKey = await getAPIKey(apiKeySk);
@@ -206,7 +210,7 @@ export async function retrieveSubscription(cus,apiKeySk){
    let apiKey = await getAPIKey(apiKeySk);
     const key = require("stripe")(apiKey);
 
-    var subscriptions = await key.subscriptions.list({customer: 'cus', limit: 10})
+    var subscriptions = await key.subscriptions.list({customer: cus, limit: 10})
 
   
       //--log process--//
@@ -222,6 +226,22 @@ export async function retrieveSubscription(cus,apiKeySk){
                             } )
                             .catch( (err) => {
                               let errorMsg = err;
+
+
+                                   //--log process--//
+                                      let logResults = {
+                                          "type": "Stripe Log",
+                                          "log": "Retrieve Subscription Error", cus, errorMsg
+                                        };
+
+                                        wixData.insert("devLog", logResults)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
                             } );
 
        //--end log process--//
@@ -230,7 +250,56 @@ export async function retrieveSubscription(cus,apiKeySk){
  
 
 
-	return await key.subscriptions.list({customer: 'cus', limit: 10})
+	return await key.subscriptions.list({customer: cus, limit: 10})
+	
+}
+
+export async function retrieveInvoices(cus,apiKeySk){
+
+   let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+    var subscriptions = await key.invoices.list({customer: cus, limit: 10})
+
+  
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Retrieve Invoices", cus, apiKeySk, subscriptions
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+
+
+                                   //--log process--//
+                                      let logResults = {
+                                          "type": "Stripe Log",
+                                          "log": "Retrieve Invoices Error", cus, errorMsg
+                                        };
+
+                                        wixData.insert("devLog", logResults)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
+                            } );
+
+       //--end log process--//
+
+//cancelled let stripeSub = await stripe.subscriptions.list({customer: customerId, status: "canceled"});
+ 
+
+
+	return await key.invoices.list({customer: cus, limit: 10})
 	
 }
 

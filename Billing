@@ -298,10 +298,14 @@ if(stripeMode == "test"){
 					let subscriptionData = [];
 
 					let agentSubscriptions = $w("#agentSubscription");
+					let susbcriptionsList = $w("#subscriptionsList");
 					$w("#agentSubscription").data = [];
 			
+			let totalSubscriptionAmount = 0;
 			
 			allItems.forEach(subscription => {
+
+				totalSubscriptionAmount = totalSubscriptionAmount + subscription.plan.amount
 
 				//query card type
 				
@@ -334,6 +338,18 @@ if(stripeMode == "test"){
 											subscriptionData.push(newSubscription);
 
 											$w("#agentSubscription").data = subscriptionData;
+
+											let listItems = [];
+											let firstData = {
+												"_id": "0001",
+											"planId": "blank",
+											"price": "SUBTOTAL",
+
+											}
+											listItems = subscriptionData;
+											console.log("List Items:", listItems)
+											listItems.unshift(firstData);
+											$w("#subscriptionsList").data = listItems;
 									
 
 									agentSubscriptions.onItemReady(($item, itemData) => {
@@ -341,12 +357,37 @@ if(stripeMode == "test"){
 									$item('#price').text = itemData.price;
 									$item('#interval').text = "/" + itemData.interval
 									
-									$item('#planName').text = planName;
+										$item('#planName').text = planName;
+
+									
 
 									if(itemData.planLogoImage != undefined){
 
 										$item('#subscriptionImage').src = itemData.planLogoImage;
 										$item('#subscriptionImage').expand()
+
+									}
+
+
+									})
+
+									susbcriptionsList.onItemReady(($item, itemData) => {
+
+										console.log("List Items On Ready:", listItems)
+
+									$item('#listPrice').text = itemData.price;
+									
+									
+
+									$w('#totalSubscriptionAmount').text = "$" + ((totalSubscriptionAmount) / 100).toString();
+
+									console.log("PLAN NAME: ", itemData.planId)
+
+									if(itemData.price == "SUBTOTAL"){
+										$item('#subscriptionPlanName').text = "ITEMS";
+									} else if(itemData.price !== "SUBTOTAL"){
+										
+										$item('#subscriptionPlanName').text = planName;
 
 									}
 

@@ -8,6 +8,9 @@ import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/s
 
 let apiKeyPk
 let apiKeySk
+let count
+let newInvoiceItems = null;
+newInvoiceItems = [];
 
 var email 
 var planId
@@ -121,6 +124,9 @@ if(stripeMode == "test"){
 				
 					console.log("Stripe Invoices:", invoices);
 					let allItems = invoices.data
+					let totalPages = allItems.length;
+					let invoicePaginationTotal = 8;
+					let countedTotal = 0;
 
 					let invoiceData = [];
 
@@ -129,58 +135,152 @@ if(stripeMode == "test"){
 
 					allItems.forEach(invoice => {
 
+						countedTotal++
+
 						let subscriptionId = invoice.lines.data[0].price.id;
 						let invoicePdf = invoice.invoice_pdf;
 						let amount = "$" + (invoice.total / 100).toString() + " USD";
 						let date = formatDate(new Date(invoice.effective_at*1000));
 						console.log("Date: ", date)
 
-						if(subscriptionId){
+						const finishedCount = () => {
 
-							wixData.query('stripeSubscriptions').eq('apiId', subscriptionId).find().then((planResults) => {
+							if (count == 8 || totalPages.length == count) {
 
-									console.log(
-										"Results: ", planResults
-									)
+								if(subscriptionId){
 
-									var planName = planResults.items[0].title
+									wixData.query('stripeSubscriptions').eq('apiId', subscriptionId).find().then((planResults) => {
 
-						
+											console.log(
+												"Results: ", planResults
+											)
 
-										let newInvoice = {
-											"_id": unixCode(),
-											"planName": planName,
-											"invoicePdf": invoice.invoice_pdf,
-											"amount": "$" + (invoice.total / 100).toString() + " USD",
-											"date": date
+											var planName = planResults.items[0].title
+
+								
+
+												let newInvoice = {
+													"_id": unixCode(),
+													"planName": planName,
+													"invoicePdf": invoice.invoice_pdf,
+													"amount": "$" + (invoice.total / 100).toString() + " USD",
+													"date": date
+
+													}
+
+													invoiceData.push(newInvoice);
+
+													$w("#agentInvoices").data = invoiceData;
+													$w("#agentInvoices").expand()
+											
+
+											agentInvoices.onItemReady(($item, itemData) => {
+
+											$item('#invoicePrice').text = itemData.amount;
+											$item('#subscriptionName').text = itemData.planName;
+											$item('#invoiceDate').text = itemData.date;
+											
+											$item('#download').link = itemData.invoicePdf;
+
+											if(totalPages > 1){
+												
+												$w('#totalPages').text =  "of " + totalPages.toString();
+
+												if(count !== totalPages){
+													let getNearestEight = roundEight(count);
+													$w('#pageSeries').text = "1" + "-" + getNearestEight.toString();
+												} 
+
+												if (totalPages > 8){
+													$w('#goForward').expand()
+													$w('#goBack').expand()
+
+												}
+
+											} else if( totalPages < 2){
+												$w('#pageSeries').text = "1" 
+												$w('#totalPages').text =  "of " + totalPages.toString();
+
 
 											}
 
-											invoiceData.push(newInvoice);
+											
 
-											$w("#agentInvoices").data = invoiceData;
-											$w("#agentInvoices").expand()
-									
 
-									agentInvoices.onItemReady(($item, itemData) => {
-
-									$item('#invoicePrice').text = itemData.amount;
-									$item('#subscriptionName').text = itemData.planName;
-									$item('#invoiceDate').text = itemData.date;
-									
-									$item('#download').link = itemData.invoicePdf;
-
-									
+											})
 
 
 									})
 
+								} else {
+									//await Seth's feedback
+								}
 
-							})
+							}
 
-						} else {
-							//await Seth's feedback
 						}
+
+						if (countedTotal == totalPages) {
+
+                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 1: ", count)
+                            count++
+                        }
+
+                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 2: ", count)
+                            count++
+                        }
+
+                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 3: ", count)
+                            count++
+                            console.log("Current Count of 3: ", count)
+                        }
+
+						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 4: ", count)
+                            count++
+                            console.log("Current Count of 4: ", count)
+                        }
+
+						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 5: ", count)
+                            count++
+                            console.log("Current Count of 5: ", count)
+                        }
+
+						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 6: ", count)
+                            count++
+                            console.log("Current Count of 6: ", count)
+                        }
+
+						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 7: ", count)
+                            count++
+                            console.log("Current Count of 7: ", count)
+                        }
+
+						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoice[count])
+                            console.log("Current Count 8: ", count)
+                            count++
+                            console.log("Current Count of 8: ", count)
+                        }
+
+						}
+
+						finishedCount();
+
+						
 
 					})
 
@@ -284,4 +384,195 @@ function formatDate (date) {
 	let thisDate = month + " " + day + "," + year;
 
     return thisDate
+}
+
+export function roundEight(number){
+    return Math.round(number / 8) * 8;
+}
+
+export function goForward_click(event) {
+	let direction = "forward"
+	loadMoreFunction(direction)
+}
+
+export function loadMoreFunction(direction){
+	session.setItem("Clicked", "Start")
+	console.log("Current Count Forward: ", count)
+
+	let allItems = newInvoiceItems.length
+
+	if (newInvoiceItems !== undefined && newInvoiceItems !== "") {
+		
+		console.log("Data: ", newInvoiceItems, count)
+        let newItems = [];
+		
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            count++
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		if (newInvoiceItems[count] !== undefined && count < allItems) {
+            console.log("Added: ", newInvoiceItems[count])
+            newItems.push(newInvoiceItems[count])
+            if (direction == "backward"){
+				count--
+			} else if (direction == "forward"){
+				count++
+			}
+            console.log("Count", allItems)
+            session.setItem("Clicked", "Pending")
+        }
+
+		newItems.reverse()
+
+		let getStatus = session.getItem("Clicked")
+
+		if ($w('#agentInvoices').data.length < 8 || (count == allItems && getStatus == "Start")) { 
+
+			count = 0
+			let thisTotal = 8
+
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+			if (newInvoiceItems[count] !== undefined && count <= thisTotal) {
+                console.log("Added Restart: ", newInvoiceItems[count])
+                newItems.push(newInvoiceItems[count])
+                count++
+            }
+
+			if (count == 8) {
+
+                let invoiceList = $w('#agentInvoices')
+
+                invoiceList.data = newItems;
+
+				 console.log("Invoice Data Count is 8: ", invoiceList.data)
+
+			}
+
+		}
+
+		let invoiceList = $w('#agentInvoices')
+
+        invoiceList.data = newItems;
+        console.log("Invoice Data: ", invoiceList.data)
+
+		session.setItem("Clicked", "End")
+
+	}
+}
+
+
+export function goBack_click(event) {
+	let direction = "backward"
+	loadMoreFunction(direction)
 }

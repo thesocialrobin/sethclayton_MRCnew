@@ -410,7 +410,7 @@ $w.onReady(async function () {
 
                     // After 2 seconds, redirect to the dashboard
                     setTimeout(() => {
-                        wixLocation.to("/accout/boost-dashboard");
+                        wixLocation.to("/account/boost-dashboard");
                     }, 2000);
                 })
             })
@@ -613,7 +613,7 @@ export function generateNewMap() {
 
                 console.log(toUpdate);
                 wixData.update('Team', toUpdate).then((res) => {
-                    console.log('Map image updated');
+                    console.log('Map image updated', res);
                     $w("#licensingCont").label = "Saving...";
                     setTimeout(() => {
                         $w("#licensingCont").enable()
@@ -690,7 +690,7 @@ export function generateNewMap() {
 
                             console.log(toUpdate);
                             wixData.update('Team', toUpdate).then((res) => {
-                                console.log('Map image updated');
+                                console.log('Map image updated E');
                                 $w("#licensingCont").label = "Saved";
                                 setTimeout(() => {
                                     $w("#licensingCont").enable()

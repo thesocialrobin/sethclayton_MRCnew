@@ -38,7 +38,7 @@ export function checkSwitch(){
     console.log("Checking Switch", isChecked1, planSelection)
 
 	if(!isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
-		session.setItem("Plan", "Monthly") ////-----DURATION--/////
+		session.setItem("Plan", "Monthly") ////-----DURATION-----/////
         $w("#essentialPlan").label = "Selected";
         $w("#freePlan").label = "Select Plan";
 		console.log(session.getItem("Plan"), planSelection, isChecked1);
@@ -86,7 +86,7 @@ let thisId = session.getItem("id")
                         console.log('updated');
                         $w("#freePlan").label = "Subscribed!";
 
-                        // After 2 seconds, change the state of the multistate box to 'licensing'
+
                         setTimeout(() => {
                             $w("#freePlan").label = "Continuing Setup";
 
@@ -249,6 +249,9 @@ $w.onReady(async function () {
     $w("#statesRepeater").hide();
 
     $w("#stateSelection").onChange((event) => {
+
+        session.setItem("stateChange", "Yes");
+
         let selectedState = $w("#stateSelection").value;
         if (selectedState && !selectedStates.includes(selectedState)) {
             selectedStates.push(selectedState);
@@ -306,7 +309,7 @@ $w.onReady(async function () {
     
     $w('#licensingCont').onClick(() => {
 
-        generateNewMap();
+        
 
         if ($w('#npn').valid && $w('#carriers').valid) {
             let thisId = session.getItem("id");
@@ -317,13 +320,20 @@ $w.onReady(async function () {
                     toUpdate.carriers = carrierList;
                     toUpdate.states = selectedStates;
                     toUpdate.carrierLogos = newCarriers;
-                    updateDisclaimer(toUpdate)
-                        .then((updatedUser) => {
-                            console.log("Updated Disclaimer:", updatedUser.disclaimer);
-
-                            console.log(toUpdate);
+                    
                             wixData.update('Team', toUpdate).then((res) => {
                                 console.log('updated');
+
+                                updateDisclaimer(newStates, carrierList, thisId)
+
+                                let mapGenCheck = session.getItem("stateChange");
+
+                                if(mapGenCheck == "Yes"){
+
+                                    generateNewMap();
+
+                                }
+
                                 $w("#licensingCont").label = "Saved";
                                 setTimeout(() => {
                                     $w("#accountSetup").changeState("links");
@@ -332,7 +342,7 @@ $w.onReady(async function () {
                                 }, 2000);
 
                             });
-                        });
+                        
                 })
         }
     })
@@ -441,7 +451,7 @@ export function loadChanges() {
     }
 }
 
-function updateDisclaimer(userData) {
+function updateDisclaimerOld(userData) {
 
     console.log("User Data Submitted : ", userData);
     
@@ -487,6 +497,80 @@ function updateDisclaimer(userData) {
             reject(userData);
         }
     });
+}
+
+function updateDisclaimer(newStates, carrierList, thisId) {
+
+    console.log("User Data Submitted : ", newStates, carrierList);
+
+    if (newStates && carrierList) {
+        let states = newStates;
+        let carriers = carrierList;
+
+        if (states.length > 0 && carriers.length > 0) {
+            wixData.query("CarrierPlanData")
+                .hasSome("state", states)
+                .hasSome("carrier_name", carriers)
+                .find()
+                .then((results) => {
+                    console.log("Search Results: ", results)
+                    if (results.totalCount > 0) {
+                        let totalPlans = 0;
+
+                        // Loop through the results to calculate totalPlans
+                        results.items.forEach((item) => {
+                            let planCount = item.totalPlanCount;
+                            totalPlans += planCount;
+                        });
+
+                        wixData.get("Team", thisId)
+                            .then((toUpdate) => {
+
+                                // Set the calculated disclaimer text to the userData object
+                                toUpdate.disclaimer = `I do not offer every plan in your area. Currently, I represent ${carriers.length} organizations which offer ${totalPlans} products in your area. Please contact Medicare.gov, 1-800-MEDICARE, or your local State Health Insurance Program (SHIP) to get information on all of your options.`;
+
+                                wixData.update('Team', toUpdate).then((res) => {
+                                    console.log('Dislcaimer updated: ', res);
+
+                                })
+                            })
+
+                    } else {
+                        wixData.get("Team", thisId)
+                            .then((toUpdate) => {
+
+                                toUpdate.disclaimer = "No carrier data found.";
+                                wixData.update('Team', toUpdate).then((res) => {
+                                    console.log('Dislcaimer updated: ', res);
+
+                                })
+
+                            })
+                    }
+
+                })
+                .catch((error) => {
+                    console.error(error);
+                    wixData.get("Team", thisId)
+                        .then((toUpdate) => {
+                            toUpdate.disclaimer = "Error fetching carrier data.";
+                        })
+
+                });
+        } else {
+
+            wixData.get("Team", thisId)
+                .then((toUpdate) => {
+                    toUpdate.disclaimer = "No states or carriers found.";
+                    wixData.update('Team', toUpdate).then((res) => {
+                        console.log('Dislcaimer updated: ', res);
+
+                    })
+
+                })
+        }
+    }
+
 }
 
 export function generateNewMap() {

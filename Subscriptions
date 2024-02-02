@@ -1,0 +1,184 @@
+import wixData from 'wix-data';
+import wixUsers from 'wix-users';
+import { session } from 'wix-storage';
+import wixWindow from 'wix-window';
+import wixLocation from 'wix-location';
+
+
+let user = wixUsers.currentUser;
+let userId = user.id;
+let isDeleting = false
+let isUpdating = false
+let stripeSubscription
+let subscriptions = null;
+subscriptions = [];
+let zipCode
+let adSpend
+
+
+$w.onReady(function () {
+
+    // Write your Javascript code here using the Velo framework API
+
+    // Print hello world:
+    // console.log("Hello world!");
+
+    // Call functions on page elements, e.g.:
+    // $w("#button1").label = "Click me!";
+
+    // Click "Run", or Preview your site, to execute your code
+
+});
+
+export function adSpend_change(event) {
+    let selectedValue = $w("#adSpend").value; 
+    if (selectedValue === "250") {
+        $w("#clicks").text = "2-6";
+		$w("#adCost").text = "$250";
+		$w("#startingAt").collapse();
+        $w("#zipText").expand();
+        $w("#zipCode").expand();
+    } else if (selectedValue === "500") {
+        $w("#clicks").text = "4-10";
+		$w("#adCost").text = "$500";
+		$w("#startingAt").collapse();
+        $w("#zipText").expand();
+        $w("#zipCode").expand();
+    } else if (selectedValue === "750") {
+        $w("#clicks").text = "6-15";
+		$w("#adCost").text = "$750";
+		$w("#startingAt").collapse();
+        $w("#zipText").expand();
+        $w("#zipCode").expand();
+    }
+}
+
+export function executePayment(){
+    console.log("Payment Executed")
+
+    session.setItem("stripePurpose", "mySubscriptions");
+
+    let subscriptionData = {
+        "planSelection": session.getItem("Plan Selection"),
+        "plan": session.getItem("Plan")
+
+    }
+    console.log("Subscription Data", subscriptionData)
+
+    wixWindow.openLightbox('Payment', subscriptionData)
+        .then((data) => {
+
+            let receivedData = data.lightBoxSend1;
+
+            console.log("Data Received: ", receivedData)
+
+            if (receivedData === "Error") {
+
+                //--Code TBD--//
+
+            } else if (receivedData === "Success"){
+
+                wixLocation.to("/account/boost-dashboard");
+
+            }
+        });
+
+}
+
+
+export function essentialPlan_click(event) {
+
+ 
+
+    let planName = "Essential";
+
+    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+
+    if (findMatch !== undefined){
+
+        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        subscriptions.splice(objIndex, 1);
+
+        console.log("My Subscriptions: ", subscriptions)
+
+    } else {
+
+        let subscriptionData = {
+        "planSelection": planName
+
+    }
+
+    subscriptions.push(subscriptionData);
+    $w("#boostSocialPlan").label = "Added to Cart!"
+
+    console.log("My Subscriptions: ", subscriptions)
+
+    }
+
+	
+
+}
+
+export function boostSocialPlan_click(event) {
+	let planName = 'BOOST Social'
+
+    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+
+    if (findMatch !== undefined){
+
+        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        subscriptions.splice(objIndex, 1);
+
+        console.log("My Subscriptions: ", subscriptions)
+
+    } else {
+
+         let subscriptionData = {
+        "planSelection": planName
+
+        }
+
+    subscriptions.push(subscriptionData);
+    $w("#boostSocialPlan").label = "Added to Cart!"
+
+    console.log("My Subscriptions: ", subscriptions)
+        
+    }
+
+   
+
+}
+
+export function googleAdsPlan_click(event) {
+
+	let planName = 'Google Ads ' + ($w('#adSpend').value).toString()
+    let adSpend = $w('#adSpend').value;
+    let zipCode = $w('#zipCode').value;
+
+    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+
+    if (findMatch !== undefined){
+
+        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        subscriptions.splice(objIndex, 1);
+
+        console.log("My Subscriptions: ", subscriptions)
+
+    } else {
+
+        let subscriptionData = {
+        "planSelection": planName,
+        "adSpend": adSpend,
+        "zipCode": zipCode
+
+    }
+
+    subscriptions.push(subscriptionData);
+    $w("#boostSocialPlan").label = "Added to Cart!"
+
+    console.log("My Subscriptions: ", subscriptions)
+        
+    }
+
+    
+}

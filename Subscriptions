@@ -200,11 +200,13 @@ export function googleAdsPlan_click(event) {
 }
 
 export function checkoutGoogle_click(event) {
-	// This function was added from the Properties & Events panel. To learn more, visit http://wix.to/UcBnC-4
-	// Add your code for this event here: 
+	//executePayment()
 }
 
 export function checkoutEssential_click(event) {
-	// This function was added from the Properties & Events panel. To learn more, visit http://wix.to/UcBnC-4
-	// Add your code for this event here: 
+	//executePayment()
+}
+
+export function checkoutBoostSocial_click(event) {
+	//executePayment()
 }

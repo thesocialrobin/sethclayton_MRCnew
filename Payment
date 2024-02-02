@@ -71,6 +71,29 @@ if(stripeMode == "test"){
 
     }
 
+	if(stripePurpose == "mySubcriptions"){
+        $w('#stripePayment').changeState("mySubscriptions"); //CREATE NEW STATE 2/3/24
+        
+        let planSelection = context.planSelection
+        console.log("Plan Details: ", planSelection)
+
+        wixData.query("stripeSubscriptions")
+                    .eq("title", planSelection)      
+                    .eq("type", mode)  
+                    .find() 
+                    .then((results) => { 
+
+                         let apiId = results.items[0].apiId
+                         planId = apiId
+                         console.log("Found ID", apiId)
+                         console.log("Found plan", results)
+                         console.log("Plan Logged:", planId)
+
+                    })
+
+
+    }
+
 
     
 

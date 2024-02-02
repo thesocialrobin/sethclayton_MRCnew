@@ -100,6 +100,8 @@ export function essentialPlan_click(event) {
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
+        $w("#essentialPlan").label = "Sign Up"
+        $w('#checkoutEssential').collapse();
 
     } else {
 
@@ -109,7 +111,8 @@ export function essentialPlan_click(event) {
     }
 
     subscriptions.push(subscriptionData);
-    $w("#boostSocialPlan").label = "Added to Cart!"
+    $w("#essentialPlan").label = "Added to Cart!"
+    $w('#checkoutEssential').expand();
 
     console.log("My Subscriptions: ", subscriptions)
 
@@ -130,6 +133,8 @@ export function boostSocialPlan_click(event) {
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
+        $w('#checkoutBoostSocial').collapse();
+        $w("#boostSocialPlan").label = "Sign Up"
 
     } else {
 
@@ -140,6 +145,7 @@ export function boostSocialPlan_click(event) {
 
     subscriptions.push(subscriptionData);
     $w("#boostSocialPlan").label = "Added to Cart!"
+    $w('#checkoutBoostSocial').expand();
 
     console.log("My Subscriptions: ", subscriptions)
         
@@ -163,6 +169,9 @@ export function googleAdsPlan_click(event) {
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
+        $w('#checkoutGoogle').collapse();
+        $w("#googleAdsPlan").label = "Sign Up"
+        
 
     } else {
 
@@ -174,11 +183,22 @@ export function googleAdsPlan_click(event) {
     }
 
     subscriptions.push(subscriptionData);
-    $w("#boostSocialPlan").label = "Added to Cart!"
+    $w("#googleAdsPlan").label = "Added to Cart!"
+    $w('#checkoutGoogle').expand();
 
     console.log("My Subscriptions: ", subscriptions)
         
     }
 
     
+}
+
+export function checkoutGoogle_click(event) {
+	// This function was added from the Properties & Events panel. To learn more, visit http://wix.to/UcBnC-4
+	// Add your code for this event here: 
+}
+
+export function checkoutEssential_click(event) {
+	// This function was added from the Properties & Events panel. To learn more, visit http://wix.to/UcBnC-4
+	// Add your code for this event here: 
 }

@@ -384,13 +384,33 @@ export async function createSubscriptionwInvoiceItems(cus, items, apiKeySk) {
 
     let apiKey = await getAPIKey(apiKeySk);
     const key = require("stripe")(apiKey);
-    //--For Future addons--//
 
-	let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
+	//let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
 	return await key.subscriptions.create({
 		customer: cus,
-		items: subscription,
+		items: items,
 		add_invoice_items: items
+	})
+	.then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}
+
+export async function createMultipleSubscriptions(cus, items, apiKeySk) {
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+	//let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
+	return await key.subscriptions.create({
+		customer: cus,
+		items: items
 	})
 	.then( function(err, subscription) {
 		if (err) {

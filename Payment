@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import {createCustomer, createSubscription, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod} from 'backend/stripeProcessor.jsw';
+import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod} from 'backend/stripeProcessor.jsw';
 
 let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
 let stripePurpose
@@ -14,6 +14,7 @@ let apiKeySk
 let context = wixWindow.lightbox.getContext();
 var email 
 var planId
+let subscriptionCheckoutData = [];
 
 $w.onReady(async function () {
 
@@ -71,14 +72,20 @@ if(stripeMode == "test"){
 
     }
 
-	if(stripePurpose == "mySubcriptions"){
-        $w('#stripePayment').changeState("mySubscriptions"); //CREATE NEW STATE 2/3/24
-        
-        let planSelection = context.planSelection
-        console.log("Plan Details: ", planSelection)
+	if(stripePurpose == "mySubscriptions"){
+        $w('#stripePayment').changeState("Main"); //CHECK ON SUBMIT FOR STRIPE PURPOSE INVOICE FUNCTIONS
 
-        wixData.query("stripeSubscriptions")
-                    .eq("title", planSelection)      
+        
+        //let planSelection = context.planSelection
+		let subscriptions = context
+        console.log("Plan Details: ", context)
+
+		if(subscriptions.length < 1){
+
+			console.log("Single Plan Details: ", context[0].planSelection)
+
+			wixData.query("stripeSubscriptions")
+                    .eq("title", context[0].planSelection)      
                     .eq("type", mode)  
                     .find() 
                     .then((results) => { 
@@ -90,6 +97,45 @@ if(stripeMode == "test"){
                          console.log("Plan Logged:", planId)
 
                     })
+
+		} else {
+
+			let count = 0;
+			let total = subscriptions.length;
+
+			subscriptions.forEach(subscription => {
+
+				count++
+
+				console.log("This Plan Details: ", subscription.planSelection)
+
+				wixData.query("stripeSubscriptions")
+                    .eq("title", subscription.planSelection)      
+                    .eq("type", mode)  
+                    .find() 
+                    .then((results) => { 
+
+                         let apiId = results.items[0].apiId
+						 subscriptionCheckoutData.push(apiId);
+
+                         //planId = apiId
+                         console.log("Found ID", apiId)
+                         console.log("Found plan", results)
+                         console.log("Plan Logged:", planId)
+
+                    })
+
+				if(count == total){
+
+
+					console.log("All Plans Loaded: ", subscriptionCheckoutData)
+
+				}
+				
+			});
+		}
+
+        
 
 
     }
@@ -145,15 +191,18 @@ export function cvc_keyPress(event) {
 
 export function submit_click(event) {
 
-    if(stripePurpose == "Subscribe"){
+	if(stripePurpose == "Subscribe" || stripePurpose == "mySubscriptions" ){
+
         subscribeMain()
-    }
+
+	}
 
 }
 
 //-------------------------------------------------------Main Subscription-------------------------------------------------------//
 
 export function subscribeMain(){
+
 
     //$w('#submitLoader').show();
 	$w('#submit').disable();
@@ -230,7 +279,10 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 		if(response.id !== undefined) {
 			console.log("Create customer");
 			let cus = response.id;
+
 			subscription(cus, lastFour, brand);
+
+						
 		} else {
 			$w('#processorText').text = "Customer Error: Customer Not Subscribed";
 			$w('#processorText').expand();
@@ -249,26 +301,60 @@ async function subscription(cus, lastFour, brand, coupon) {
 		quantity: 1
 	};
 	await plan.push(data);
-	createSubscription(cus, plan, apiKeySk)
-	.then( (response) => {
-		if(response.id !== undefined && response.status === 'active') {
-			let subStatus = 'ACTIVE';
-            $w('#processorText').text = "Finalizing Subscription...";
-			signUpMember(response, cus, lastFour, brand, subStatus);
-		} else if(response.id !== undefined && response.status !== 'active') {
-			let subStatus = 'PENDING';
-			//signUpMember(response, cus, lastFour, brand, subStatus);	
-            $w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-			$w('#processorText').expand();
-			console.log("Error: ", response)
-			$w("#submit").enable();
-		} else {
-			$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-			$w('#processorText').expand();
-			console.log("Error: ", response)
-			$w("#submit").enable();
-		}
-	});
+
+	if(stripePurpose == "Subscribe"){
+
+		createSubscription(cus, plan, apiKeySk)
+		.then( (response) => {
+			if(response.id !== undefined && response.status === 'active') {
+				let subStatus = 'ACTIVE';
+				$w('#processorText').text = "Finalizing Subscription...";
+				signUpMember(response, cus, lastFour, brand, subStatus);
+			} else if(response.id !== undefined && response.status !== 'active') {
+				let subStatus = 'PENDING';
+				//signUpMember(response, cus, lastFour, brand, subStatus);	
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			} else {
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			}
+		});
+        		
+    }
+
+	if(stripePurpose == "mySubscriptions"){
+
+		createMultipleSubscriptions(cus, items, apiKeySk)
+		.then( (response) => {
+			if(response.id !== undefined && response.status === 'active') {
+				let subStatus = 'ACTIVE';
+				$w('#processorText').text = "Finalizing Subscription...";
+				signUpMember(response, cus, lastFour, brand, subStatus);
+			} else if(response.id !== undefined && response.status !== 'active') {
+				let subStatus = 'PENDING';
+				//signUpMember(response, cus, lastFour, brand, subStatus);	
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			} else {
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			}
+		});
+        		
+    }
+
+	
+
+
 }
 
 

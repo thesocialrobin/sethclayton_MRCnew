@@ -10,6 +10,9 @@ let mode = "test"; //---set to "live" for live settings, set to "test" for test 
 let stripePurpose
 let apiKeyPk
 let apiKeySk
+let agentSubscriptions = null;
+agentSubscriptions = [];
+let customerId
 
 let context = wixWindow.lightbox.getContext();
 var email 
@@ -44,6 +47,52 @@ if(stripeMode == "test"){
         var itemId = res.items[0]._id
         session.setItem("id", itemId)
         session.setItem("userName", res.items[0].name)
+		customerId = res.items[0].customerId
+		let isArray = (res.items[0].subscriptionId).isArray
+		console.log("Is Array: ", isArray)
+	
+		if((res.items[0].subscriptionId !== "" || res.items[0].subscriptionId !== undefined) &&  (res.items[0].subscriptionId).isArray){
+
+			let agentSubscriptionsFound = res.items[0].subscriptionId
+
+			agentSubscriptionsFound.forEach(subscription => {
+
+				if( subscription == "FREE"){
+
+					console.log("Free found")
+
+				} else {
+
+					agentSubscriptions.push(subscription)
+
+				}
+
+				
+				
+			});
+
+		} else {
+
+			if((res.items[0].subscriptionId !== "" || res.items[0].subscriptionId !== undefined) &&  !(res.items[0].subscriptionId).isArray){
+
+				console.log("Single Subscription Found to Push:", res.items[0].subscriptionId)
+
+				if(res.items[0].subscriptionId == "FREE"){
+
+					console.log("Free found")
+
+				} else {
+
+					agentSubscriptions.push(res.items[0].subscriptionId)
+
+				}
+
+				
+
+			}
+
+		}
+
     })
 
     console.log("E-mail confirmation: ", email)
@@ -93,6 +142,10 @@ if(stripeMode == "test"){
 
                          let apiId = results.items[0].apiId
                          planId = apiId
+						 let price = {
+							 price: apiId
+						 }
+						 subscriptionCheckoutData.push(price);
                          console.log("Found ID", apiId)
                          console.log("Found plan", results)
                          console.log("Plan Logged:", planId)
@@ -117,7 +170,10 @@ if(stripeMode == "test"){
                     .then((results) => { 
 
                          let apiId = results.items[0].apiId
-						 subscriptionCheckoutData.push(apiId);
+						 let price = {
+							 price: apiId
+						 }
+						 subscriptionCheckoutData.push(price);
 
                          console.log("Found ID", apiId)
                          console.log("Found plan", results)
@@ -238,7 +294,19 @@ function createCardToken() {
 			let lastFour = response.card.last4;
 			let brand = response.card.brand;
 			let cardId = response.card.id;
-			customerCreation(token, lastFour, brand, cardId,signupName);
+
+			//-------UPDATED WITH CUSTOMER ID FROM DATABASE-----//
+			if(customerId !== undefined || customerId !== ""){
+
+				$w('#processorText').text = "Confirming Details...";
+				subscription(customerId, lastFour, brand);
+
+			} else {
+
+				customerCreation(token, lastFour, brand, cardId,signupName);
+
+			}
+			
 		} else {
             $w('#processorText').text = "Token Error: Customer Not Subscribed";
 			$w('#processorText').expand();
@@ -329,12 +397,14 @@ async function subscription(cus, lastFour, brand, coupon) {
 
 	if(stripePurpose == "mySubscriptions"){
 
-		createMultipleSubscriptions(cus, items, apiKeySk)
+		createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
 		.then( (response) => {
 			if(response.id !== undefined && response.status === 'active') {
+				agentSubscriptions.push(response.id)
+				console.log("Subscriptions Updated: ", agentSubscriptions)
 				let subStatus = 'ACTIVE';
 				$w('#processorText').text = "Finalizing Subscription...";
-				signUpMember(response, cus, lastFour, brand, subStatus);
+				signUpMultiMember(response, cus, lastFour, brand, subStatus);
 			} else if(response.id !== undefined && response.status !== 'active') {
 				let subStatus = 'PENDING';
 				//signUpMember(response, cus, lastFour, brand, subStatus);	
@@ -383,6 +453,48 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                         // After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
                             $w('#processorText').text = "Taking to Account Setup...";
+
+                        }, 1000);
+
+                        setTimeout(() => {
+
+                            wixWindow.lightbox.close( {
+								"lightBoxSend1": "Success",
+							} );
+
+                        }, 2000);
+                    })
+
+                })
+
+
+
+}
+
+async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
+
+
+            let thisId = session.getItem("id")
+
+            wixData.get("Team", thisId)
+                .then((toUpdate) => {
+                    $w('#processorText').text = "Updating Dashboard...";
+
+                    toUpdate.customerId = cus;
+                    toUpdate.subscriptionId = agentSubscriptions;
+                    toUpdate.lastFour = String(lastFour);
+                    toUpdate.cardType = brand;
+                    toUpdate.subscriptionStatus = subStatus;
+
+                    console.log(toUpdate);
+
+                    wixData.update('Team', toUpdate).then((res) => {
+                        console.log('updated');
+                        $w("#submit").label = "Subscribed!";
+
+                        // After 2 seconds, change the state of the multistate box to 'licensing'
+                        setTimeout(() => {
+                            $w('#processorText').text = "Taking to Dashboard...";
 
                         }, 1000);
 

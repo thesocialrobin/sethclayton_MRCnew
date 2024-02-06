@@ -79,6 +79,7 @@ if(stripeMode == "test"){
         //let planSelection = context.planSelection
 		let subscriptions = context
         console.log("Plan Details: ", context)
+		console.log("First Plan Details: ", context[0].planSelection)
 
 		if(subscriptions.length < 1){
 
@@ -118,10 +119,9 @@ if(stripeMode == "test"){
                          let apiId = results.items[0].apiId
 						 subscriptionCheckoutData.push(apiId);
 
-                         //planId = apiId
                          console.log("Found ID", apiId)
                          console.log("Found plan", results)
-                         console.log("Plan Logged:", planId)
+						 console.log("Subscription Plans: ", subscriptionCheckoutData)
 
                     })
 

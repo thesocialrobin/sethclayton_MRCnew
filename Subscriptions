@@ -58,14 +58,18 @@ export function executePayment(){
 
     session.setItem("stripePurpose", "mySubscriptions");
 
+    /*
+
     let subscriptionData = {
         "planSelection": session.getItem("Plan Selection"),
         "plan": session.getItem("Plan")
 
     }
-    console.log("Subscription Data", subscriptionData)
+    */
 
-    wixWindow.openLightbox('Payment', subscriptionData)
+    console.log("Subscription Data", subscriptions)
+
+    wixWindow.openLightbox('Payment', subscriptions)
         .then((data) => {
 
             let receivedData = data.lightBoxSend1;
@@ -91,6 +95,7 @@ export function essentialPlan_click(event) {
  
 
     let planName = "Essential";
+    let duration = "Monthly"
 
     let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
 
@@ -106,7 +111,8 @@ export function essentialPlan_click(event) {
     } else {
 
         let subscriptionData = {
-        "planSelection": planName
+        "planSelection": planName,
+        "duration": duration
 
     }
 
@@ -200,13 +206,13 @@ export function googleAdsPlan_click(event) {
 }
 
 export function checkoutGoogle_click(event) {
-	//executePayment()
+	executePayment()
 }
 
 export function checkoutEssential_click(event) {
-	//executePayment()
+	executePayment()
 }
 
 export function checkoutBoostSocial_click(event) {
-	//executePayment()
+    executePayment()
 }

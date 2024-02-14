@@ -3,8 +3,11 @@ import wixUsers from 'wix-users';
 import { session } from 'wix-storage';
 import wixWindow from 'wix-window';
 import wixLocation from 'wix-location';
+import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/stripeProcessor.jsw';
 
-
+let apiKeyPk
+let apiKeySk
+let count
 let user = wixUsers.currentUser;
 let userId = user.id;
 let isDeleting = false
@@ -15,18 +18,121 @@ subscriptions = [];
 let zipCode
 let adSpend
 
+var email 
+var planId
 
-$w.onReady(function () {
+//List plans to collapse here via plan name; match to stripeSubscriptions title
 
-    // Write your Javascript code here using the Velo framework API
+//Essential
 
-    // Print hello world:
-    // console.log("Hello world!");
+let essentialPlanName = "Essential";
 
-    // Call functions on page elements, e.g.:
-    // $w("#button1").label = "Click me!";
 
-    // Click "Run", or Preview your site, to execute your code
+//Add-Ons
+
+let boostPlanName = "BOOST Social";
+
+
+//Google Ads
+
+let googlePlanName = "Google Ads";
+
+
+$w.onReady(async function () {
+
+    email = await wixUsers.currentUser.getEmail();
+
+	wixData.query('Team').eq('email', email).find().then((res) => {
+        var itemId = res.items[0]._id
+        session.setItem("id", itemId)
+        session.setItem("userName", res.items[0].name)
+		session.setItem("cus", res.items[0].customerId)
+
+		let cus = res.items[0].customerId;
+		console.log("Customer", cus)
+
+
+	retrieveSubscription(cus, apiKeySk)
+			.then( (subscriptions) => {
+				
+					console.log("Stripe Subscriptions:", subscriptions);
+					let allItems = subscriptions.data
+
+					let subscriptionData = [];
+
+			
+			
+			allItems.forEach(subscription => {
+
+				
+
+				//query card type
+
+               
+				
+				let planId = subscription.plan.id; //price_xx matches stripeSubscriptions database
+				let status = subscription.status; //active
+				let price = "$" + ((subscription.plan.amount) / 100).toString();
+				let interval = subscription.plan.interval; //month or year
+
+				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									
+									var planName = planResults.items[0].title
+
+                                     if(planName.includes(essentialPlanName)){
+
+                                         console.log("Essentials Plan Subscriber")
+
+                                         $w('#essentialBox').collapse()
+
+                                     }
+
+                                     if(planName.includes(boostPlanName)){
+
+                                         console.log("Boost Plan Subscriber")
+
+                                         $w('#boostBox').collapse()
+
+                                     }
+
+                                     if(planName.includes(googlePlanName)){
+
+                                         console.log("Google Ads Plan Subscriber")
+
+                                         $w('#googleAdsBox').collapse()
+
+                                     }
+
+						
+
+						let newSubscription = {
+											"_id": unixCode(),
+											"planId": subscription.plan.id,
+											"status": subscription.status,
+											"price": "$" + ((subscription.plan.amount) / 100).toString(),
+											"interval": subscription.plan.interval
+											
+
+											}
+
+											subscriptionData.push(newSubscription);
+
+
+				})
+
+				
+				})		
+					
+					
+			});
+
+
+    })
 
 });
 
@@ -215,4 +321,10 @@ export function checkoutEssential_click(event) {
 
 export function checkoutBoostSocial_click(event) {
     executePayment()
+}
+
+
+function unixCode (){ 
+  var timeStamp = Math.floor(Date.now()/1000);
+  return timeStamp.toString(); 
 }

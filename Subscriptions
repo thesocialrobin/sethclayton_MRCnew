@@ -191,6 +191,8 @@ if(stripeMode == "test"){
                                          console.log("Essentials Plan Subscriber")
 
                                          $w('#essentialBox').collapse()
+                                         $w('#plansTitle').collapse()
+                                         $w('#plansSubtitle').collapse()
 
                                      }
 

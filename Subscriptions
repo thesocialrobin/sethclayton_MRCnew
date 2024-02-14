@@ -40,6 +40,25 @@ let googlePlanName = "Google Ads";
 
 $w.onReady(async function () {
 
+//-------set below for live or test Stripe----//
+
+let stripeMode = "test";   //value is "test" or "live"
+
+if(stripeMode == "test"){
+
+    apiKeyPk = "stripeTestPk";
+    apiKeySk = "stripeTestSk";
+
+
+} else if(stripeMode == "live"){
+
+    apiKeyPk = "stripeLivePk";
+    apiKeySk = "stripeLiveSk";
+
+}
+
+//--------------------end--------------------//
+
     email = await wixUsers.currentUser.getEmail();
 
 	wixData.query('Team').eq('email', email).find().then((res) => {
@@ -64,18 +83,17 @@ $w.onReady(async function () {
 			
 			allItems.forEach(subscription => {
 
-				
 
-				//query card type
+                if (subscription.plan == null){
 
-               
-				
-				let planId = subscription.plan.id; //price_xx matches stripeSubscriptions database
-				let status = subscription.status; //active
-				let price = "$" + ((subscription.plan.amount) / 100).toString();
-				let interval = subscription.plan.interval; //month or year
 
-				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+                    let jointItems = subscription.items.data;
+
+                    jointItems.forEach(jointSubscription => {
+
+                    let planId = jointSubscription.plan.id;
+
+                    wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
 
 									console.log(
 										"Results: ", planResults
@@ -83,6 +101,8 @@ $w.onReady(async function () {
 
 									
 									var planName = planResults.items[0].title
+
+                                    console.log("This Plane Name", planName)
 
                                      if(planName.includes(essentialPlanName)){
 
@@ -110,26 +130,73 @@ $w.onReady(async function () {
 
 						
 
-						let newSubscription = {
-											"_id": unixCode(),
-											"planId": subscription.plan.id,
-											"status": subscription.status,
-											"price": "$" + ((subscription.plan.amount) / 100).toString(),
-											"interval": subscription.plan.interval
-											
 
-											}
+				})
 
-											subscriptionData.push(newSubscription);
+
+                })
+
+
+                } else {
+
+                    let planId = subscription.plan.id;
+
+				
+
+				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									
+									var planName = planResults.items[0].title
+
+                                    console.log("This Plane Name", planName)
+
+                                     if(planName.includes(essentialPlanName)){
+
+                                         console.log("Essentials Plan Subscriber")
+
+                                         $w('#essentialBox').collapse()
+
+                                     }
+
+                                     if(planName.includes(boostPlanName)){
+
+                                         console.log("Boost Plan Subscriber")
+
+                                         $w('#boostBox').collapse()
+
+                                     }
+
+                                     if(planName.includes(googlePlanName)){
+
+                                         console.log("Google Ads Plan Subscriber")
+
+                                         $w('#googleAdsBox').collapse()
+
+                                     }
+
+						
 
 
 				})
+
+
+                }
+
+                
+
+
+
+                
 
 				
 				})		
 					
 					
-			});
+		});
 
 
     })

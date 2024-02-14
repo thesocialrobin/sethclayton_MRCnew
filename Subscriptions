@@ -7,7 +7,8 @@ import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/s
 
 let apiKeyPk
 let apiKeySk
-let count = 0;
+let count;
+count = 0;
 let user = wixUsers.currentUser;
 let userId = user.id;
 let isDeleting = false
@@ -17,6 +18,8 @@ let subscriptions = null;
 subscriptions = [];
 let zipCode
 let adSpend
+let newCount;
+newCount = 0;
 
 var email 
 var planId
@@ -99,6 +102,7 @@ if(stripeMode == "test"){
                     let planId = jointSubscription.plan.id;
 
                     wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+                                    
 
 									console.log(
 										"Results: ", planResults
@@ -107,7 +111,7 @@ if(stripeMode == "test"){
 									
 									var planName = planResults.items[0].title
 
-                                    console.log("This Plane Name", planName)
+                                    console.log("This Plan Name", planName)
 
                                      if(planName.includes(essentialPlanName)){
 
@@ -119,17 +123,35 @@ if(stripeMode == "test"){
 
                                      if(planName.includes(boostPlanName)){
 
-                                         console.log("Boost Plan Subscriber")
+                                         newCount++
+
+                                         console.log("Boost Plan Subscriber", newCount)
 
                                          $w('#boostBox').collapse()
+
+                                          if(newCount == addOnCount){
+
+                                             $w('#addOnsTitle').collapse()
+                                             $w('#addOnsSubtitle').collapse()
+
+                                         }
 
                                      }
 
                                      if(planName.includes(googlePlanName)){
 
-                                         console.log("Google Ads Plan Subscriber")
+                                         newCount++
+
+                                         console.log("Google Ads Plan Subscriber", newCount)
 
                                          $w('#googleAdsBox').collapse()
+
+                                          if(newCount == addOnCount){
+
+                                             $w('#addOnsTitle').collapse()
+                                             $w('#addOnsSubtitle').collapse()
+
+                                         }
 
                                      }
 
@@ -150,14 +172,15 @@ if(stripeMode == "test"){
 
 				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
 
+
 									console.log(
-										"Results: ", planResults
+										"Results: ", planResults, newCount
 									)
 
 									
 									var planName = planResults.items[0].title
 
-                                    console.log("This Plane Name", planName)
+                                    console.log("This Plan Name", planName)
 
                                      if(planName.includes(essentialPlanName)){
 
@@ -169,13 +192,13 @@ if(stripeMode == "test"){
 
                                      if(planName.includes(boostPlanName)){
 
-                                         count++
+                                         newCount++
 
-                                         console.log("Boost Plan Subscriber", count)
+                                         console.log("Boost Plan Subscriber", newCount)
 
                                          $w('#boostBox').collapse()
 
-                                         if(count == addOnCount){
+                                         if(newCount == addOnCount){
 
                                              $w('#addOnsTitle').collapse()
                                              $w('#addOnsSubtitle').collapse()
@@ -186,13 +209,13 @@ if(stripeMode == "test"){
 
                                      if(planName.includes(googlePlanName)){
 
-                                          count++
+                                          newCount++
 
-                                         console.log("Google Ads Plan Subscriber", count)
+                                         console.log("Google Ads Plan Subscriber", newCount)
 
                                          $w('#googleAdsBox').collapse()
 
-                                         if(count == addOnCount){
+                                         if(newCount == addOnCount){
 
                                              $w('#addOnsTitle').collapse()
                                              $w('#addOnsSubtitle').collapse()

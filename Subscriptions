@@ -7,7 +7,7 @@ import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/s
 
 let apiKeyPk
 let apiKeySk
-let count
+let count = 0;
 let user = wixUsers.currentUser;
 let userId = user.id;
 let isDeleting = false
@@ -20,6 +20,7 @@ let adSpend
 
 var email 
 var planId
+
 
 //List plans to collapse here via plan name; match to stripeSubscriptions title
 
@@ -36,6 +37,10 @@ let boostPlanName = "BOOST Social";
 //Google Ads
 
 let googlePlanName = "Google Ads";
+
+//Enter Add-on Count Below
+
+let addOnCount = 2;
 
 
 $w.onReady(async function () {
@@ -164,17 +169,35 @@ if(stripeMode == "test"){
 
                                      if(planName.includes(boostPlanName)){
 
-                                         console.log("Boost Plan Subscriber")
+                                         count++
+
+                                         console.log("Boost Plan Subscriber", count)
 
                                          $w('#boostBox').collapse()
+
+                                         if(count == addOnCount){
+
+                                             $w('#addOnsTitle').collapse()
+                                             $w('#addOnsSubtitle').collapse()
+
+                                         }
 
                                      }
 
                                      if(planName.includes(googlePlanName)){
 
-                                         console.log("Google Ads Plan Subscriber")
+                                          count++
+
+                                         console.log("Google Ads Plan Subscriber", count)
 
                                          $w('#googleAdsBox').collapse()
+
+                                         if(count == addOnCount){
+
+                                             $w('#addOnsTitle').collapse()
+                                             $w('#addOnsSubtitle').collapse()
+
+                                         }
 
                                      }
 

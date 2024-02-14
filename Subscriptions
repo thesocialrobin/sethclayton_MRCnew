@@ -166,7 +166,9 @@ if(stripeMode == "test"){
                 })
 
 
-                } else {
+                }  
+                
+                if (subscription.plan !== null){
 
                     let planId = subscription.plan.id;
 

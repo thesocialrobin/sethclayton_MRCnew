@@ -371,6 +371,10 @@ if(stripeMode == "test"){
 					console.log("Stripe Subscriptions:", subscriptions);
 					let allItems = subscriptions.data
 
+					if(allItems.length == undefined || allItems.length < 1){
+						$w("#box488").collapse()
+					}
+
 					let subscriptionData = [];
 					let listItems = [];
 

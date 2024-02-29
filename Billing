@@ -4,18 +4,50 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/stripeProcessor.jsw';
+import { retrieveMethod, retrieveSubscription,retrieveInvoices,cancelSubscription } from 'backend/stripeProcessor.jsw';
+import { currentMember } from 'wix-members';
 
 let apiKeyPk
 let apiKeySk
 let count
 let newInvoiceItems = null;
 newInvoiceItems = [];
+let allItems = [];
+let invoiceData = [];
+let subscriptionCheck = [];
+let memberId
+let roleIds = [];
 
 var email 
 var planId
 
 $w.onReady(async function () {
+
+const member = await currentMember.getMember()
+
+if (member) {
+		memberId = member._id;
+		console.log("Member Found", memberId)
+
+		currentMember.getRoles()
+			.then((roles) => {
+				
+				roles.forEach(role => {
+
+					roleIds.push(role._id)
+
+					console.log("Roles: ", roleIds)
+					
+				});
+				
+				
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+} 
+
+
 
 //-------set below for live or test Stripe----//
 
@@ -42,6 +74,7 @@ if(stripeMode == "test"){
         var itemId = res.items[0]._id
         session.setItem("id", itemId)
         session.setItem("userName", res.items[0].name)
+		session.setItem("subscriptionStatus", res.items[0].subscriptionStatus)
 		session.setItem("cus", res.items[0].customerId)
 
 		let cus = res.items[0].customerId;
@@ -122,13 +155,14 @@ if(stripeMode == "test"){
 	retrieveInvoices(cus,apiKeySk)
 	.then( (invoices) => {
 				
-					console.log("Stripe Invoices:", invoices);
-					let allItems = invoices.data
-					let totalPages = allItems.length;
+					
+					allItems = invoices.data
+					let totalPages = Number(allItems.length);
+					console.log("Stripe Invoices:", invoices, totalPages);
 					let invoicePaginationTotal = 8;
 					let countedTotal = 0;
 
-					let invoiceData = [];
+					
 
 					let agentInvoices = $w("#agentInvoices");
 					$w("#agentInvoices").data = [];
@@ -136,141 +170,183 @@ if(stripeMode == "test"){
 					allItems.forEach(invoice => {
 
 						countedTotal++
+						
 
+						let subscriptionInvoiceData = invoice.lines.data;
+						console.log("Invoice Data: ", subscriptionInvoiceData, subscriptionInvoiceData.length)
+						
 						let subscriptionId = invoice.lines.data[0].price.id;
+
+						
+
 						let invoicePdf = invoice.invoice_pdf;
 						let amount = "$" + (invoice.total / 100).toString() + " USD";
 						let date = formatDate(new Date(invoice.effective_at*1000));
 						console.log("Date: ", date)
 
+						if(subscriptionId){
+
+							wixData.query('stripeSubscriptions').eq('apiId', subscriptionId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									var planName = planResults.items[0].title
+
+						
+
+										let newInvoice = {
+											"_id": uniqueId(),
+											"planName": planName,
+											"length": subscriptionInvoiceData.length,
+											"invoicePdf": invoice.invoice_pdf,
+											"amount": "$" + (invoice.total / 100).toString() + " USD",
+											"date": date
+
+											}
+
+											invoiceData.push(newInvoice);
+
+											console.log("This Invoice Data: ", invoiceData, newInvoice)
+
+											$w("#agentInvoices").data = invoiceData;
+											$w("#agentInvoices").expand()
+									
+
+									
+
+
+							})
+
+						} else {
+							//await Seth's feedback
+						}
+
 						const finishedCount = () => {
 
-							if (count == 8 || totalPages.length == count) {
-
-								if(subscriptionId){
-
-									wixData.query('stripeSubscriptions').eq('apiId', subscriptionId).find().then((planResults) => {
-
-											console.log(
-												"Results: ", planResults
-											)
-
-											var planName = planResults.items[0].title
-
+							if (count == 8 || totalPages == count) {
 								
-
-												let newInvoice = {
-													"_id": unixCode(),
-													"planName": planName,
-													"invoicePdf": invoice.invoice_pdf,
-													"amount": "$" + (invoice.total / 100).toString() + " USD",
-													"date": date
-
-													}
-
-													invoiceData.push(newInvoice);
 
 													$w("#agentInvoices").data = invoiceData;
 													$w("#agentInvoices").expand()
 											
 
-											agentInvoices.onItemReady(($item, itemData) => {
-
-											$item('#invoicePrice').text = itemData.amount;
-											$item('#subscriptionName').text = itemData.planName;
-											$item('#invoiceDate').text = itemData.date;
-											
-											$item('#download').link = itemData.invoicePdf;
-
-											if(totalPages > 1){
-												
-												$w('#totalPages').text =  "of " + totalPages.toString();
-
-												if(count !== totalPages){
-													let getNearestEight = roundEight(count);
-													$w('#pageSeries').text = "1" + "-" + getNearestEight.toString();
-												} 
-
-												if (totalPages > 8){
-													$w('#goForward').expand()
-													$w('#goBack').expand()
-
-												}
-
-											} else if( totalPages < 2){
-												$w('#pageSeries').text = "1" 
-												$w('#totalPages').text =  "of " + totalPages.toString();
-
-
-											}
-
-											
-
-
-											})
-
-
-									})
-
-								} else {
-									//await Seth's feedback
-								}
-
 							}
 
 						}
 
+						console.log("Counted Total", countedTotal, totalPages)
+
+						agentInvoices.onItemReady(($item, itemData) => {
+
+							$item('#invoicePrice').text = itemData.amount;
+
+							if(itemData.length > 1){
+
+								console.log(
+									"Subscription Invoice Data: ", subscriptionInvoiceData
+								)
+
+								$item('#subscriptionName').text = itemData.planName + " + More ";
+			
+							} else {
+
+								$item('#subscriptionName').text = itemData.planName;
+
+							}
+							
+							$item('#invoiceDate').text = itemData.date;
+							
+							$item('#download').link = itemData.invoicePdf;
+
+							if(totalPages > 1){
+								
+								$w('#totalPages').text =  "of " + totalPages.toString();
+
+								if(count !== totalPages){
+									let getNearestEight = roundEight(count);
+									$w('#pageSeries').text = "1" + "-" + getNearestEight.toString();
+								} 
+
+								if (totalPages > 8){
+									$w('#goForward').expand()
+									$w('#goBack').expand()
+
+								}
+
+							} else if( totalPages < 2){
+								$w('#pageSeries').text = "1" 
+								$w('#totalPages').text =  "of " + totalPages.toString();
+
+
+							}
+
+							
+
+
+							})
+
+
+						
+
 						if (countedTotal == totalPages) {
 
-                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+							count = 0;
+							var length = invoiceData.length;
+
+							console.log("Start Count", invoiceData, count, length, Array.isArray(invoiceData))
+							
+
+                        if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 1: ", count)
                             count++
                         }
 
-                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+                        if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 2: ", count)
                             count++
                         }
 
-                        if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+                        if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 3: ", count)
                             count++
                             console.log("Current Count of 3: ", count)
                         }
 
-						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+						if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 4: ", count)
                             count++
                             console.log("Current Count of 4: ", count)
                         }
 
-						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+						if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 5: ", count)
                             count++
                             console.log("Current Count of 5: ", count)
                         }
 
-						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+						if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 6: ", count)
                             count++
                             console.log("Current Count of 6: ", count)
                         }
 
-						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+						if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 7: ", count)
                             count++
                             console.log("Current Count of 7: ", count)
                         }
 
-						if (invoice[count] !== undefined && count <= invoicePaginationTotal) {
-                            newInvoiceItems.push(invoice[count])
+						if (invoiceData[count] !== undefined && count <= invoicePaginationTotal) {
+                            newInvoiceItems.push(invoiceData[count])
                             console.log("Current Count 8: ", count)
                             count++
                             console.log("Current Count of 8: ", count)
@@ -296,6 +372,7 @@ if(stripeMode == "test"){
 					let allItems = subscriptions.data
 
 					let subscriptionData = [];
+					let listItems = [];
 
 					let agentSubscriptions = $w("#agentSubscription");
 					let susbcriptionsList = $w("#subscriptionsList");
@@ -307,6 +384,7 @@ if(stripeMode == "test"){
 
 				//Billing Update 021624 0149
 				console.log("Billing Update")
+				
 
 				if (subscription.plan == null){
 
@@ -324,6 +402,8 @@ if(stripeMode == "test"){
 					let jointprice = "$" + ((jointSubscription.plan.amount) / 100).toString();
 					let jointinterval = jointSubscription.plan.interval; //month or year
 
+					console.log("Joint Subscription Plan ID + Data", planId, jointprice, jointinterval) //--HERE--//
+
 					wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
 
 						console.log(
@@ -336,38 +416,98 @@ if(stripeMode == "test"){
 			
 
 						let newSubscription = {
-								"_id": unixCode(),
-								"planId": subscription.plan.id,
-								"status": subscription.status,
-								"price": "$" + ((subscription.plan.amount) / 100).toString(),
-								"interval": subscription.plan.interval,
+								"_id": uniqueId(),
+								"planId": jointSubscription.plan.id,
+								"status": jointSubscription.status,
+								"price": "$" + ((jointSubscription.plan.amount) / 100).toString(),
+								"interval": jointSubscription.plan.interval,
+								"subscription": jointSubscription.subscription,
+								"planName": planName,
 								"planLogoImage": planLogoImage
 
 								}
 
 								subscriptionData.push(newSubscription);
+								listItems.push(newSubscription);
+								subscriptionCheck.push(jointSubscription.plan.id);
+								console.log("Subscription Check: ", subscriptionCheck)
 
 								$w("#agentSubscription").data = subscriptionData;
 
-								let listItems = [];
+								
 								let firstData = {
 									"_id": "0001",
 								"planId": "blank",
 								"price": "SUBTOTAL",
 
 								}
-								listItems = subscriptionData;
-								console.log("List Items:", listItems)
-								listItems.unshift(firstData);
-								$w("#subscriptionsList").data = listItems;
-						
+								
+								
+								console.log("Subscription Data:", subscriptionData)
+								
+								let findmatch = listItems.find(item=> item._id === "0001")
+											
+								if(findmatch){
+									console.log("First Data Already Pushed")
+									$w("#subscriptionsList").data = [];
+									$w("#subscriptionsList").data = listItems;
+									console.log("List Items:", listItems)
+								} else {
+									console.log("First Data Pushed")
+									listItems.unshift(firstData);
+									$w("#subscriptionsList").data = [];
+									$w("#subscriptionsList").data = listItems;
+									console.log("List Items:", listItems)
+								}
+
 
 						agentSubscriptions.onItemReady(($item, itemData) => {
+
+							$item("#cancelSubscription").onClick(() => {
+								console.log("ThisSubscription: ", itemData.subscription)
+								cancelSubscription(itemData.subscription, apiKeySk)
+									.then( (response) => {
+										
+											console.log("Stripe Subscription Cancelled Status:", response);
+											   //--log process--//
+												let logResults = {
+													"type": "Stripe Log",
+													"log": "Cancelled Subscription", response
+													};
+
+													wixData.insert("devLog", logResults)
+													.then( (results) => {
+													let item = results; //see item below
+													
+													} )
+													.catch( (err) => {
+													let errorMsg = err;
+
+
+														//--log process--//
+															let logResults = {
+																"type": "Stripe Log",
+																"log": "Cancel Subscription Error", errorMsg
+																};
+
+																wixData.insert("devLog", logResults)
+																.then( (results) => {
+																let item = results; //see item below
+																
+																} )
+															
+
+                                  				//--end log process--//
+											
+												})
+								
+								})
+							})
 
 						$item('#price').text = itemData.price;
 						$item('#interval').text = "/" + itemData.interval
 						
-							$item('#planName').text = planName;
+							$item('#planName').text = itemData.planName;
 
 						
 
@@ -397,12 +537,13 @@ if(stripeMode == "test"){
 							$item('#subscriptionPlanName').text = "ITEMS";
 						} else if(itemData.price !== "SUBTOTAL"){
 							
-							$item('#subscriptionPlanName').text = planName;
+							$item('#subscriptionPlanName').text = itemData.planName;
 
 						}
 
 
 						})
+
 
 
 					})
@@ -437,30 +578,54 @@ if(stripeMode == "test"){
 						
 
 						let newSubscription = {
-											"_id": unixCode(),
+											"_id": uniqueId(),
 											"planId": subscription.plan.id,
 											"status": subscription.status,
 											"price": "$" + ((subscription.plan.amount) / 100).toString(),
 											"interval": subscription.plan.interval,
+											"subscription": subscription.subscription,
+											"planName": planName,
 											"planLogoImage": planLogoImage
 
 											}
 
 											subscriptionData.push(newSubscription);
+											listItems.push(newSubscription);
+											subscriptionCheck.push(subscription.plan.id)
+											console.log("Subscription Check: ", subscriptionCheck)
 
 											$w("#agentSubscription").data = subscriptionData;
 
-											let listItems = [];
+
+
+											
 											let firstData = {
 												"_id": "0001",
 											"planId": "blank",
 											"price": "SUBTOTAL",
 
 											}
-											listItems = subscriptionData;
+											
+											
+											console.log("Subscription Data:", subscriptionData)
+
+											let findmatch = listItems.find(item=> item._id === "0001")
+
+											if(findmatch){
+											 console.log("First Data Already Pushed")
+											 $w("#subscriptionsList").data = [];
+											 $w("#subscriptionsList").data = listItems;
 											console.log("List Items:", listItems)
-											listItems.unshift(firstData);
+
+											} else {
+												console.log("First Data Pushed")
+												listItems.unshift(firstData);
+												$w("#subscriptionsList").data = [];
 											$w("#subscriptionsList").data = listItems;
+											console.log("List Items:", listItems)
+											}
+											
+											
 									
 
 									agentSubscriptions.onItemReady(($item, itemData) => {
@@ -468,7 +633,7 @@ if(stripeMode == "test"){
 									$item('#price').text = itemData.price;
 									$item('#interval').text = "/" + itemData.interval
 									
-										$item('#planName').text = planName;
+										$item('#planName').text = itemData.planName;
 
 									
 
@@ -489,7 +654,7 @@ if(stripeMode == "test"){
 									$item('#listPrice').text = itemData.price;
 									
 									
-
+									
 									$w('#totalSubscriptionAmount').text = "$" + ((totalSubscriptionAmount) / 100).toString();
 
 									console.log("PLAN NAME: ", itemData.planId)
@@ -498,7 +663,7 @@ if(stripeMode == "test"){
 										$item('#subscriptionPlanName').text = "ITEMS";
 									} else if(itemData.price !== "SUBTOTAL"){
 										
-										$item('#subscriptionPlanName').text = planName;
+										$item('#subscriptionPlanName').text = itemData.planName;
 
 									}
 
@@ -520,6 +685,16 @@ if(stripeMode == "test"){
     })
 
 });
+
+export function getRoles(){
+ return	currentMember.getRoles()
+  .then((roles) => {
+    return roles;
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+}
 
 
 function unixCode (){ 
@@ -659,6 +834,8 @@ export function loadMoreFunction(direction){
 
 		if ($w('#agentInvoices').data.length < 8 || (count == allItems && getStatus == "Start")) { 
 
+			console.log("Start With 0")
+
 			count = 0
 			let thisTotal = 8
 
@@ -729,4 +906,53 @@ export function loadMoreFunction(direction){
 export function goBack_click(event) {
 	let direction = "backward"
 	loadMoreFunction(direction)
+}
+
+function uniqueId() {
+
+    // desired length of Id
+    var idStrLen = 32;
+   
+    var idStr = (Math.floor((Math.random() * 25)) + 10).toString(36) + "-";
+    
+    idStr += (new Date()).getTime().toString(36) + "-";
+    
+    do {
+        idStr += (Math.floor((Math.random() * 35))).toString(36);
+    } while (idStr.length < idStrLen);
+
+    return (idStr);
+}
+
+export function runMemberCheck(){
+
+	let subscriptionStatus = session.getItem("subscriptionStatus");
+	
+	let essentialMonthly = "price_1OSk4TGjvTpCU0nDMP9tc4Yi";
+	let essentialAnnual = "price_1OSk71GjvTpCU0nDxg7qNTie";
+	let boostMonthly = "price_1Ogal7GjvTpCU0nDrLO2Whvn";
+	let boostAnnual = "price_1Ogam3GjvTpCU0nDcPIzyAR6";
+
+	let essentialRole = "622d33e0-d047-4c12-9bcb-7b2355ce414f";
+	let boostRole = "4f0115cb-c0b6-481d-804b-b83c36c911a3"
+
+	let findmatchEssentialMonthly = subscriptionCheck.find(item=> item === essentialMonthly)
+	let findmatchEssentialAnnual = subscriptionCheck.find(item=> item=== essentialAnnual)
+	let findmatchBoostMonthly = subscriptionCheck.find(item=> item === boostMonthly)
+	let findmatchBoostAnnual = subscriptionCheck.find(item=> item === boostAnnual)
+
+	let isBoostMember = roleIds.find(item=> item === boostRole)
+	let isEssentialMember = roleIds.find(item=> item === essentialRole)
+
+
+	if(subscriptionCheck.length > 0 && subscriptionStatus == "ACTIVE"){ //User Shows Active and has Current Subscriptions
+
+		
+
+	}
+
+	if(subscriptionCheck.length < 1 && subscriptionStatus == "ACTIVE"){ //User Shows Active and has No Current Subscriptions
+
+	}
+
 }

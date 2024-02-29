@@ -253,7 +253,57 @@ export async function retrieveSubscription(cus,apiKeySk){
 	return await key.subscriptions.list({customer: cus, limit: 10})
 	
 }
+export async function cancelSubscription(sub,apiKeySk){
+  let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
 
+     var cancelSubscription = await key.subscriptions.cancel(sub);
+
+  
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Cancel Subscription", sub, apiKeySk
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+
+
+                                   //--log process--//
+                                      let logResults = {
+                                          "type": "Stripe Log",
+                                          "log": "Cancel Subscription Error", sub, errorMsg
+                                        };
+
+                                        wixData.insert("devLog", logResults)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
+                            } );
+
+       //--end log process--//
+
+       return await key.subscriptions.cancel(sub).then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+
+}
 export async function retrieveInvoices(cus,apiKeySk){
 
    let apiKey = await getAPIKey(apiKeySk);

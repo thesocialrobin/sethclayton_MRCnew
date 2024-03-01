@@ -679,14 +679,42 @@ async function checkSubscriptionsPermissions(){
 
 }
 
+export function cancelSubscription_click(event) {
+	cancelSubscription(itemData.subscription, apiKeySk)
+									.then( (response) => {
+										
+											console.log("Stripe Subscription Cancelled Status:", response);
+											   //--log process--//
+												let logResults = {
+													"type": "Stripe Log",
+													"log": "Cancelled Subscription", response
+													};
+
+													wixData.insert("devLog", logResults)
+													.then( (results) => {
+													let item = results; //see item below
+													
+													} )
+													.catch( (err) => {
+													let errorMsg = err;
 
 
+														//--log process--//
+															let logResults = {
+																"type": "Stripe Log",
+																"log": "Cancel Subscription Error", errorMsg
+																};
 
+																wixData.insert("devLog", logResults)
+																.then( (results) => {
+																let item = results; //see item below
+																
+																} )
+															
 
-
-
-
-
-
-
-
+                                  				//--end log process--//
+											
+												})
+								
+								})
+}

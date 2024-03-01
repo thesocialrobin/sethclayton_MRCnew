@@ -17,6 +17,7 @@ let invoiceData = [];
 let subscriptionCheck = [];
 let memberId
 let roleIds = [];
+let toCancel = [];
 
 var email 
 var planId
@@ -468,57 +469,50 @@ if(stripeMode == "test"){
 						agentSubscriptions.onItemReady(($item, itemData) => {
 
 							$item("#cancelSubscription").onClick(() => {
-								console.log("ThisSubscription: ", itemData.subscription)
-								wixWindow.openLightbox('Cancel', itemData.subscription)
+								session.setItem("stripePurpose", "Cancel");
+								//toCancel.push(itemData.subscription);
+								let findMatch = subscriptionData.find(item=> item.subscription === itemData.subscription)
+								let preventDuplicates = toCancel.find(item=> item.planId === itemData.planId)
+								let totalSubscriptions = subscriptionData.length;
+								let count = 0;
+								subscriptionData.forEach(subscription => {
+									console.log("Subscription Data: ", subscriptionData)
+									count++
+
+									console.log("Update: ", totalSubscriptions, count)
+									if(findMatch && !preventDuplicates){
+										toCancel.push(subscription);
+										console.log("Matched Subscription: ", subscription.subscription, subscription.planName, subscription.price)
+									} else {
+
+										console.log("Not Matched: ",subscription.subscription, subscription.planName, subscription.price)		
+
+										}
+
+										console.log("ThisSubscription: ", itemData.subscription)
+									
+									if(totalSubscriptions == count){
+										wixWindow.openLightbox('Payment', toCancel)
 									.then((data) => {
 
 										let receivedData = data;
 
 										console.log("Data Received: ", receivedData)
 
-										if (receivedData === "Cancelled") {
-
 											getSubscriptions();
 
-										}
-									});
-								cancelSubscription(itemData.subscription, apiKeySk)
-									.then( (response) => {
 										
-											console.log("Stripe Subscription Cancelled Status:", response);
-											   //--log process--//
-												let logResults = {
-													"type": "Stripe Log",
-													"log": "Cancelled Subscription", response
-													};
-
-													wixData.insert("devLog", logResults)
-													.then( (results) => {
-													let item = results; //see item below
-													
-													} )
-													.catch( (err) => {
-													let errorMsg = err;
+									});
 
 
-														//--log process--//
-															let logResults = {
-																"type": "Stripe Log",
-																"log": "Cancel Subscription Error", errorMsg
-																};
+									}
+									
 
-																wixData.insert("devLog", logResults)
-																.then( (results) => {
-																let item = results; //see item below
-																
-																} )
-															
-
-                                  				//--end log process--//
-											
-												})
+									
+									
+								});
 								
-								})
+								
 							})
 
 						$item('#price').text = itemData.price;

@@ -479,9 +479,9 @@ if(stripeMode == "test"){
 								
 								let count = 0;
 								console.log("Update: ", totalSubscriptions, count)
-								
+
 								subscriptionData.forEach(subscription => {
-									console.log("Subscription Data: ", subscriptionData)
+									console.log("Subscription Data All: ", subscriptionData)
 									count++
 
 									console.log("Update: ", totalSubscriptions, count)
@@ -1158,7 +1158,7 @@ export function getSubscriptions(){
 											"status": subscription.status,
 											"price": "$" + ((subscription.plan.amount) / 100).toString(),
 											"interval": subscription.plan.interval,
-											"subscription": subscription.subscription,
+											"subscription": subscription._id,
 											"planName": planName,
 											"planLogoImage": planLogoImage
 

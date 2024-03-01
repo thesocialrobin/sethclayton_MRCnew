@@ -293,11 +293,7 @@ export async function cancelSubscription(sub,apiKeySk){
 
        //--end log process--//
 
-       return await key.subscriptions.cancel(sub).then( function(err, subscription) {
-		if (err) {
-			return Promise.resolve(err); //does not work
-		}
-			return Promise.resolve(subscription);
+       return await key.subscriptions.cancel(sub).then( function(err) {
 	})
 	.catch( (err) => {
 		return err;

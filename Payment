@@ -278,6 +278,16 @@ if(stripeMode == "test"){
 
 	if(stripePurpose == "Cancel"){
         $w('#stripePayment').changeState("Cancel");
+		console.log("Received: ", context)
+		$w("#subscriptionsList").data = [];
+		$w("#subscriptionsList").data = context;
+		let susbcriptionsList = $w("#subscriptionsList");
+		susbcriptionsList.onItemReady(($item, itemData) => {
+
+			$item('#subscriptionPlanName').text = itemData.planName;
+			$item('#listPrice').text = itemData.price;
+
+		})
 
 	}
 
@@ -680,10 +690,35 @@ async function checkSubscriptionsPermissions(){
 }
 
 export function cancelSubscription_click(event) {
-	cancelSubscription(itemData.subscription, apiKeySk)
+	$w("#cancelError").collapse()
+	$w("#cancelError").collapse()
+	console.log("Subscription to Cancel: ", context[0].subscription)
+								setTimeout(()=>{
+									$w("#cancelProcessor").text = "Cancelling Subscription..."
+									$w("#cancelProcessor").expand()
+									
+												
+											},3000)
+	cancelSubscription(context[0].subscription, apiKeySk)
 									.then( (response) => {
+
+										if(response.status == "canceled"){
+											$w("#cancelProcessor").text = "Completed"
+											$w("#cancelSubscription").label = "Subscription Canceled!"
+											setTimeout(()=>{
+												$w("#cancelProcessor").text = "You may close this window."
+											},3000)
+
+											
+
+										} else {
+											$w("#cancelProcessor").text = "Please contact us for assistance."
+											$w("#cancelError").text = "Error cancelling subscription"
+											$w("#cancelError").expand()
+										}
 										
 											console.log("Stripe Subscription Cancelled Status:", response);
+
 											   //--log process--//
 												let logResults = {
 													"type": "Stripe Log",

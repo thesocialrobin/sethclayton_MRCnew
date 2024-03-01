@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod} from 'backend/stripeProcessor.jsw';
+import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription} from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
 import { assignEssential, assignBoost } from 'backend/members.jsw';
 

@@ -5,6 +5,8 @@ import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
 import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod} from 'backend/stripeProcessor.jsw';
+import { currentMember } from 'wix-members';
+import { assignEssential, assignBoost } from 'backend/members.jsw';
 
 let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
 let stripePurpose
@@ -13,6 +15,7 @@ let apiKeySk
 let agentSubscriptions = null;
 agentSubscriptions = [];
 let customerId
+let memberId 
 
 let context = wixWindow.lightbox.getContext();
 var email 
@@ -20,6 +23,13 @@ var planId
 let subscriptionCheckoutData = [];
 
 $w.onReady(async function () {
+
+const member = await currentMember.getMember()
+
+if (member) {
+		memberId = member._id;
+		console.log("Member Found", memberId)
+} 
 
 //-------set below for live or test Stripe----//
 
@@ -265,6 +275,11 @@ if(stripeMode == "test"){
 
 
     }
+
+	if(stripePurpose == "Cancel"){
+        $w('#stripePayment').changeState("Cancel");
+
+	}
 
 
     
@@ -524,7 +539,9 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
 
-                        // After 2 seconds, change the state of the multistate box to 'licensing'
+						checkSubscriptionsPermissions(response.id).then((res) => {
+
+							// After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
                             $w('#processorText').text = "Taking to Account Setup...";
 
@@ -537,6 +554,11 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
 							} );
 
                         }, 2000);
+
+
+						})
+
+                        
                     })
 
                 })
@@ -566,7 +588,9 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
 
-                        // After 2 seconds, change the state of the multistate box to 'licensing'
+						checkSubscriptionsPermissions().then((res) => {
+
+							// After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
                             $w('#processorText').text = "Taking to Dashboard...";
 
@@ -579,9 +603,77 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
 							} );
 
                         }, 2000);
+
+
+						})
+
+                        
                     })
 
                 })
+
+
+
+}
+
+async function checkSubscriptionsPermissions(){
+
+	let essentialMonthly = "price_1OSk4TGjvTpCU0nDMP9tc4Yi";
+	let essentialAnnual = "price_1OSk71GjvTpCU0nDxg7qNTie";
+	let boostMonthly = "price_1Ogal7GjvTpCU0nDrLO2Whvn";
+	let boostAnnual = "price_1Ogam3GjvTpCU0nDcPIzyAR6";
+
+	let findmatchEssentialMonthly = subscriptionCheckoutData.find(item=> item.price === essentialMonthly)
+	let findmatchEssentialAnnual = subscriptionCheckoutData.find(item=> item.price === essentialAnnual)
+	let findmatchBoostMonthly = subscriptionCheckoutData.find(item=> item.price === boostMonthly)
+	let findmatchBoostAnnual = subscriptionCheckoutData.find(item=> item.price === boostAnnual)
+
+	console.log("Subscriptions Permissions Check and Find Match", findmatchBoostAnnual, findmatchBoostMonthly, findmatchEssentialAnnual, findmatchEssentialMonthly)
+
+	if(subscriptionCheckoutData.length > 0){
+
+		
+
+		if(findmatchEssentialMonthly || findmatchEssentialAnnual){
+
+			assignEssential(memberId).then((result) => {
+				console.log("Assigned Essential:", result)
+			})
+
+		}
+
+		if(findmatchBoostMonthly || findmatchBoostAnnual){
+
+			assignBoost(memberId).then((result) => {
+				console.log("Assigned Boost:", result)
+			})
+
+		}
+
+
+	}
+
+	if(planId != undefined){
+
+		if(planId == essentialMonthly || planId == essentialAnnual){
+
+			assignEssential(memberId).then((result) => {
+				console.log("Assigned Essential:", result)
+			})
+
+		}
+
+		if(planId == boostMonthly || planId == boostAnnual){
+
+			assignBoost(memberId).then((result) => {
+				console.log("Assigned Boost:", result)
+			})
+
+		}
+
+
+	}
+
 
 
 

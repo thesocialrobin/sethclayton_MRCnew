@@ -469,6 +469,19 @@ if(stripeMode == "test"){
 
 							$item("#cancelSubscription").onClick(() => {
 								console.log("ThisSubscription: ", itemData.subscription)
+								wixWindow.openLightbox('Cancel', itemData.subscription)
+									.then((data) => {
+
+										let receivedData = data;
+
+										console.log("Data Received: ", receivedData)
+
+										if (receivedData === "Cancelled") {
+
+											getSubscriptions();
+
+										}
+									});
 								cancelSubscription(itemData.subscription, apiKeySk)
 									.then( (response) => {
 										
@@ -959,4 +972,288 @@ export function runMemberCheck(){
 
 	}
 
+}
+
+export function getSubscriptions(){
+	let cus = session.getItem("cus")
+
+	retrieveSubscription(cus, apiKeySk)
+			.then( (subscriptions) => {
+				
+					console.log("Stripe Subscriptions:", subscriptions);
+					let allItems = subscriptions.data
+
+					if(allItems.length == undefined || allItems.length < 1){
+						$w("#box488").collapse()
+					}
+
+					let subscriptionData = [];
+					let listItems = [];
+
+					let agentSubscriptions = $w("#agentSubscription");
+					let susbcriptionsList = $w("#subscriptionsList");
+					$w("#agentSubscription").data = [];
+			
+			let totalSubscriptionAmount = 0;
+			
+			allItems.forEach(subscription => {
+
+				//Billing Update 021624 0149
+				console.log("Billing Update")
+				
+
+				if (subscription.plan == null){
+
+
+                    let jointItems = subscription.items.data; //price_xx matches stripeSubscriptions database for multi-purchased items
+					
+
+                    jointItems.forEach(jointSubscription => {
+
+                    let planId = jointSubscription.plan.id;
+					console.log("Joint Subscription Plan ID", planId) //--HERE--//
+					
+					totalSubscriptionAmount = totalSubscriptionAmount + jointSubscription.plan.amount
+					let jointstatus = jointSubscription.status; //active
+					let jointprice = "$" + ((jointSubscription.plan.amount) / 100).toString();
+					let jointinterval = jointSubscription.plan.interval; //month or year
+
+					console.log("Joint Subscription Plan ID + Data", planId, jointprice, jointinterval) //--HERE--//
+
+					wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+
+						console.log(
+							"Results: ", planResults
+						)
+
+						var planLogoImage = planResults.items[0].logo
+						var planName = planResults.items[0].title
+
+			
+
+						let newSubscription = {
+								"_id": uniqueId(),
+								"planId": jointSubscription.plan.id,
+								"status": jointSubscription.status,
+								"price": "$" + ((jointSubscription.plan.amount) / 100).toString(),
+								"interval": jointSubscription.plan.interval,
+								"subscription": jointSubscription.subscription,
+								"planName": planName,
+								"planLogoImage": planLogoImage
+
+								}
+
+								subscriptionData.push(newSubscription);
+								listItems.push(newSubscription);
+								subscriptionCheck.push(jointSubscription.plan.id);
+								console.log("Subscription Check: ", subscriptionCheck)
+
+								$w("#agentSubscription").data = subscriptionData;
+
+								
+								let firstData = {
+									"_id": "0001",
+								"planId": "blank",
+								"price": "SUBTOTAL",
+
+								}
+								
+								
+								console.log("Subscription Data:", subscriptionData)
+								
+								let findmatch = listItems.find(item=> item._id === "0001")
+											
+								if(findmatch){
+									console.log("First Data Already Pushed")
+									$w("#subscriptionsList").data = [];
+									$w("#subscriptionsList").data = listItems;
+									console.log("List Items:", listItems)
+								} else {
+									console.log("First Data Pushed")
+									listItems.unshift(firstData);
+									$w("#subscriptionsList").data = [];
+									$w("#subscriptionsList").data = listItems;
+									console.log("List Items:", listItems)
+								}
+
+
+						agentSubscriptions.onItemReady(($item, itemData) => {
+
+
+						$item('#price').text = itemData.price;
+						$item('#interval').text = "/" + itemData.interval
+						
+							$item('#planName').text = itemData.planName;
+
+						
+
+						if(itemData.planLogoImage != undefined){
+
+							$item('#subscriptionImage').src = itemData.planLogoImage;
+							$item('#subscriptionImage').expand()
+
+						}
+
+
+						})
+
+						susbcriptionsList.onItemReady(($item, itemData) => {
+
+							console.log("List Items On Ready:", listItems)
+
+						$item('#listPrice').text = itemData.price;
+						
+						
+
+						$w('#totalSubscriptionAmount').text = "$" + ((totalSubscriptionAmount) / 100).toString();
+
+						console.log("PLAN NAME: ", itemData.planId)
+
+						if(itemData.price == "SUBTOTAL"){
+							$item('#subscriptionPlanName').text = "ITEMS";
+						} else if(itemData.price !== "SUBTOTAL"){
+							
+							$item('#subscriptionPlanName').text = itemData.planName;
+
+						}
+
+
+						})
+
+
+
+					})
+
+
+					})
+
+				}
+
+				if (subscription.plan !== null){
+
+
+
+				totalSubscriptionAmount = totalSubscriptionAmount + subscription.plan.amount
+
+				//query card type
+				
+				let planId = subscription.plan.id; //price_xx matches stripeSubscriptions database
+				let status = subscription.status; //active
+				let price = "$" + ((subscription.plan.amount) / 100).toString();
+				let interval = subscription.plan.interval; //month or year
+
+				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+
+									console.log(
+										"Results: ", planResults
+									)
+
+									var planLogoImage = planResults.items[0].logo
+									var planName = planResults.items[0].title
+
+						
+
+						let newSubscription = {
+											"_id": uniqueId(),
+											"planId": subscription.plan.id,
+											"status": subscription.status,
+											"price": "$" + ((subscription.plan.amount) / 100).toString(),
+											"interval": subscription.plan.interval,
+											"subscription": subscription.subscription,
+											"planName": planName,
+											"planLogoImage": planLogoImage
+
+											}
+
+											subscriptionData.push(newSubscription);
+											listItems.push(newSubscription);
+											subscriptionCheck.push(subscription.plan.id)
+											console.log("Subscription Check: ", subscriptionCheck)
+
+											$w("#agentSubscription").data = subscriptionData;
+
+
+
+											
+											let firstData = {
+												"_id": "0001",
+											"planId": "blank",
+											"price": "SUBTOTAL",
+
+											}
+											
+											
+											console.log("Subscription Data:", subscriptionData)
+
+											let findmatch = listItems.find(item=> item._id === "0001")
+
+											if(findmatch){
+											 console.log("First Data Already Pushed")
+											 $w("#subscriptionsList").data = [];
+											 $w("#subscriptionsList").data = listItems;
+											console.log("List Items:", listItems)
+
+											} else {
+												console.log("First Data Pushed")
+												listItems.unshift(firstData);
+												$w("#subscriptionsList").data = [];
+											$w("#subscriptionsList").data = listItems;
+											console.log("List Items:", listItems)
+											}
+											
+											
+									
+
+									agentSubscriptions.onItemReady(($item, itemData) => {
+
+									$item('#price').text = itemData.price;
+									$item('#interval').text = "/" + itemData.interval
+									
+										$item('#planName').text = itemData.planName;
+
+									
+
+									if(itemData.planLogoImage != undefined){
+
+										$item('#subscriptionImage').src = itemData.planLogoImage;
+										$item('#subscriptionImage').expand()
+
+									}
+
+
+									})
+
+									susbcriptionsList.onItemReady(($item, itemData) => {
+
+										console.log("List Items On Ready:", listItems)
+
+									$item('#listPrice').text = itemData.price;
+									
+									
+									
+									$w('#totalSubscriptionAmount').text = "$" + ((totalSubscriptionAmount) / 100).toString();
+
+									console.log("PLAN NAME: ", itemData.planId)
+
+									if(itemData.price == "SUBTOTAL"){
+										$item('#subscriptionPlanName').text = "ITEMS";
+									} else if(itemData.price !== "SUBTOTAL"){
+										
+										$item('#subscriptionPlanName').text = itemData.planName;
+
+									}
+
+
+									})
+
+
+				})
+
+			}
+
+				
+				})		
+					
+					
+			});
 }

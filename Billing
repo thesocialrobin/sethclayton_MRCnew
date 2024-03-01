@@ -469,12 +469,17 @@ if(stripeMode == "test"){
 						agentSubscriptions.onItemReady(($item, itemData) => {
 
 							$item("#cancelSubscription").onClick(() => {
+								console.log("Prep Subscriptions")
 								session.setItem("stripePurpose", "Cancel");
+								
 								//toCancel.push(itemData.subscription);
 								let findMatch = subscriptionData.find(item=> item.subscription === itemData.subscription)
 								let preventDuplicates = toCancel.find(item=> item.planId === itemData.planId)
 								let totalSubscriptions = subscriptionData.length;
+								
 								let count = 0;
+								console.log("Update: ", totalSubscriptions, count)
+								
 								subscriptionData.forEach(subscription => {
 									console.log("Subscription Data: ", subscriptionData)
 									count++

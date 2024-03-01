@@ -23,7 +23,7 @@ var email
 var planId
 
 $w.onReady(async function () {
-
+console.log("030124.0145")
 const member = await currentMember.getMember()
 
 if (member) {
@@ -468,6 +468,8 @@ if(stripeMode == "test"){
 
 						agentSubscriptions.onItemReady(($item, itemData) => {
 
+
+							/*
 							$item("#cancelSubscription").onClick(() => {
 								console.log("Prep Subscriptions")
 								session.setItem("stripePurpose", "Cancel");
@@ -518,7 +520,8 @@ if(stripeMode == "test"){
 								});
 								
 								
-							})
+							}) //here
+							*/
 
 						$item('#price').text = itemData.price;
 						$item('#interval').text = "/" + itemData.interval
@@ -571,6 +574,8 @@ if(stripeMode == "test"){
 
 				if (subscription.plan !== null){
 
+					console.log ("Single Subscription Plans")
+
 
 
 				totalSubscriptionAmount = totalSubscriptionAmount + subscription.plan.amount
@@ -599,7 +604,7 @@ if(stripeMode == "test"){
 											"status": subscription.status,
 											"price": "$" + ((subscription.plan.amount) / 100).toString(),
 											"interval": subscription.plan.interval,
-											"subscription": subscription.subscription,
+											"subscription": subscription.id,
 											"planName": planName,
 											"planLogoImage": planLogoImage
 
@@ -1140,6 +1145,12 @@ export function getSubscriptions(){
 				let status = subscription.status; //active
 				let price = "$" + ((subscription.plan.amount) / 100).toString();
 				let interval = subscription.plan.interval; //month or year
+				let subscriptionId = subscription.id;
+				let customer = subscription.customer;
+				console.log("Subscription interval: ", interval)
+				console.log("Subscription Customer: ", customer)
+				console.log("Subscription Id: ", subscriptionId)
+				
 
 				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
 
@@ -1158,7 +1169,7 @@ export function getSubscriptions(){
 											"status": subscription.status,
 											"price": "$" + ((subscription.plan.amount) / 100).toString(),
 											"interval": subscription.plan.interval,
-											"subscription": subscription._id,
+											"subscription": subscription.id,
 											"planName": planName,
 											"planLogoImage": planLogoImage
 
@@ -1255,4 +1266,74 @@ export function getSubscriptions(){
 					
 					
 			});
+}
+
+
+
+export function cancelSubscription_click(event) {
+
+	let $item = $w.at(event.context);
+	const itemId = event.context.itemId;
+	const data = $w("#agentSubscription").data;
+	const itemData = data.find((item) => item._id === itemId);
+
+
+	console.log("Prep Subscriptions")
+								session.setItem("stripePurpose", "Cancel");
+								
+								//toCancel.push(itemData.subscription);
+								
+								let totalSubscriptions = data.length;
+								
+								let count = 0;
+								console.log("Update: ", totalSubscriptions, count)
+
+								data.forEach(subscription => {
+									console.log("Subscription Data All: ", data, itemData.subscription)
+									count++
+
+									let findMatch = data.find(item=> subscription.subscription === itemData.subscription) //Match in Subscriptions array where equals subscription ID of item clicked on
+									let preventDuplicates = toCancel.find(item=> item.planId === subscription.planId) //Match in Cancelled array where equals pland ID of current item
+
+									console.log("Update: ", totalSubscriptions, count)
+									if(findMatch && !preventDuplicates){
+										toCancel.push(subscription);
+										console.log("Matched Subscription: ", subscription.subscription, subscription.planName, subscription.price)
+									} else {
+
+										console.log("Not Matched: ",subscription.subscription, subscription.planName, subscription.price)		
+
+										}
+
+										console.log("ThisSubscription: ", itemData.subscription)
+									
+									if(totalSubscriptions == count){
+										wixWindow.openLightbox('Payment', toCancel)
+									.then((data) => {
+
+										let receivedData = data;
+
+										console.log("Data Received: ", receivedData)
+
+											getSubscriptions();
+
+										
+									});
+
+
+									}
+									
+
+									
+									
+								});
+								
+
+
+
+
+
+
+
+
 }

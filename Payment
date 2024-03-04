@@ -427,6 +427,7 @@ function createCardToken() {
 			let brand = response.card.brand;
 			let cardId = response.card.id;
 			let method = response.card.id;
+		
 
 			//-------UPDATED WITH CUSTOMER ID FROM DATABASE-----//
 			if ((customerId === undefined || customerId === "") && stripePurpose !== "updateCard"){
@@ -439,7 +440,7 @@ function createCardToken() {
 
 				console.log("Customer Id Found: ", customerId, method) //Exists in system, connect in Stripe to existing customer
 				$w('#processorText').text = "Confirming Details...";
-				subscription(customerId, lastFour, brand, method);
+				subscription(customerId, lastFour, brand, method, token);
 
 			}
 
@@ -562,7 +563,7 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 
 //-----------------------------------------------------------------Subscribe-----------------------------------------------------------------//
 
-async function subscription(cus, lastFour, brand, method) {
+async function subscription(cus, lastFour, brand, method, token) {
 
 	console.log("Method: ", method)
 	let plan = [];
@@ -581,26 +582,42 @@ async function subscription(cus, lastFour, brand, method) {
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
-			createSubscriptionNewMethod(cus, plan, apiKeySk, method)
-			.then( (response) => {
-			if(response.id !== undefined && response.status === 'active') {
-				let subStatus = 'ACTIVE';
-				$w('#processorText').text = "Finalizing Subscription...";
-				signUpMember(response, cus, lastFour, brand, subStatus);
-			} else if(response.id !== undefined && response.status !== 'active') {
-				let subStatus = 'PENDING';
-				//signUpMember(response, cus, lastFour, brand, subStatus);	
-				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-				$w('#processorText').expand();
-				console.log("Error: ", response)
-				$w("#submit").enable();
-			} else {
-				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-				$w('#processorText').expand();
-				console.log("Error: ", response)
-				$w("#submit").enable();
-			}
-		});
+			
+			updateCard(token, apiKeySk, customerId)
+				.then( (response) => {
+						
+						let id = response.id;
+
+					updateCustomer(id, apiKeySk, customerId)
+					.then( (customerResponse) => {
+
+						createSubscriptionNewMethod(cus, plan, apiKeySk, method)
+
+							.then( (response) => {
+							if(response.id !== undefined && response.status === 'active') {
+								let subStatus = 'ACTIVE';
+								$w('#processorText').text = "Finalizing Subscription...";
+								signUpMember(response, cus, lastFour, brand, subStatus);
+							} else if(response.id !== undefined && response.status !== 'active') {
+								let subStatus = 'PENDING';
+								//signUpMember(response, cus, lastFour, brand, subStatus);	
+								$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+								$w('#processorText').expand();
+								console.log("Error: ", response)
+								$w("#submit").enable();
+							} else {
+								$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+								$w('#processorText').expand();
+								console.log("Error: ", response)
+								$w("#submit").enable();
+							}
+						});
+
+
+					})
+
+				})
+			
 
 		}
 

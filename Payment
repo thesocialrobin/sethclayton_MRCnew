@@ -124,6 +124,25 @@ if(stripeMode == "test"){
     if(stripePurpose == "Subscribe"){ //First Time Subscriber
 
 		$w('#stripePayment').changeState("Main");
+
+		    let plan = context.plan;
+        let planSelection = context.planSelection
+        console.log("Plan Details: ", plan, planSelection)
+
+        wixData.query("stripeSubscriptions")
+                    .eq("title", planSelection)  
+                    .eq("duration", plan)     
+                    .eq("type", mode)  
+                    .find() 
+                    .then((results) => { 
+
+                         let apiId = results.items[0].apiId
+                         planId = apiId
+                         console.log("Found ID", apiId)
+                         console.log("Found plan", results)
+                         console.log("Plan Logged:", planId)
+
+                    })
 		
 
     }

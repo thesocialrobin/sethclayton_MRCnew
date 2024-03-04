@@ -426,6 +426,7 @@ function createCardToken() {
 			let lastFour = response.card.last4;
 			let brand = response.card.brand;
 			let cardId = response.card.id;
+			let method = response.card.id;
 
 			//-------UPDATED WITH CUSTOMER ID FROM DATABASE-----//
 			if ((customerId === undefined || customerId === "") && stripePurpose !== "updateCard"){
@@ -436,9 +437,9 @@ function createCardToken() {
 
 			} else if ((customerId !== undefined || customerId !== "") && stripePurpose !== "updateCard") {
 
-				console.log("Customer Id Found: ", customerId) //Exists in system, connect in Stripe to existing customer
+				console.log("Customer Id Found: ", customerId, method) //Exists in system, connect in Stripe to existing customer
 				$w('#processorText').text = "Confirming Details...";
-				subscription(customerId, lastFour, brand, cardId);
+				subscription(customerId, lastFour, brand, method);
 
 			}
 
@@ -561,7 +562,9 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 
 //-----------------------------------------------------------------Subscribe-----------------------------------------------------------------//
 
-async function subscription(cus, lastFour, brand, coupon, method) {
+async function subscription(cus, lastFour, brand, method) {
+
+	console.log("Method: ", method)
 	let plan = [];
 	let data = {
 		plan: planId,
@@ -572,8 +575,9 @@ async function subscription(cus, lastFour, brand, coupon, method) {
 	let defaultMethod = session.getItem("Default")
 
 	if(stripePurpose == "Subscribe"){
-
+		console.log("Default", session.getItem("Default"))
 		if(defaultMethod == "No"){
+			console.log("New Method")
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
@@ -601,9 +605,13 @@ async function subscription(cus, lastFour, brand, coupon, method) {
 		}
 
 		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
+			$w("#newCard").disable();
+			$w("#defaultCard").collapse();
+			$w("#newCard").label = "Subscribing..."
 
 			createSubscription(cus, plan, apiKeySk)
 		.then( (response) => {
+			console.log("General Subscription Method")
 			if(response.id !== undefined && response.status === 'active') {
 				let subStatus = 'ACTIVE';
 				$w('#processorText').text = "Finalizing Subscription...";
@@ -901,6 +909,7 @@ export function cancelSubscription_click(event) {
 
 export function defaultCard_click(event) {
 	session.setItem("Default","Yes")
+	subscription(customerId);
 }
 
 export function newCard_click(event) {

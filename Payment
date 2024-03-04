@@ -564,7 +564,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 	if(stripePurpose == "Subscribe"){
 		console.log("Default", session.getItem("Default"))
 		if(defaultMethod == "No"){
-			console.log("New Method")
+			console.log("New Method No", stripePurpose)
 			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
@@ -613,6 +613,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
+			console.log("Default", stripePurpose)
 			$w("#newCard").label = "Subscribing..."
 			$w('#cardDetailsSubtext').text = "Enter your card details below.";
 
@@ -655,6 +656,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 		$w("#submit").disable();
 
 		if(defaultMethod == "No"){
+			console.log("My Subscriptions No", stripePurpose)
 
 			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
 
@@ -698,6 +700,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 		}
 
 		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
+			console.log("My Subscriptions Default", stripePurpose)
 			$w('#cardDetailsSubtext').text = "Enter your card details below.";
 
 			createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
@@ -973,6 +976,9 @@ export function newCard_click(event) {
 
 	$w('#stripePayment').changeState("Main");
 	session.setItem("Default","No")
+	console.log("Default Click: ", session.getItem("Default"), stripePurpose)
+	$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
+
 
 
         let plan = context.plan;

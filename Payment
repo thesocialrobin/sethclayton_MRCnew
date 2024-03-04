@@ -150,21 +150,7 @@ if(stripeMode == "test"){
 
 		let totalMethods = session.getItem("Methods")
 
-		if(totalMethods !== null || totalMethods !== ""){
-
-			let total = Number(totalMethods);
-			console.log("Total Payment Methods", total)
-
-			if(total > 0){
-				$w('#stripePayment').changeState("Subscribe");
-			} else {
-				$w('#stripePayment').changeState("Main");
-			}
-
-		} else {
-			
-			$w('#stripePayment').changeState("Main");
-		}
+		
 
         
         //let planSelection = context.planSelection
@@ -605,11 +591,13 @@ async function subscription(cus, lastFour, brand, method, token) {
 								$w('#processorText').expand();
 								console.log("Error: ", response)
 								$w("#submit").enable();
+								$w("#defaultCard").enable();
 							} else {
 								$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
 								$w('#processorText').expand();
 								console.log("Error: ", response)
 								$w("#submit").enable();
+								$w("#defaultCard").enable();
 							}
 						});
 
@@ -973,6 +961,7 @@ export function cancelSubscription_click(event) {
 
 export function defaultCard_click(event) {
 	session.setItem("Default","Yes")
+	$w("#defaultCard").disable();
 	subscription(customerId);
 }
 
@@ -1022,6 +1011,22 @@ export function retrieveMethods(){
 			console.log("Total Methods", totalMethods)
 
 			session.setItem("Methods", totalMethods)
+
+			if(totalMethods !== null || totalMethods !== ""){
+
+			let total = Number(totalMethods);
+			console.log("Total Payment Methods", total)
+
+			if(total > 0){
+				$w('#stripePayment').changeState("Subscribe");
+			} else {
+				$w('#stripePayment').changeState("Main");
+			}
+
+		} else {
+			
+			$w('#stripePayment').changeState("Main");
+		}
 				
 
 				

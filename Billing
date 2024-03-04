@@ -18,6 +18,7 @@ let subscriptionCheck = [];
 let memberId
 let roleIds = [];
 let toCancel = [];
+let cus
 
 var email 
 var planId
@@ -78,80 +79,11 @@ if(stripeMode == "test"){
 		session.setItem("subscriptionStatus", res.items[0].subscriptionStatus)
 		session.setItem("cus", res.items[0].customerId)
 
-		let cus = res.items[0].customerId;
+		cus = res.items[0].customerId;
 		console.log("Customer", cus)
 
 	
-		retrieveMethod(cus, apiKeySk)
-	.then( (response) => {
-        
-			console.log("Stripe Methods:", response, response.data[0].id);
-			let allItems = response.data
-			//$w("#agentCards").data = allItems
-			
-			let cardData = [];
-
-			let agentCards = $w("#agentCards");
-			$w("#agentCards").data = [];
-			
-			
-			
-				allItems.forEach(method => {
-
-					console.log(
-								"Method: ", method
-							)
-
-
-					//query card type
-					let cardType = method.card.brand; //visa
-					let cardExpMonth = method.card.exp_month;
-					let cardExpYear = method.card.exp_year;
-					let cardlast4 = method.card.last4;
-
-
-						wixData.query('cardTypes').eq('title', cardType).find().then((cardResults) => {
-
-							console.log(
-								"Results: ", cardResults
-							)
-
-							var cardLogoImage = cardResults.items[0].logo
-							
-
-							let newCard = {
-									"_id": unixCode(),
-									"cardType": cardType,
-									"cardExpMonth": cardExpMonth,
-									"cardExpYear": cardExpYear,
-									"cardlast4": cardlast4,
-									"cardLogoImage": cardLogoImage,
-									}
-
-									cardData.push(newCard)
-
-									$w("#agentCards").data = cardData
-									console.log("Card Data: ", cardData)
-
-									agentCards.onItemReady(($item, itemData) => {
-
-									$item('#mainCardData').text = itemData.cardType.toUpperCase() + " ending in " + itemData.cardlast4.toString();
-									$item('#expiration').text = "Expires " + itemData.cardExpMonth.toString() + "/" + itemData.cardExpYear.toString()
-									$item('#cardImage').src = itemData.cardLogoImage;
-
-
-									})
-
-						})
-
-				
-
-					
-				})	
-
-				
-			
-	});
+	retrieveMethods();
 
 	retrieveInvoices(cus,apiKeySk)
 	.then( (invoices) => {
@@ -1336,4 +1268,99 @@ export function cancelSubscription_click(event) {
 
 
 
+}
+
+export function updatePaymentMethod_click(event) {
+	session.setItem("stripePurpose", "updateCard")
+	wixWindow.openLightbox('Payment')
+		.then((data) => {
+			let receivedData = data.lightBoxSend1;
+			console.log("Data Received: ", receivedData)
+
+				if (receivedData === "Error") {
+
+					//--Code TBD--//
+
+				} else if (receivedData === "Success"){
+
+					retrieveMethods();
+
+				}
+
+		})
+
+}
+
+export function retrieveMethods(){
+	
+	retrieveMethod(cus, apiKeySk)
+	.then( (response) => {
+        
+			console.log("Stripe Methods:", response, response.data[0].id);
+			let allItems = response.data
+			//$w("#agentCards").data = allItems
+			
+			let cardData = [];
+
+			let agentCards = $w("#agentCards");
+			$w("#agentCards").data = [];
+			
+			
+			
+				allItems.forEach(method => {
+
+					console.log(
+								"Method: ", method
+							)
+
+
+					//query card type
+					let cardType = method.card.brand; //visa
+					let cardExpMonth = method.card.exp_month;
+					let cardExpYear = method.card.exp_year;
+					let cardlast4 = method.card.last4;
+
+
+						wixData.query('cardTypes').eq('title', cardType).find().then((cardResults) => {
+
+							console.log(
+								"Results: ", cardResults
+							)
+
+							var cardLogoImage = cardResults.items[0].logo
+							
+
+							let newCard = {
+									"_id": unixCode(),
+									"cardType": cardType,
+									"cardExpMonth": cardExpMonth,
+									"cardExpYear": cardExpYear,
+									"cardlast4": cardlast4,
+									"cardLogoImage": cardLogoImage,
+									}
+
+									cardData.push(newCard)
+
+									$w("#agentCards").data = cardData
+									console.log("Card Data: ", cardData)
+
+									agentCards.onItemReady(($item, itemData) => {
+
+									$item('#mainCardData').text = itemData.cardType.toUpperCase() + " ending in " + itemData.cardlast4.toString();
+									$item('#expiration').text = "Expires " + itemData.cardExpMonth.toString() + "/" + itemData.cardExpYear.toString()
+									$item('#cardImage').src = itemData.cardLogoImage;
+
+
+									})
+
+						})
+
+				
+
+					
+				})	
+
+				
+			
+	});
 }

@@ -23,6 +23,7 @@ var planId
 let subscriptionCheckoutData = [];
 
 $w.onReady(async function () {
+console.log("All states: ", $w("#stripePayment").states);
 
 const member = await currentMember.getMember()
 
@@ -129,7 +130,7 @@ if(stripeMode == "test"){
 			console.log("Total Methods", total)
 
 			if(total > 0){
-				$w('#stripePayment').changeState("Default");
+				$w('#stripePayment').changeState("Subscribe");
 			} else {
 				$w('#stripePayment').changeState("Main");
 			}
@@ -155,7 +156,7 @@ if(stripeMode == "test"){
 			console.log("Total Payment Methods", total)
 
 			if(total > 0){
-				$w('#stripePayment').changeState("Default");
+				$w('#stripePayment').changeState("Subscribe");
 			} else {
 				$w('#stripePayment').changeState("Main");
 			}

@@ -565,6 +565,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 		console.log("Default", session.getItem("Default"))
 		if(defaultMethod == "No"){
 			console.log("New Method")
+			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
@@ -613,6 +614,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
+			$w('#cardDetailsSubtext').text = "Enter your card details below.";
 
 			createSubscription(cus, plan, apiKeySk)
 		.then( (response) => {
@@ -654,6 +656,8 @@ async function subscription(cus, lastFour, brand, method, token) {
 
 		if(defaultMethod == "No"){
 
+			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
+
 			updateCard(token, apiKeySk, customerId)
 				.then( (response) => {
 						
@@ -694,7 +698,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 		}
 
 		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
-
+			$w('#cardDetailsSubtext').text = "Enter your card details below.";
 
 			createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
 			.then( (response) => {

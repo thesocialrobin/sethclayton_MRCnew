@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription} from 'backend/stripeProcessor.jsw';
+import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription,updateCard,updateCustomer} from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
 import { assignEssential, assignBoost } from 'backend/members.jsw';
 
@@ -291,6 +291,11 @@ if(stripeMode == "test"){
 
 	}
 
+	if(stripePurpose == "updateCard"){
+		$w('#stripePayment').changeState("Main");
+
+	}
+
 
     
 
@@ -348,6 +353,12 @@ export function submit_click(event) {
 
 	}
 
+	if(stripePurpose == "updateCard"){
+
+		createCardToken()
+
+	}
+
 }
 
 //-------------------------------------------------------Main Subscription-------------------------------------------------------//
@@ -372,6 +383,7 @@ function createCardToken() {
 	$w("#processorText").text = 'Validating card details';
 	let name = $w("#cardName").value;
 	
+	
 	let signupName = session.getItem("userName");
 	let card = $w('#cardNumber').value;
 	let mm = $w("#mm").value;
@@ -391,18 +403,48 @@ function createCardToken() {
 			let cardId = response.card.id;
 
 			//-------UPDATED WITH CUSTOMER ID FROM DATABASE-----//
-			if (customerId === undefined || customerId === ""){
+			if ((customerId === undefined || customerId === "") && stripePurpose !== "updateCard"){
 
-				console.log("Customer Id undefined: ", customerId)
+				console.log("Customer Id undefined: ", customerId) //Does not exist in system, create new customer
 				customerCreation(token, lastFour, brand, cardId,signupName);
 				
 
-			} else if (customerId !== undefined || customerId !== "") {
+			} else if ((customerId !== undefined || customerId !== "") && stripePurpose !== "updateCard") {
 
-				console.log("Customer Id Found: ", customerId)
+				console.log("Customer Id Found: ", customerId) //Exists in system, connect in Stripe to existing customer
 				$w('#processorText').text = "Confirming Details...";
 				subscription(customerId, lastFour, brand);
 
+			}
+
+			if(stripePurpose == "updateCard"){
+				$w('#submit').disable();
+				$w('#submit').label = "Updating"
+				$w('#processorText').text = "Confirming Details...";
+				$w('#processorText').expand();
+
+				updateCard(response.id, apiKeySk, customerId)
+				.then( (response) => {
+						$w('#processorText').text = "Applying Updates...";
+						let id = response.id;
+
+					updateCustomer(id, apiKeySk, customerId)
+					.then( (customerResponse) => {
+
+						let cardUpdate = customerResponse.created;
+
+						if (cardUpdate !== null || cardUpdate !== ""){
+
+							$w('#processorText').text = "Default Card Updated";
+
+						}
+
+						console.log("Updated Status: ", customerResponse)
+
+				
+				})
+				
+				})
 
 			}
 			
@@ -549,7 +591,7 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
 
-						checkSubscriptionsPermissions(response.id).then((res) => {
+						checkSubscriptionsPermissions().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {

@@ -517,3 +517,43 @@ export async function getAPIKey(apiKeyType) {
       return error
     });
 }
+
+//---------------------------------------------Update Card---------------------------------------------//
+
+export async function updateCard(token, apiKeySk, cus) {
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Update Card", apiKeySk, cus
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+	return await key.customers.createSource(
+		cus,
+    {
+    source: token,
+    }
+	)
+	.then( function(err, customer) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(customer);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}

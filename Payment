@@ -1017,15 +1017,18 @@ export function retrieveMethods(){
 			let total = Number(totalMethods);
 			console.log("Total Payment Methods", total)
 
+
+		 if(stripePurpose == "Subscribe"){
+			
 			if(total > 0){
 				$w('#stripePayment').changeState("Subscribe");
 			} else {
 				$w('#stripePayment').changeState("Main");
 			}
 
-		} else {
-			
-			$w('#stripePayment').changeState("Main");
+
+			} 
+
 		}
 				
 

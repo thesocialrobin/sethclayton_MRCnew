@@ -1214,6 +1214,8 @@ export function getSubscriptions(){
 
 export function cancelSubscription_click(event) {
 
+	toCancel = [];
+
 	let $item = $w.at(event.context);
 	const itemId = event.context.itemId;
 	const data = $w("#agentSubscription").data;
@@ -1234,13 +1236,17 @@ export function cancelSubscription_click(event) {
 									console.log("Subscription Data All: ", data, itemData.subscription)
 									count++
 
-									let findMatch = data.find(item=> subscription.subscription === itemData.subscription) //Match in Subscriptions array where equals subscription ID of item clicked on
+									let findMatchIndex = data.findIndex(item=> item.subscription === itemData.subscription)
+
+									console.log("Find Match Index: ", findMatchIndex)
+
+									let findMatch = data.find(item=> (item.subscription === itemData.subscription) && (item.subscription == subscription.subscription)) //Match in Subscriptions array where equals subscription ID of item clicked on
 									let preventDuplicates = toCancel.find(item=> item.planId === subscription.planId) //Match in Cancelled array where equals pland ID of current item
 
 									console.log("Update: ", totalSubscriptions, count)
 									if(findMatch && !preventDuplicates){
 										toCancel.push(subscription);
-										console.log("Matched Subscription: ", subscription.subscription, subscription.planName, subscription.price)
+										console.log("Matched Subscription: ", findMatch, itemData.subscription, subscription.planName, subscription.price)
 									} else {
 
 										console.log("Not Matched: ",subscription.subscription, subscription.planName, subscription.price)		
@@ -1338,6 +1344,7 @@ export function retrieveMethods(){
 					let cardExpMonth = method.card.exp_month;
 					let cardExpYear = method.card.exp_year;
 					let cardlast4 = method.card.last4;
+					let createdDate = new Date(method.created * 1000)
 
 
 						wixData.query('cardTypes').eq('title', cardType).find().then((cardResults) => {
@@ -1356,14 +1363,27 @@ export function retrieveMethods(){
 									"cardExpYear": cardExpYear,
 									"cardlast4": cardlast4,
 									"cardLogoImage": cardLogoImage,
+									"createdDate": createdDate
 									}
 
 									cardData.push(newCard)
 									console.log("Card Data: ", cardData, allCardsCount)
+									let totalCardsLength = cardData.length;
 									
-									if (allCardsCount == totalMethods){
+									if (allCardsCount == totalMethods && (totalMethods == totalCardsLength)){
 
-									$w("#agentCards").data = cardData
+									let getLatestDate = new Date(Math.max.apply(null, cardData.map(function(e) {
+											return new Date(e.createdDate);
+											})));
+
+									let mostRecentObject = cardData.filter( e => { var d = new Date( e.createdDate ); return d.getTime() == getLatestDate.getTime();})[0];
+
+									console.log("Get Latest Date: ", getLatestDate, allCardsCount, totalMethods, cardlast4, mostRecentObject, mostRecentObject._id)
+
+									let latestCard = [];
+									latestCard.push(mostRecentObject);
+
+									$w("#agentCards").data = latestCard;
 									$w("#agentCards").expand();
 
 									}

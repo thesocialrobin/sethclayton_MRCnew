@@ -121,28 +121,10 @@ if(stripeMode == "test"){
     console.log("E-mail confirmation: ", email)
     stripePurpose = session.getItem("stripePurpose");
 
-    if(stripePurpose == "Subscribe"){
+    if(stripePurpose == "Subscribe"){ //First Time Subscriber
 
+		$w('#stripePayment').changeState("Main");
 		
-		let totalMethods = session.getItem("Methods")
-
-		if(totalMethods !== null || totalMethods !== "" || totalMethods !== undefined){
-
-			let total = Number(totalMethods);
-			console.log("Total Methods", total)
-
-			if(total > 0){
-				$w('#stripePayment').changeState("Subscribe");
-			} else {
-				$w('#stripePayment').changeState("Main");
-			}
-
-		} else {
-
-			$w('#stripePayment').changeState("Main");
-		}
-
-
 
     }
 
@@ -421,7 +403,7 @@ function createCardToken() {
 			if ((customerId === undefined || customerId === "") && stripePurpose !== "updateCard"){
 
 				console.log("Customer Id undefined: ", customerId) //Does not exist in system, create new customer
-				customerCreation(token, lastFour, brand, cardId,signupName);
+				customerCreation(token, lastFour, brand, signupName);
 				
 
 			} else if ((customerId !== undefined || customerId !== "") && stripePurpose !== "updateCard") {

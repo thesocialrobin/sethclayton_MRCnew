@@ -906,6 +906,7 @@ async function checkSubscriptionsPermissions(){
 export function cancelSubscription_click(event) {
 	$w("#cancelError").collapse()
 	$w("#cancelError").collapse()
+	$w("#cancelSubscription").disable();
 	console.log("Subscription to Cancel: ", context[0].subscription)
 								setTimeout(()=>{
 									$w("#cancelProcessor").text = "Cancelling Subscription..."
@@ -928,6 +929,7 @@ export function cancelSubscription_click(event) {
 										} else {
 											$w("#cancelProcessor").text = "Please contact us for assistance."
 											$w("#cancelError").text = "Error cancelling subscription"
+											$w("#cancelSubscription").enable();
 											$w("#cancelError").expand()
 										}
 										

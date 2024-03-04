@@ -1282,7 +1282,7 @@ export function cancelSubscription_click(event) {
 
 export function updatePaymentMethod_click(event) {
 	session.setItem("stripePurpose", "updateCard")
-	wixWindow.openLightbox('Payment')
+	wixWindow.openLightbox('ChooseDefault')
 		.then((data) => {
 			let receivedData = data.lightBoxSend1;
 			console.log("Data Received: ", receivedData)

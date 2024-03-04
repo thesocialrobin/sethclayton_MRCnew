@@ -432,6 +432,45 @@ export async function createSubscription(cus, plan, apiKeySk) {
 	});
 }
 
+export async function createSubscriptionNewMethod(cus, plan, apiKeySk,method) {
+       //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Subscription Creation", apiKeySk, cus, plan
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+       //--end log process--//
+
+
+    let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+     
+
+	return await key.subscriptions.create({
+		customer: cus,
+		items: plan,
+    default_payment_method: method
+	})
+	.then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+}
+
 export async function createSubscriptionwInvoiceItems(cus, items, apiKeySk) {
 
     let apiKey = await getAPIKey(apiKeySk);

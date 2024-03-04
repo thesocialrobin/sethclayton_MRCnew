@@ -81,6 +81,7 @@ if(stripeMode == "test"){
 				if( subscription == "FREE"){
 
 					console.log("Free found")
+					$w('#stripePayment').changeState("Main");
 
 				} else {
 
@@ -101,6 +102,7 @@ if(stripeMode == "test"){
 				if(res.items[0].subscriptionId == "FREE"){
 
 					console.log("Free found")
+					$w('#stripePayment').changeState("Main");
 
 				} else {
 
@@ -124,7 +126,7 @@ if(stripeMode == "test"){
 		
 		let totalMethods = session.getItem("Methods")
 
-		if(totalMethods !== null || totalMethods !== ""){
+		if(totalMethods !== null || totalMethods !== "" || totalMethods !== undefined){
 
 			let total = Number(totalMethods);
 			console.log("Total Methods", total)
@@ -1022,13 +1024,13 @@ export function retrieveMethods(){
 
 			session.setItem("Methods", totalMethods)
 
-			if(totalMethods !== null || totalMethods !== ""){
+			if(totalMethods !== null || totalMethods !== "" || totalMethods !== undefined){
 
 			let total = Number(totalMethods);
 			console.log("Total Payment Methods", total)
 
 
-		 if(stripePurpose == "Subscribe"){
+		 if(stripePurpose == "Subscribe" || stripePurpose == "mySubscriptions"){
 			
 			if(total > 0){
 				$w('#stripePayment').changeState("Subscribe");
@@ -1039,7 +1041,9 @@ export function retrieveMethods(){
 
 			} 
 
-		}
+		} else {
+				$w('#stripePayment').changeState("Main");
+			}
 				
 
 				

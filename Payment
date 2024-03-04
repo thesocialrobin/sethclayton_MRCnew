@@ -437,17 +437,42 @@ function createCardToken() {
 
 							$w('#processorText').text = "Default Card Updated";
 
-							 setTimeout(() => {
+							let thisId = session.getItem("id")
+
+							wixData.get("Team", thisId)
+								.then((toUpdate) => {
+
+									$w('#processorText').text = "Updating Profile...";
+
+									
+									toUpdate.lastFour = String(lastFour);
+									toUpdate.cardType = brand;
+
+									console.log(toUpdate);
+
+									wixData.update('Team', toUpdate).then((res) => {
+										console.log('updated');
+										setTimeout(() => {
+
+                            	$w('#processorText').text = "Taking to Billing...";
+
+                        		}, 2000);
+
+										setTimeout(() => {
 
                             	wixWindow.lightbox.close( {
 								"lightBoxSend1": "Success",
 									} );
 
-                        		}, 2000);
+                        		}, 4000);
+										
+										})
+
+							 
+
+							})
 
 						}
-
-						console.log("Updated Status: ", customerResponse)
 
 				
 				})

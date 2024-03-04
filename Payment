@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import {createCustomer, createSubscription, createMultipleSubscriptions, createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription,updateCard,updateCustomer} from 'backend/stripeProcessor.jsw';
+import {createCustomer, createSubscription, createMultipleSubscriptions, createSubscriptionNewMethod,createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription,updateCard,updateCustomer} from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
 import { assignEssential, assignBoost } from 'backend/members.jsw';
 
@@ -51,6 +51,7 @@ if(stripeMode == "test"){
 //--------------------end--------------------//
 
 
+
     email = await wixUsers.currentUser.getEmail();
 
 	wixData.query('Team').eq('email', email).find().then((res) => {
@@ -60,6 +61,8 @@ if(stripeMode == "test"){
 		if(res.items[0].customerId !== undefined || res.items[0].customerId !== ""){
 
 			customerId = res.items[0].customerId
+
+			retrieveMethods();
 
 		}
 		
@@ -114,32 +117,53 @@ if(stripeMode == "test"){
 
     console.log("E-mail confirmation: ", email)
     stripePurpose = session.getItem("stripePurpose");
+
     if(stripePurpose == "Subscribe"){
-        $w('#stripePayment').changeState("Main");
-        let plan = context.plan;
-        let planSelection = context.planSelection
-        console.log("Plan Details: ", plan, planSelection)
 
-        wixData.query("stripeSubscriptions")
-                    .eq("title", planSelection)  
-                    .eq("duration", plan)     
-                    .eq("type", mode)  
-                    .find() 
-                    .then((results) => { 
+		
+		let totalMethods = session.getItem("Methods")
 
-                         let apiId = results.items[0].apiId
-                         planId = apiId
-                         console.log("Found ID", apiId)
-                         console.log("Found plan", results)
-                         console.log("Plan Logged:", planId)
+		if(totalMethods !== null || totalMethods !== ""){
 
-                    })
+			let total = Number(totalMethods);
+			console.log("Total Methods", total)
+
+			if(total > 0){
+				$w('#stripePayment').changeState("Default");
+			} else {
+				$w('#stripePayment').changeState("Main");
+			}
+
+		} else {
+
+			$w('#stripePayment').changeState("Main");
+		}
+
 
 
     }
 
 	if(stripePurpose == "mySubscriptions"){
-        $w('#stripePayment').changeState("Main"); //CHECK ON SUBMIT FOR STRIPE PURPOSE INVOICE FUNCTIONS
+
+       //CHECK ON SUBMIT FOR STRIPE PURPOSE INVOICE FUNCTIONS
+
+		let totalMethods = session.getItem("Methods")
+
+		if(totalMethods !== null || totalMethods !== ""){
+
+			let total = Number(totalMethods);
+			console.log("Total Payment Methods", total)
+
+			if(total > 0){
+				$w('#stripePayment').changeState("Default");
+			} else {
+				$w('#stripePayment').changeState("Main");
+			}
+
+		} else {
+			
+			$w('#stripePayment').changeState("Main");
+		}
 
         
         //let planSelection = context.planSelection
@@ -413,7 +437,7 @@ function createCardToken() {
 
 				console.log("Customer Id Found: ", customerId) //Exists in system, connect in Stripe to existing customer
 				$w('#processorText').text = "Confirming Details...";
-				subscription(customerId, lastFour, brand);
+				subscription(customerId, lastFour, brand, cardId);
 
 			}
 
@@ -536,7 +560,7 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 
 //-----------------------------------------------------------------Subscribe-----------------------------------------------------------------//
 
-async function subscription(cus, lastFour, brand, coupon) {
+async function subscription(cus, lastFour, brand, coupon, method) {
 	let plan = [];
 	let data = {
 		plan: planId,
@@ -544,10 +568,16 @@ async function subscription(cus, lastFour, brand, coupon) {
 	};
 	await plan.push(data);
 
+	let defaultMethod = session.getItem("Default")
+
 	if(stripePurpose == "Subscribe"){
 
-		createSubscription(cus, plan, apiKeySk)
-		.then( (response) => {
+		if(defaultMethod == "No"){
+			$w("#newCard").disable();
+			$w("#defaultCard").collapse();
+			$w("#newCard").label = "Subscribing..."
+			createSubscriptionNewMethod(cus, plan, apiKeySk, method)
+			.then( (response) => {
 			if(response.id !== undefined && response.status === 'active') {
 				let subStatus = 'ACTIVE';
 				$w('#processorText').text = "Finalizing Subscription...";
@@ -566,6 +596,42 @@ async function subscription(cus, lastFour, brand, coupon) {
 				$w("#submit").enable();
 			}
 		});
+
+		}
+
+		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
+
+			createSubscription(cus, plan, apiKeySk)
+		.then( (response) => {
+			if(response.id !== undefined && response.status === 'active') {
+				let subStatus = 'ACTIVE';
+				$w('#processorText').text = "Finalizing Subscription...";
+				$w('#defaultProcessorText').text = "Finalizing Subscription...";
+				$w('#defaultProcessorText').expand();
+				$w('#processorText').expand();
+				signUpMember(response, cus, lastFour, brand, subStatus);
+			} else if(response.id !== undefined && response.status !== 'active') {
+				let subStatus = 'PENDING';
+				//signUpMember(response, cus, lastFour, brand, subStatus);	
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#defaultProcessorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				$w('#defaultProcessorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			} else {
+				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#defaultProcessorText').text = "Subscription Error: Customer Not Subscribed";
+				$w('#processorText').expand();
+				$w('#defaultProcessorText').expand();
+				console.log("Error: ", response)
+				$w("#submit").enable();
+			}
+		});
+
+		}
+
+		
         		
     }
 
@@ -611,6 +677,7 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
             wixData.get("Team", thisId)
                 .then((toUpdate) => {
                     $w('#processorText').text = "Updating Dashboard...";
+					$w('#defaultProcessorText').text = "Updating Dashboard...";
 
                     toUpdate.customerId = cus;
                     toUpdate.subscriptionId = response.id;
@@ -623,12 +690,14 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                     wixData.update('Team', toUpdate).then((res) => {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
+						$w("#newCard").label = "Subscribed!";
 
 						checkSubscriptionsPermissions().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
-                            $w('#processorText').text = "Taking to Account Setup...";
+                            $w('#processorText').text = "Taking to Dashboard...";
+							$w('#defaultProcessorText').text = "Taking to Dashboard...";
 
                         }, 1000);
 
@@ -827,4 +896,61 @@ export function cancelSubscription_click(event) {
 												})
 								
 								})
+}
+
+export function defaultCard_click(event) {
+	session.setItem("Default","Yes")
+}
+
+export function newCard_click(event) {
+
+	$w('#stripePayment').changeState("Main");
+	session.setItem("Default","No")
+
+
+        let plan = context.plan;
+        let planSelection = context.planSelection
+        console.log("Plan Details: ", plan, planSelection)
+
+        wixData.query("stripeSubscriptions")
+                    .eq("title", planSelection)  
+                    .eq("duration", plan)     
+                    .eq("type", mode)  
+                    .find() 
+                    .then((results) => { 
+
+                         let apiId = results.items[0].apiId
+                         planId = apiId
+                         console.log("Found ID", apiId)
+                         console.log("Found plan", results)
+                         console.log("Plan Logged:", planId)
+
+                    })
+
+	
+	
+}
+
+export function retrieveMethods(){
+	
+	retrieveMethod(customerId, apiKeySk)
+	.then( (response) => {
+        
+			console.log("Stripe Methods:", response, response.data[0].id);
+			let allItems = response.data
+			//$w("#agentCards").data = allItems
+
+			
+			
+			let cardData = [];
+			let totalMethods = allItems.length;
+
+			console.log("Total Methods", totalMethods)
+
+			session.setItem("Methods", totalMethods)
+				
+
+				
+			
+	});
 }

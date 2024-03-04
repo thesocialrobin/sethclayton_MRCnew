@@ -307,7 +307,7 @@ export function executePayment(){
 
             } else if (receivedData === "Success"){
 
-                wixLocation.to("/account/boost-dashboard");
+                wixLocation.to("/account/billing");
 
             }
         });

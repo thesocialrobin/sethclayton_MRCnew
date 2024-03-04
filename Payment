@@ -582,7 +582,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
-			
+
 			updateCard(token, apiKeySk, customerId)
 				.then( (response) => {
 						
@@ -662,29 +662,76 @@ async function subscription(cus, lastFour, brand, method, token) {
     }
 
 	if(stripePurpose == "mySubscriptions"){
+		$w("#submit").disable();
 
-		createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
-		.then( (response) => {
-			if(response.id !== undefined && response.status === 'active') {
-				agentSubscriptions.push(response.id)
-				console.log("Subscriptions Updated: ", agentSubscriptions)
-				let subStatus = 'ACTIVE';
-				$w('#processorText').text = "Finalizing Subscription...";
-				signUpMultiMember(response, cus, lastFour, brand, subStatus);
-			} else if(response.id !== undefined && response.status !== 'active') {
-				let subStatus = 'PENDING';
-				//signUpMember(response, cus, lastFour, brand, subStatus);	
-				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-				$w('#processorText').expand();
-				console.log("Error: ", response)
-				$w("#submit").enable();
-			} else {
-				$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
-				$w('#processorText').expand();
-				console.log("Error: ", response)
-				$w("#submit").enable();
-			}
-		});
+		if(defaultMethod == "No"){
+
+			updateCard(token, apiKeySk, customerId)
+				.then( (response) => {
+						
+						let id = response.id;
+
+					updateCustomer(id, apiKeySk, customerId)
+					.then( (customerResponse) => {
+
+						createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk, method)
+
+							.then( (response) => {
+								if(response.id !== undefined && response.status === 'active') {
+									agentSubscriptions.push(response.id)
+									console.log("Subscriptions Updated: ", agentSubscriptions)
+									let subStatus = 'ACTIVE';
+									$w('#processorText').text = "Finalizing Subscription...";
+									signUpMultiMember(response, cus, lastFour, brand, subStatus);
+								} else if(response.id !== undefined && response.status !== 'active') {
+									let subStatus = 'PENDING';
+									//signUpMember(response, cus, lastFour, brand, subStatus);	
+									$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+									$w('#processorText').expand();
+									console.log("Error: ", response)
+									$w("#submit").enable();
+								} else {
+									$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+									$w('#processorText').expand();
+									console.log("Error: ", response)
+									$w("#submit").enable();
+								}
+							});
+
+
+					})
+
+				})
+
+		}
+
+		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
+
+
+			createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
+			.then( (response) => {
+				if(response.id !== undefined && response.status === 'active') {
+					agentSubscriptions.push(response.id)
+					console.log("Subscriptions Updated: ", agentSubscriptions)
+					let subStatus = 'ACTIVE';
+					$w('#processorText').text = "Finalizing Subscription...";
+					signUpMultiMember(response, cus, lastFour, brand, subStatus);
+				} else if(response.id !== undefined && response.status !== 'active') {
+					let subStatus = 'PENDING';
+					//signUpMember(response, cus, lastFour, brand, subStatus);	
+					$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+					$w('#processorText').expand();
+					console.log("Error: ", response)
+					$w("#submit").enable();
+				} else {
+					$w('#processorText').text = "Subscription Error: Customer Not Subscribed";
+					$w('#processorText').expand();
+					console.log("Error: ", response)
+					$w("#submit").enable();
+				}
+			});
+
+		}
         		
     }
 

@@ -1282,7 +1282,7 @@ export function cancelSubscription_click(event) {
 
 export function updatePaymentMethod_click(event) {
 	session.setItem("stripePurpose", "updateCard")
-	wixWindow.openLightbox('ChooseDefault')
+	wixWindow.openLightbox('Payment')
 		.then((data) => {
 			let receivedData = data.lightBoxSend1;
 			console.log("Data Received: ", receivedData)
@@ -1309,13 +1309,19 @@ export function retrieveMethods(){
 			console.log("Stripe Methods:", response, response.data[0].id);
 			let allItems = response.data
 			//$w("#agentCards").data = allItems
+
+			
 			
 			let cardData = [];
 
 			let agentCards = $w("#agentCards");
 			$w("#agentCards").data = [];
 			
-			
+			let totalMethods = allItems.length;
+
+			console.log("Total Methods", totalMethods)
+
+			session.setItem("Methods", totalMethods)
 			
 				allItems.forEach(method => {
 

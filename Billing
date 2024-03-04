@@ -370,6 +370,7 @@ if(stripeMode == "test"){
 								console.log("Subscription Check: ", subscriptionCheck)
 
 								$w("#agentSubscription").data = subscriptionData;
+								$w("#agentSubscription").expand();
 
 								
 								let firstData = {
@@ -548,6 +549,7 @@ if(stripeMode == "test"){
 											console.log("Subscription Check: ", subscriptionCheck)
 
 											$w("#agentSubscription").data = subscriptionData;
+											$w("#agentSubscription").expand();
 
 
 
@@ -1342,6 +1344,8 @@ export function retrieveMethods(){
 									cardData.push(newCard)
 
 									$w("#agentCards").data = cardData
+									$w("#agentCards").expand();
+
 									console.log("Card Data: ", cardData)
 
 									agentCards.onItemReady(($item, itemData) => {

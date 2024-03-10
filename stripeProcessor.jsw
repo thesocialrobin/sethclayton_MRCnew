@@ -744,6 +744,8 @@ if(stripeMode == "test"){
    let apiKey = await getAPIKey(apiKeySk);
     const key = require("stripe")(apiKey);
 
+    //---ACTIVE AND PRICE CONTAINS--//
+
     var findSubscriptions = await key.subscriptions.search({
   query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\'',
 })
@@ -752,7 +754,7 @@ if(stripeMode == "test"){
       //--log process--//
                           let logResults = {
                               "type": "Stripe Log",
-                              "log": "Retrieve Active Subscriptions", cus, apiKeySk, subscriptions
+                              "log": "Retrieve Active Subscriptions", findSubscriptions
                             };
 
                             wixData.insert("devLog", logResults)
@@ -767,7 +769,7 @@ if(stripeMode == "test"){
                                    //--log process--//
                                       let logResults = {
                                           "type": "Stripe Log",
-                                          "log": "Retrieve Invoices Error", cus, errorMsg
+                                          "log": "Retrieve Invoices Error"
                                         };
 
                                         wixData.insert("devLog", logResults)
@@ -786,6 +788,8 @@ if(stripeMode == "test"){
  
 
 
-	return await key.invoices.list({customer: cus, limit: 10})
+	return await key.subscriptions.search({
+  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\'',
+})
 
 }

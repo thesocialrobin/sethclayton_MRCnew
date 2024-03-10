@@ -691,7 +691,7 @@ export async function addStripeSubscriptions(){
 
                       if(count == totalSusbcriptions){
 
-                        findRemovePermissions()
+                        findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
 
                          //--log process--//
                           let logResults = {
@@ -718,7 +718,7 @@ export async function addStripeSubscriptions(){
 
 }
 
-export async function findRemovePermissions(){
+export async function findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
 let apiKeySk
 

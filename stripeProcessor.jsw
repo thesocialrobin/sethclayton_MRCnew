@@ -257,7 +257,9 @@ export async function cancelSubscription(sub,apiKeySk){
   let apiKey = await getAPIKey(apiKeySk);
     const key = require("stripe")(apiKey);
 
-     var cancelSubscription = await key.subscriptions.cancel(sub);
+     var cancelSubscription = await key.subscriptions.cancel(sub).catch( (err) => {
+		return err;
+	});
 
      return cancelSubscription
 
@@ -458,7 +460,8 @@ export async function createSubscriptionNewMethod(cus, plan, apiKeySk,method) {
 	return await key.subscriptions.create({
 		customer: cus,
 		items: plan,
-    default_payment_method: method
+    default_payment_method: method,
+    default_source: method
 	})
 	.then( function(err, subscription) {
 		if (err) {
@@ -493,7 +496,7 @@ export async function createSubscriptionwInvoiceItems(cus, items, apiKeySk) {
 	});
 }
 
-export async function createMultipleSubscriptions(cus, items, apiKeySk) {
+export async function createMultipleSubscriptions(cus, items, apiKeySk, method) {
 
     let apiKey = await getAPIKey(apiKeySk);
     const key = require("stripe")(apiKey);
@@ -501,7 +504,9 @@ export async function createMultipleSubscriptions(cus, items, apiKeySk) {
 	//let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
 	return await key.subscriptions.create({
 		customer: cus,
-		items: items
+		items: items,
+    default_payment_method: method,
+    default_source: method
 	})
 	.then( function(err, subscription) {
 		if (err) {
@@ -635,4 +640,152 @@ export async function updateCustomer(id, apiKeySk, cus) {
 	.catch( (err) => {
 		return err;
 	});
+}
+
+
+export async function addStripeSubscriptions(){
+
+  let allBoostSubscriptions = [];
+  let allGoogleSubscriptions = [];
+  let allEssentialSubscriptions = [];
+
+            wixData.query("stripeSubscriptions")    
+                    .contains("title", "Boost")
+                        .or(
+                          wixData.query("stripeSubscriptions")
+                          .contains("title", "Essential")
+                            ) 
+                          .or(
+                          wixData.query("stripeSubscriptions")
+                          .contains("title", "Google")
+                            )     
+                    .find() 
+                    .then((results) => {
+
+					        	let totalSusbcriptions = results.items[0].apiId;
+                    let allSubscriptions = results.items
+                    let totalSusbcriptionsLength = totalSusbcriptions.length;
+                    let count = 0;
+
+                    allSubscriptions.forEach(subscription => {
+
+
+                      if(subscription.includes("BOOST")){
+                        count++
+                        allBoostSubscriptions.push(subscription.apiId);
+
+                      }
+
+                      if(subscription.includes("Essential")){
+
+                        allEssentialSubscriptions.push(subscription.apiId);
+
+                      }
+
+                      if(subscription.includes("Google")){
+
+                        allGoogleSubscriptions.push(subscription.apiId);
+
+                      }
+                      
+
+                      if(count == totalSusbcriptions){
+
+                        findRemovePermissions()
+
+                         //--log process--//
+                          let logResults = {
+                              "type": "Find Remove Permissions Log",
+                              "log": "Log Stripe Subscriptions", allBoostSubscriptions, allEssentialSubscriptions, allGoogleSubscriptions
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                         //--end log process--//
+
+                      }
+                      
+                    });
+
+                    })
+
+}
+
+export async function findRemovePermissions(){
+
+let apiKeySk
+
+//-------set below for live or test Stripe----//
+
+let stripeMode = "test";   //value is "test" or "live"
+
+if(stripeMode == "test"){
+
+    apiKeySk = "stripeTestSk";
+
+
+} else if(stripeMode == "live"){
+
+    apiKeySk = "stripeLiveSk";
+
+}
+
+
+
+//------BEGIN FUNCTION------//
+
+   let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+    var findSubscriptions = await key.subscriptions.search({
+  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\'',
+})
+
+  
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Retrieve Active Subscriptions", cus, apiKeySk, subscriptions
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+
+
+                                   //--log process--//
+                                      let logResults = {
+                                          "type": "Stripe Log",
+                                          "log": "Retrieve Invoices Error", cus, errorMsg
+                                        };
+
+                                        wixData.insert("devLog", logResults)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
+                            } );
+
+       //--end log process--//
+
+//cancelled let stripeSub = await stripe.subscriptions.list({customer: customerId, status: "canceled"});
+ 
+
+
+	return await key.invoices.list({customer: cus, limit: 10})
+
 }

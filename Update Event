@@ -296,8 +296,8 @@ export function address_input(event) {
 	 googleAddress($w('#address').value)
         .then((res) => {
             console.log("Res: ", res)
- let googleAddressOptions = res.predictions; // For simplicity we put the predictions in a new variable
- let allOptions = []; // We should create an empty array for the suggestions
+ let googleAddressOptions = res.predictions; 
+ let allOptions = []; 
 
             googleAddressOptions.forEach(function (option) {
                 console.log("Full: ", option)
@@ -305,9 +305,9 @@ export function address_input(event) {
                 allOptions.push(optionData);
             });
             
-            $w("#addressOptions").data = []; // clear the repeater contents
+            $w("#addressOptions").data = []; 
             if(res.length > 5){
-                $w("#addressOptions").data = allOptions.slice(0,5); // add the new suggestions to the repeater
+                $w("#addressOptions").data = allOptions.slice(0,5); 
                 $w("#addressOptions").expand(); 
             } else {
                  $w("#addressOptions").data = allOptions
@@ -315,18 +315,6 @@ export function address_input(event) {
             }
             
 
-            /*
-
-            let allAddressOptions = $w("#addressOptions")
-
-            allAddressOptions.onItemReady(($item, itemData) => {
-
-                $item("#addressFulfilled").text = itemData.address;
-
-            })
-            */
-
-            // Repeater is full now, let's show it.
         })
 }
 

@@ -4,7 +4,7 @@ import { triggeredEmails } from 'wix-crm';
 import { createEvent, deleteEvent, updateEvent } from "backend/eventbrite";
 import wixWindow from 'wix-window';
 import { eventUpdateEmail } from "backend/email";
-import {googleAddress} from 'backend/getData.jsw';
+import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
 
 
 $w.onReady(async function () {
@@ -298,13 +298,22 @@ export function address_input(event) {
             console.log("Res: ", res)
  let googleAddressOptions = res.predictions; // For simplicity we put the predictions in a new variable
  let allOptions = []; // We should create an empty array for the suggestions
+
             googleAddressOptions.forEach(function (option) {
- let optionData = { "_id": uniqueId(), "address": option.description };
+                console.log("Full: ", option)
+ let optionData = { "_id": uniqueId(), "address": option.description, "place_id": option.place_id };
                 allOptions.push(optionData);
             });
             
             $w("#addressOptions").data = []; // clear the repeater contents
-            $w("#addressOptions").data = allOptions; // add the new suggestions to the repeater
+            if(res.length > 5){
+                $w("#addressOptions").data = allOptions.slice(0,5); // add the new suggestions to the repeater
+                $w("#addressOptions").expand(); 
+            } else {
+                 $w("#addressOptions").data = allOptions
+                 $w("#addressOptions").expand(); 
+            }
+            
 
             /*
 
@@ -317,7 +326,7 @@ export function address_input(event) {
             })
             */
 
-            $w("#addressOptions").expand(); // Repeater is full now, let's show it.
+            // Repeater is full now, let's show it.
         })
 }
 
@@ -326,7 +335,15 @@ export function addressOptions_itemReady($item, itemData, index) {
 	$item("#addressFulfilled").text = itemData.address;
 
     $item("#addressFulfilled").onClick((event) => {
+        console.log("Address Data:", itemData)
         $w('#address').value = $item("#addressFulfilled").text
         $w('#addressOptions').collapse()
+
+        googleAddressDetails(itemData.place_id)
+        .then((googleDetails) => {
+            console.log("Google Details: ", googleDetails)
+            
+            
+            })
     });
 }

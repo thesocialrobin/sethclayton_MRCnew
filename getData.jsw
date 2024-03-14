@@ -1,0 +1,48 @@
+import { contacts } from 'wix-crm-backend';
+import {getAPIKey} from 'backend/secrets.jsw';
+import { fetch } from "wix-fetch";
+import wixData from 'wix-data';
+let apiKey 
+
+export function addLabels(userId) {
+  const contactId = userId;
+  const labelKeys = [
+    "custom.review"
+  ];
+  const options = {
+    suppressAuth: true
+  };
+
+  return contacts.labelContact(contactId, labelKeys, options)
+    .then((labeledContact) => {
+      return labeledContact;
+    })
+    .catch((error) => {
+      console.error(error);
+      return error
+    });
+}
+
+
+
+export async function googleAddress(string) {
+
+
+  apiKey = await getAPIKey("googleMaps");
+ let url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?";
+ let queryParam = "&key=";
+ let input = "input=" + string;
+ let fullUrl = url + input + queryParam + apiKey;
+
+ return fetch(fullUrl, { method: 'get' }).then((httpResponse) => {
+    
+
+ if (httpResponse.ok) {
+ return httpResponse.json();
+        } else {
+
+          return httpResponse.json()
+        }
+    });
+
+}

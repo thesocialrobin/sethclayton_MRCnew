@@ -295,12 +295,12 @@ export function address_input(event) {
 
 	 googleAddress($w('#address').value)
         .then((res) => {
-            console.log("Res: ", res)
+           
  let googleAddressOptions = res.predictions; 
  let allOptions = []; 
 
             googleAddressOptions.forEach(function (option) {
-                console.log("Full: ", option)
+                
  let optionData = { "_id": uniqueId(), "address": option.description, "place_id": option.place_id };
                 allOptions.push(optionData);
             });
@@ -323,7 +323,7 @@ export function addressOptions_itemReady($item, itemData, index) {
 	$item("#addressFulfilled").text = itemData.address;
 
     $item("#addressFulfilled").onClick((event) => {
-        console.log("Address Data:", itemData)
+        
         $w('#address').value = $item("#addressFulfilled").text
         $w('#addressOptions').collapse()
 
@@ -331,6 +331,36 @@ export function addressOptions_itemReady($item, itemData, index) {
         .then((googleDetails) => {
             console.log("Google Details: ", googleDetails)
             
+            const map = {
+                street_number: 'streetNumber',
+                route: 'streetName',
+                locality: 'city',
+                administrative_area_level_1: 'state',
+                postal_code: 'postalCode',
+                country: 'country'
+            };
+            const createAddress = {};
+            googleDetails.result.address_components.forEach(component => {
+                createAddress[map[component.types[0]]] = component.long_name;
+               
+            })   
+            
+            createAddress.longitude = googleDetails.result.geometry.location.lng;
+            createAddress.latitude = googleDetails.result.geometry.location.lat;
+            createAddress.formatted_address = googleDetails.result.formatted_address;
+
+            console.log("New Address Data: ", createAddress);
+
+            let eventAddress = { 
+                formatted: createAddress.formatted_address, 
+                location: 
+                    { "latitude": createAddress.latitude, "longitude": createAddress.longitude }, 
+                streetAddress: 
+                    { name: createAddress.streetName, number: createAddress.streetNumber }, city: createAddress.city, subdivision: createAddress.state, country: createAddress.country, postalCode: createAddress.postalCode }
+
+            console.log("Event Address Data: ", eventAddress);
+
+           
             
             })
     });

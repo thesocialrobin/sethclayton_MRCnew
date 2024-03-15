@@ -5,6 +5,7 @@ import { createEvent, deleteEvent, updateEvent } from "backend/eventbrite";
 import wixWindow from 'wix-window';
 import { eventUpdateEmail } from "backend/email";
 import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
+let eventAddress
 
 
 $w.onReady(async function () {
@@ -351,7 +352,7 @@ export function addressOptions_itemReady($item, itemData, index) {
 
             console.log("New Address Data: ", createAddress);
 
-            let eventAddress = { 
+            eventAddress = { 
                 formatted: createAddress.formatted_address, 
                 location: 
                     { "latitude": createAddress.latitude, "longitude": createAddress.longitude }, 
@@ -360,7 +361,6 @@ export function addressOptions_itemReady($item, itemData, index) {
 
             console.log("Event Address Data: ", eventAddress);
 
-           
             
             })
     });

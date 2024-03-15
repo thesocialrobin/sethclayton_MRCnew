@@ -439,7 +439,7 @@ async function initForm(agentEmail, agentId) {
                 'eventName': $w('#eventName').value,
                 'description': selectedEvent.description,
                 'link': $w('#link').value,
-                'address': $w('#address').value,
+                'address': eventAddress,
                 'agentEmail': agentEmail,
                 'agentId': agentId,
                 'eventImage': getFullImageURL(selectedEvent.image),

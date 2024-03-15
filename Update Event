@@ -146,12 +146,12 @@ async function initForm(agentEmail, agentId, itemData) {
                     'eventName': $w('#eventName').value,
                     'description': selectedEvent.description,
                     'link': $w('#link').value,
-                    'address_1': $w('#address').value.streetAddress.number + " " + $w('#address').value.streetAddress.name,
-                    'city': $w('#address').value.city,
-                    'country': $w('#address').value.country,
-                    'postal_code': $w('#address').value.postalCode,
-                    'latitude': $w('#address').value.location.latitude,
-                    'longitude': $w('#address').value.location.longitude,
+                    'address_1': eventAddress.streetAddress.number + " " + eventAddress.streetAddress.name,
+                    'city': eventAddress.city,
+                    'country': eventAddress.country,
+                    'postal_code': eventAddress.postalCode,
+                    'latitude': eventAddress.location.latitude,
+                    'longitude': eventAddress.location.longitude,
                     'agentEmail': agentEmail,
                     'agentId': agentId,
                     'eventImage': getFullImageURL(selectedEvent.image),
@@ -160,7 +160,7 @@ async function initForm(agentEmail, agentId, itemData) {
                     'summary': selectedEvent.summary
                 }
 
-                toEmail.address = $w('#address').value.formatted
+                toEmail.address = eventAddress.formatted
 
             } else {
 
@@ -193,7 +193,7 @@ async function initForm(agentEmail, agentId, itemData) {
                 'eventName': $w('#eventName').value,
                 'description': selectedEvent.description,
                 'link': $w('#link').value,
-                'address': $w('#address').value,
+                'address': eventAddress,
                 'agentEmail': agentEmail,
                 'agentId': agentId,
                 'eventImage': getFullImageURL(selectedEvent.image),

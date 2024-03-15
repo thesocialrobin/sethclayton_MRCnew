@@ -1,0 +1,779 @@
+import wixData from 'wix-data';
+import wixUsers from 'wix-users';
+import { createEvent, deleteEvent } from "backend/eventbrite";
+import wixWindow from 'wix-window';
+import { eventUpdateEmail } from "backend/email";
+import wixLocation from 'wix-location';
+import { generateEventImage } from "backend/generateImage";
+import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
+let eventAddress
+
+let errorText
+
+
+$w.onReady(async function () {
+    var user = wixUsers.currentUser
+    var agentEmail = await user.getEmail()
+    var agentId = user.id
+    initForm(agentEmail, agentId)
+    initRepeater(agentEmail, agentId)
+});
+
+async function initRepeater(agentEmail, agentId) {
+
+    $w('#dataset1').onReady(() => {
+
+    
+        var filter = wixData.filter()
+        filter = filter.eq('agentEmail', agentEmail)
+        $w('#dataset1').setFilter(filter).then(() => {
+            $w('#repeater5').expand()
+        })
+
+        $w("#update").onClick((event) => {
+            let $item = $w.at(event.context);
+            // $item("#myRepeatedText").text = "Selected";
+            let clickedItemData = $item("#dataset1").getCurrentItem();
+            wixWindow.openLightbox('Update Event', clickedItemData).then(() => {
+                wixLocation.to(wixLocation.url)
+            })
+        });
+
+        $w("#repeater5").onItemReady(($item, itemData, index) => {
+            if (itemData.type === 'In-Person Event') {
+                $item('#location').text = itemData.address
+                $item('#location').show()
+                
+
+            } else {
+                $item('#linkButton').link = itemData.link
+                $item('#linkButton').show()
+                $item('#linkVector').show()
+                $item('#addressVector').hide()
+                $item('#virtualVector').show()
+                $item('#inpersonVector').hide()
+
+            }
+            $item('#time').text = tConv24(itemData.startTime) + ' - ' + tConv24(itemData.endTime)
+
+            $item('#readMore').onClick(() => {
+                $item('#descriptionStack').expand()
+                $item('#readMore').collapse()
+            })
+            $item('#close').onClick(() => {
+                $item('#descriptionStack').collapse()
+                $item('#readMore').expand()
+            })
+
+            // $item('#update').onClick(() => {
+            //     wixWindow.openLightbox('Update Event', itemData).then(() => {
+            //         $w('#dataset1').refresh()
+            //     })
+            // })
+
+            $item('#delete').onClick(() => {
+                wixWindow.openLightbox('Confirm Event Deletion').then((res) => {
+                    if (res === 'delete') {
+                        deleteEvent(itemData.eventbriteId)
+                        wixData.remove('Events', itemData._id).then(() => {
+                            $w('#dataset1').refresh()
+                        })
+                    }
+                })
+            })
+
+            $item('#generate').onClick(() => {
+
+                generatePost(agentEmail, $item, itemData);
+
+            })
+
+            
+
+            $item('#copyAttendees').onClick(() => {
+                wixData.query('EventAttendees').eq('eventbriteId', itemData.eventbriteId).find().then((res) => {
+                    var items = res.items
+                    var attendees = ''
+
+                    items.forEach(element => {
+                        attendees += element.attendeeEmail + ", "
+                    });
+
+                    wixWindow.copyToClipboard(attendees).then(() => {
+                        $item('#copyAttendees').label = "Copied!"
+                        setTimeout(() => {
+                            $item('#copyAttendees').label = 'Copy Attendee List'
+                        }, 3000);
+                    })
+                })
+            })
+
+             
+
+
+        });
+    })
+}
+
+export async function generatePost (agentEmail, $item, itemData){
+
+    //--Generate social media post--//
+
+            wixData.query('Team').eq('email', agentEmail).find().then((res) => {
+                var agent = res.items[0]
+                console.log('Agent Data', agent);
+                
+
+                    $item("#generate").label = "Creating Post..."
+                    var templateId = "RGlOVA5RwnNxDnPgXw";
+                    var picture = agent.photo
+                    console.log(picture, itemData.eventImage);
+                    var url = picture.split("/")[3];
+                    var url2 = `https://static.wixstatic.com/media/${url}`
+                    let cleanedDate = formatDate (itemData.date).toString();
+                    let cleanedTime = formatTime (itemData.startTime);
+                    //let summary = "test summary 0511";
+                    //--for data below, if adding address, use itemData.address.formatted--//
+                    let filename = agent.title + templateId;
+                    let summary = itemData.summary;
+                    
+                    let eventData = {
+                        eventName: itemData.eventName,
+                        eventAddress: itemData.address.formatted,
+                        eventSummary: summary,
+                        venueName: itemData.venueName,
+                        date: cleanedDate,
+                        time: cleanedTime,
+                        image: itemData.eventImage,
+                        url: url2
+                    }
+                    console.log("URL2: ", url2)
+                    console.log("Data: ", templateId, agent.title, agent.publicEmail, agent.phone, url2, itemData.venueName, itemData.address.formatted, cleanedDate, cleanedTime, itemData.eventImage, itemData.eventName, summary)
+                    //Fill generateImage with all of the data from the EventBrite data from the filter below and move this function into the filter below//
+                    
+                    generateEventImage(templateId, agent.title, agent.publicEmail, agent.phone, url2, itemData.venueName, itemData.address.formatted, cleanedDate, cleanedTime, itemData.eventImage, itemData.eventName, summary).then((image) => {
+
+                        //--log process--//
+                          let logResults = {
+                              "type": "Function",
+                              "log": "Completed Event Function", eventData
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; //see item below
+                              return url;
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                             //--end log process--//
+                        
+                        
+                        /*
+                        console.log(image)
+                        //var imageUrl = image[0].fileUrl;
+                        let imageUrl = image;
+                        console.log("Image Url: ", imageUrl);
+
+                        
+                        $item('#generate').disable();
+                        $item("#generate").label = "Downloading Post!";
+                        var url = imageUrl.split("/")[3];
+                        //$item('#generate').hide();
+                        //$item('#download').show();
+                        var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`;
+                        
+                        wixLocation.to(url2); 
+                        */
+
+
+
+                        /*
+                         $item('#download').onClick(() => {
+                             
+
+                            var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`;
+                            wixLocation.to(url2);
+
+                         })
+                         */
+                       
+                        
+                    })
+                    .catch( (err) => {
+                              let errorMsg = err;
+                              console.log("Error: ", err, filename)
+                            
+
+                              //--Break Fix--Use the dev log to retrieve the image file and serve to the user--Break Fix--//
+
+                              setTimeout(()=>{ //delay to allow upload of the file for media manager
+
+                                wixData.query("devLog")    
+                                    .eq("filename", filename)
+                                    .startsWith("log", "Upload Event Image")
+                                    .descending("_createdDate")     
+                                    .find() 
+                                    .then((results) => {
+                                        console.log("Results: ", results)
+                                        let items = results.items
+                                        let itemUrl = items[0].url;
+                                        
+                                        //--log process--//
+                                        let logResults = {
+                                            "type": "Query",
+                                            "log": "Event Query Completed within Error: ", items, itemUrl, filename, eventData
+                                            };
+
+                                            wixData.insert("devLog", logResults)
+                                            .then( (results) => {
+                                            let item = results; //see item below
+                                            
+                                            } )
+                                            .catch( (err) => {
+                                            let errorMsg = err;
+                                            } );
+
+                                    //--end log process--//
+
+                                    
+                                        $item('#generate').disable();
+                                        $item("#generate").label = "Downloading Post!";
+                                        var formatUrl = itemUrl.split("/")[3];
+                                        //$item('#generate').hide();
+                                        //$item('#download').show();
+                                        var redirect = `https://static.wixstatic.com/media/${formatUrl}?dn=${agent.title+templateId}`;
+                                        console.log("Url: ", redirect)
+
+                                        //--log process--//
+                                        let logResultsEnd = {
+                                            "type": "Completed Action",
+                                            "log": "Event Completed Destination: ", redirect
+                                            };
+
+                                            wixData.insert("devLog", logResultsEnd)
+                                            .then( (results) => {
+                                            let item = results; //see item below
+                                            
+                                            } )
+                                            .catch( (err) => {
+                                            let errorMsg = err;
+                                            } );
+
+                                    //--end log process--//
+                                        
+                                        wixLocation.to(redirect); 
+
+                                                                        
+
+                                    })
+                            },1500)
+
+                            //---------------------------------------Break Fix---------------------------------------//
+
+                            } );
+             //here
+            })
+
+        
+
+        //--End social media post generation--//
+
+}
+
+function formatDate (date) {
+		var d = new Date(date),
+        month = date.toLocaleString('default', { month: 'long' }),
+        day = ' ' + d.getDate(),
+        year = " " + d.getFullYear();
+
+    
+    if (day.length < 2) day = '0' + day;
+
+    return [month + day, year];
+}
+
+function formatTime (time) {
+  const [hourString, minute] = time.split(":");
+    const hour = +hourString % 24;
+    return (hour % 12 || 12) + ":" + minute + (hour < 12 ? "AM" : "PM");
+}
+
+async function initForm(agentEmail, agentId) {
+    $w('#type').onChange(() => {
+        if ($w('#type').value === 'In-Person Event') {
+            $w('#link').hide()
+			$w('#selectText').hide()
+            $w('#link').value = ''
+            $w('#address').show()
+			$w('#address').resetValidityIndication()
+            $w('#venueName').enable()
+            $w('#venueName').value = ''
+            $w('#venueName').resetValidityIndication()
+        } else {
+            $w('#link').show()
+			$w('#selectText').hide()
+            $w('#link').resetValidityIndication()
+            $w('#address').hide()
+            $w('#address').value = null
+            console.log('test1');
+            $w('#venueName').value = 'Virtual Event'
+            console.log('test2');
+            $w('#venueName').disable()
+        }
+    })
+
+    var eventTypes = await wixData.query('EventTypes').find().then((res) => {
+        var items = res.items
+        var dropdownOptions = []
+        items.forEach(element => {
+            dropdownOptions.push({ 'label': element.title, 'value': element.title })
+        });
+        $w('#eventName').options = dropdownOptions
+        return items
+    })
+
+    $w('#datePicker1').onChange(() => {
+        console.log($w('#datePicker1').value.getDate());
+
+        var startDate = new Date($w('#datePicker1').value)
+        var startTime = $w('#startTime').value
+        var startHour = parseInt(startTime.substr(0, 2))
+        var startMin = parseInt(startTime.substr(3, 2))
+        startDate.setHours(startHour, startMin)
+
+        var endDate = new Date($w('#datePicker1').value)
+        var endTime = $w('#endTime').value
+        var endHour = parseInt(endTime.substr(0, 2))
+        var endMin = parseInt(endTime.substr(3, 2))
+        endDate.setHours(endHour, endMin)
+    })
+
+    $w('#submit').onClick(() => {
+        console.log('clicked');
+
+        
+
+        if ($w('#startTime').valid || $w('#endTime').valid) {
+
+            var startDate = new Date()
+        var startTime = $w('#startTime').value
+        var startHour = parseInt(startTime.substr(0, 2))
+        var startMin = parseInt(startTime.substr(3, 2))
+
+        startDate.setHours(startHour, startMin)
+
+        var endDate = new Date()
+        var endTime = $w('#endTime').value
+        var endHour = parseInt(endTime.substr(0, 2))
+        var endMin = parseInt(endTime.substr(3, 2))
+
+        endDate.setHours(endHour, endMin)
+
+            if(startDate >= endDate){
+                $w('#message').text = 'Start time can not be greater than the end time'
+            $w('#message').show()
+            setTimeout(() => {
+                $w('#message').hide()
+            }, 5000);
+            }
+            console.log('clicked');
+
+            var startDate = new Date()
+            var startTime = $w('#startTime').value
+            var startHour = parseInt(startTime.substr(0, 2))
+            var startMin = parseInt(startTime.substr(3, 2))
+
+            startDate.setHours(startHour, startMin)
+
+            var endDate = new Date()
+            var endTime = $w('#endTime').value
+            var endHour = parseInt(endTime.substr(0, 2))
+            var endMin = parseInt(endTime.substr(3, 2))
+
+            endDate.setHours(endHour, endMin)
+            
+        } 
+        
+        if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid)) {
+            $w('#message').hide()    
+            $w('#loading').show()
+             $w('#message').text = "Event created"       
+            console.log(eventTypes);
+            var selectedEvent = {}
+
+            eventTypes.forEach(element => {
+                if (element.title === $w('#eventName').value) {
+                    selectedEvent = element
+                }
+            });
+
+            console.log('selected Event', selectedEvent);
+
+            var date = {
+                'year': $w('#datePicker1').value.getFullYear(),
+                'month': $w('#datePicker1').value.getMonth(),
+                'date': $w('#datePicker1').value.getDate(),
+            }
+
+            var toEmail = {
+                'title': 'Event Created',
+                'type': $w('#type').value,
+                'date': $w('#datePicker1').value,
+                'startTime': $w('#startTime').value,
+                'endTime': $w('#endTime').value,
+                'eventName': $w('#eventName').value,
+                'description': selectedEvent.description,
+                'link': $w('#link').value,
+                'agentEmail': agentEmail
+            }
+
+            var toInsert = {
+                'type': $w('#type').value,
+                'date': $w('#datePicker1').value,
+                'startTime': $w('#startTime').value,
+                'endTime': $w('#endTime').value,
+                'eventName': $w('#eventName').value,
+                'description': selectedEvent.description,
+                'link': $w('#link').value,
+                'address': $w('#address').value,
+                'agentEmail': agentEmail,
+                'agentId': agentId,
+                'eventImage': getFullImageURL(selectedEvent.image),
+                'venueName': $w('#venueName').value,
+                'summary': selectedEvent.summary
+            }
+
+            var eventbriteObj
+
+            if ($w('#type').value === 'Formal Educational In-Person' || $w('#type').value === 'Informal Educational Event') {
+                eventbriteObj = {
+                    'type': $w('#type').value,
+                    'date': date,
+                    'startTime': $w('#startTime').value,
+                    'endTime': $w('#endTime').value,
+                    'eventName': $w('#eventName').value,
+                    'description': selectedEvent.description,
+                    'summary': selectedEvent.summary,
+                    'link': $w('#link').value,
+                    'address_1': eventAddress.streetAddress.number + " " + eventAddress.streetAddress.name,
+                    'city': eventAddress.city,
+                    'country': eventAddress.country,
+                    'postal_code': eventAddress.postalCode,
+                    'latitude': eventAddress.location.latitude,
+                    'longitude': eventAddress.location.longitude,
+                    'venueName': $w('#venueName').value,
+                    'agentEmail': agentEmail,
+                    'agentId': agentId,
+                    'eventImage': getFullImageURL(selectedEvent.image),
+                    'capacity': parseInt($w('#capacity').value)
+                }
+
+                toEmail.address = eventAddress.formatted
+            } else {
+
+                let startFormatted = addHour($w('#startTime').value);
+                let endFormatted = addHour($w('#endTime').value);
+
+                eventbriteObj = {
+                    'type': $w('#type').value,
+                    'date': date,
+                    'startTime': startFormatted, //adds hour to temporarily fix Eventbrite but that is rolling an hour backwards
+                    'endTime': endFormatted, //see above
+                    'eventName': $w('#eventName').value,
+                    'description': selectedEvent.description,
+                    'summary': selectedEvent.summary,
+                    'link': $w('#link').value,
+                    'venueName': 'Virtual Event',
+                    'agentEmail': agentEmail,
+                    'agentId': agentId,
+                    'eventImage': getFullImageURL(selectedEvent.image),
+                    'capacity': parseInt($w('#capacity').value)
+                }
+
+                console.log("Start and End Times", startFormatted, endFormatted )
+
+                toEmail.address = 'Virtual Event'
+            }
+
+            console.log(toInsert);
+            console.log('evobj', eventbriteObj);
+
+            createEvent(eventbriteObj).then((res) => {
+
+                console.log(res);
+                var eventbriteLink = res.eventUrl
+                var eventbriteId = res.eventId
+                toInsert.eventbriteId = eventbriteId
+                toInsert.eventbriteLink = eventbriteLink
+                toEmail.eventbriteLink = eventbriteLink
+                toInsert.facebookShareLink = 'https://www.facebook.com/sharer/sharer.php?u=' + eventbriteLink
+                toInsert.twitterShareLink = 'https://twitter.com/intent/tweet?url=' + eventbriteLink
+                toInsert.linkedinShareLink = 'https://www.linkedin.com/sharing/share-offsite/?url=' + eventbriteLink
+
+                wixData.insert('Events', toInsert).then(() => {
+                    console.log('data inserted');
+                    eventUpdateEmail(toEmail).then(() => {
+                        $w('#loading').hide()
+                        console.log('email sent');
+                        $w('#type').value = null
+                        $w('#type').resetValidityIndication()
+                        $w('#datePicker1').value = null
+                        $w('#datePicker1').resetValidityIndication()
+                        $w('#startTime').value = null
+                        $w('#startTime').resetValidityIndication()
+                        $w('#endTime').value = null
+                        $w('#endTime').resetValidityIndication()
+                        $w('#eventName').value = null
+                        $w('#eventName').resetValidityIndication()
+                        $w('#link').value = ""
+                        $w('#link').resetValidityIndication()
+                        $w('#address').value = null
+                        $w('#address').resetValidityIndication()
+                        $w('#capacity').value = null
+                        $w('#capacity').resetValidityIndication()
+                        $w('#venueName').value = null
+                        $w('#venueName').resetValidityIndication()
+                    }).catch((err) => {
+                        console.log(err);
+                    })
+
+                    $w('#message').text = 'Event Created'
+                    $w('#message').show()
+                    setTimeout(function () {
+                        $w('#message').hide()
+                    }, 7000)
+                    $w('#dataset1').refresh()
+                })
+            })
+
+        } else {
+            console.log('inputs invalid');
+            errorText = "Please complete all fields."
+            
+
+            if (!$w('#type').valid){
+               errorText = errorText + " Please choose the event type."
+            }
+
+            if (!$w('#datePicker1').valid){
+               errorText = errorText + " Please select the event date."
+            }
+
+            if (!$w('#startTime').valid){
+               errorText = errorText + " Please select the start time."
+            }
+
+            if (!$w('#startTime').valid){
+               errorText = errorText + " Please select the end time."
+            }
+
+            if (!$w('#endTime').valid ){
+               errorText = errorText + " Please select the end time."
+            }
+
+            if (!$w('#eventName').valid){
+               errorText = errorText + " Please add an event name."
+            }
+
+            if (!$w('#link').valid || !$w('#address').valid){
+               errorText = errorText + " Please add the event location."
+            }
+            $w('#message').text = errorText;
+            $w('#message').show()
+        }
+    })
+}
+
+function tConv24(time24) {
+    var ts = time24;
+    var H = +ts.substr(0, 2);
+    var h = (H % 12) || 12;
+    h = (h < 10) ? ("0" + h) : h; // leading 0 at the left for 1 digit hours
+    var ampm = H < 12 ? " AM" : " PM";
+    ts = h + ts.substr(2, 3) + ampm;
+    return ts;
+}
+
+export function getFullImageURL(imageSRC) {
+    let strReturnImage = "";
+    if (imageSRC.startsWith("wix:image:")) {
+        let wixImageURL = "";
+        wixImageURL = "https://static.wixstatic.com/media/";
+        let wixLocalURL = "";
+        wixLocalURL = imageSRC.replace('wix:image://v1/', '');
+        wixLocalURL = wixLocalURL.substr(0, wixLocalURL.lastIndexOf('/'));
+        strReturnImage = wixImageURL + wixLocalURL;
+    } else {
+        strReturnImage = imageSRC;
+    }
+    return strReturnImage;
+}
+
+/**
+*	Adds an event handler that runs when an input element's value
+ is changed.
+	[Read more](https://www.wix.com/corvid/reference/$w.ValueMixin.html#onChange)
+*	 @param {$w.Event} event
+*/
+export function startTime_change(event) {
+	console.log("Time: ", $w('#startTime').value);
+    addHour($w('#startTime').value)
+
+        
+}
+
+export function addHour(time){
+
+        let timeSplitter = time.split(":");
+        let hour = Number(timeSplitter[0]) ;
+        let sumMinutes = Number(timeSplitter[1]) + 60;
+        let additionalHours = Math.floor(sumMinutes/60);
+        let newHour = ((additionalHours  + hour) % 24).toString();
+        let newMinutes = (sumMinutes % 60).toString();
+        let formattedTime = newHour.padStart(2,'0')+ ":"  + newMinutes.padStart(2,'0')+":00.000";
+        console.log("Formatted Time: ", formattedTime)
+
+        var startDate = new Date()
+        var startTime = $w('#startTime').value
+        var startHour = parseInt(startTime.substr(0, 2))
+        var startMin = parseInt(startTime.substr(3, 2))
+
+        startDate.setHours(startHour, startMin)
+
+        var endDate = new Date()
+        var endTime = $w('#endTime').value
+        var endHour = parseInt(endTime.substr(0, 2))
+        var endMin = parseInt(endTime.substr(3, 2))
+
+        endDate.setHours(endHour, endMin)
+
+            if(startDate >= endDate){
+                $w('#message').text = 'Start time can not be greater than the end time'
+            $w('#message').show()
+            } else {
+                $w('#message').hide()
+            }
+
+        return formattedTime;
+
+
+}
+
+
+export function endTime_change(event) {
+	var startDate = new Date()
+        var startTime = $w('#startTime').value
+        var startHour = parseInt(startTime.substr(0, 2))
+        var startMin = parseInt(startTime.substr(3, 2))
+
+        startDate.setHours(startHour, startMin)
+
+        var endDate = new Date()
+        var endTime = $w('#endTime').value
+        var endHour = parseInt(endTime.substr(0, 2))
+        var endMin = parseInt(endTime.substr(3, 2))
+
+        endDate.setHours(endHour, endMin)
+
+            if(startDate >= endDate){
+                $w('#message').text = 'Start time can not be greater than the end time'
+            $w('#message').show()
+            } else {
+                $w('#message').hide()
+            }
+}
+
+function uniqueId() {
+
+    // desired length of Id
+    var idStrLen = 32;
+   
+    var idStr = (Math.floor((Math.random() * 25)) + 10).toString(36) + "-";
+    
+    idStr += (new Date()).getTime().toString(36) + "-";
+    
+    do {
+        idStr += (Math.floor((Math.random() * 35))).toString(36);
+    } while (idStr.length < idStrLen);
+
+    return (idStr);
+}
+
+
+export function address_input(event) {
+
+	 googleAddress($w('#address').value)
+        .then((res) => {
+           
+ let googleAddressOptions = res.predictions; 
+ let allOptions = []; 
+
+            googleAddressOptions.forEach(function (option) {
+                
+ let optionData = { "_id": uniqueId(), "address": option.description, "place_id": option.place_id };
+                allOptions.push(optionData);
+            });
+            
+            $w("#addressOptions").data = []; 
+            if(res.length > 5){
+                $w("#addressOptions").data = allOptions.slice(0,5); 
+                $w("#addressOptions").expand(); 
+            } else {
+                 $w("#addressOptions").data = allOptions
+                 $w("#addressOptions").expand(); 
+            }
+            
+
+        })
+}
+
+export function addressOptions_itemReady($item, itemData, index) {
+
+	$item("#addressFulfilled").text = itemData.address;
+
+    $item("#addressFulfilled").onClick((event) => {
+        
+        $w('#address').value = $item("#addressFulfilled").text
+        $w('#addressOptions').collapse()
+
+        googleAddressDetails(itemData.place_id)
+        .then((googleDetails) => {
+            console.log("Google Details: ", googleDetails)
+            
+            const map = {
+                street_number: 'streetNumber',
+                route: 'streetName',
+                locality: 'city',
+                administrative_area_level_1: 'state',
+                postal_code: 'postalCode',
+                country: 'country'
+            };
+            const createAddress = {};
+            googleDetails.result.address_components.forEach(component => {
+                createAddress[map[component.types[0]]] = component.long_name;
+               
+            })   
+            
+            createAddress.longitude = googleDetails.result.geometry.location.lng;
+            createAddress.latitude = googleDetails.result.geometry.location.lat;
+            createAddress.formatted_address = googleDetails.result.formatted_address;
+
+            console.log("New Address Data: ", createAddress);
+
+            eventAddress = { 
+                formatted: createAddress.formatted_address, 
+                location: 
+                    { "latitude": createAddress.latitude, "longitude": createAddress.longitude }, 
+                streetAddress: 
+                    { name: createAddress.streetName, number: createAddress.streetNumber }, city: createAddress.city, subdivision: createAddress.state, country: createAddress.country, postalCode: createAddress.postalCode }
+
+            console.log("Event Address Data: ", eventAddress);
+
+            
+            })
+    });
+}

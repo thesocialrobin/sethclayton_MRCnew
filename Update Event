@@ -19,6 +19,8 @@ $w.onReady(async function () {
 
 async function initForm(agentEmail, agentId, itemData) {
     console.log(itemData);
+    eventAddress = itemData.address;
+    console.log("Loaded Address: ", eventAddress, itemData.address)
     $w('#type').value = itemData.type
     $w('#eventName').value = itemData.eventName
     $w('#datePicker1').value = itemData.date
@@ -28,7 +30,7 @@ async function initForm(agentEmail, agentId, itemData) {
     if ($w('#type').value === 'In-Person Event') {
         $w('#link').hide()
         $w('#link').value = ''
-        $w('#address').value = itemData.address
+        $w('#address').value = itemData.address.formatted
         $w('#address').show()
     } else {
         $w('#link').show()

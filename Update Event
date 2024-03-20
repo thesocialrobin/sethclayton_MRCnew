@@ -91,6 +91,9 @@ async function initForm(agentEmail, agentId, itemData) {
 
     $w('#submit').onClick(() => {
         console.log('clicked');
+        $w('#submit').disable();
+         $w('#message').hide();
+         $w('#loading').show();
 
         var startDate = new Date()
         var startTime = $w('#startTime').value
@@ -204,6 +207,7 @@ async function initForm(agentEmail, agentId, itemData) {
                 'description': selectedEvent.description,
                 'link': itemData.link,
                 'address': eventAddress,
+                'placeId': placeId,
                 'agentEmail': agentEmail,
                 'agentId': agentId,
                 'eventImage': getFullImageURL(selectedEvent.image),
@@ -249,10 +253,15 @@ async function initForm(agentEmail, agentId, itemData) {
                     }).then(() => {
                         wixWindow.lightbox.close()
                         setTimeout(function () {
-                            $w('#message').hide()
+                            $w('#message').hide();
+                            $w('#loading').hide();
                         }, 7000)
                     }).catch((err) => {
                         console.log(err);
+                        $w('#submit').enable();
+                        $w('#message').text = 'Error Updating Event'
+                        $w('#message').show()
+                        $w('#loading').hide();
                     })
 
                 })

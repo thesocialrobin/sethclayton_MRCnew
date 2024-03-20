@@ -7,6 +7,7 @@ import wixLocation from 'wix-location';
 import { generateEventImage } from "backend/generateImage";
 import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
 let eventAddress
+let placeId
 
 let errorText
 
@@ -441,6 +442,7 @@ async function initForm(agentEmail, agentId) {
                 'link': $w('#link').value,
                 'address': eventAddress,
                 'agentEmail': agentEmail,
+                'placeId': placeId,
                 'agentId': agentId,
                 'eventImage': getFullImageURL(selectedEvent.image),
                 'venueName': $w('#venueName').value,
@@ -738,6 +740,8 @@ export function addressOptions_itemReady($item, itemData, index) {
     $item("#addressFulfilled").onClick((event) => {
         
         $w('#address').value = $item("#addressFulfilled").text
+        placeId = itemData.place_id;
+        console.log("Selected Address: ", itemData.address, placeId, itemData.place_id);
         $w('#addressOptions').collapse()
 
         googleAddressDetails(itemData.place_id)

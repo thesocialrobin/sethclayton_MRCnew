@@ -21,12 +21,14 @@ async function initForm(agentEmail, agentId, itemData) {
     console.log(itemData);
     eventAddress = itemData.address;
     console.log("Loaded Address: ", eventAddress, itemData.address)
-    $w('#type').value = itemData.type
+    //$w('#type').value = itemData.type
     $w('#eventName').value = itemData.eventName
     $w('#datePicker1').value = itemData.date
     $w('#startTime').value = itemData.startTime
     $w('#endTime').value = itemData.endTime
-    $w('#venueName').value = itemData.venueName
+    //$w('#venueName').value = itemData.venueName
+
+    /*
     if ($w('#type').value === 'In-Person Event') {
         $w('#link').hide()
         $w('#link').value = ''
@@ -39,7 +41,9 @@ async function initForm(agentEmail, agentId, itemData) {
         $w('#link').value = itemData.link
         $w('#venueName').disable()
     }
+    */
 
+    /*
     $w('#type').onChange(() => {
         if ($w('#type').value === 'In-Person Event') {
             $w('#link').hide()
@@ -56,6 +60,7 @@ async function initForm(agentEmail, agentId, itemData) {
             $w('#venueName').disable()
         }
     })
+    */
 
     var eventTypes = await wixData.query('EventTypes').find().then((res) => {
         var items = res.items
@@ -104,7 +109,7 @@ async function initForm(agentEmail, agentId, itemData) {
             setTimeout(() => {
                 $w('#message').hide()
             }, 5000);
-        } else if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid)) {
+        } else if ($w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid) {
             $w('#loading').show()
             console.log(eventTypes);
             var selectedEvent = {}
@@ -125,29 +130,29 @@ async function initForm(agentEmail, agentId, itemData) {
 
             var toEmail = {
                 'title': 'Event Updated',
-                'type': $w('#type').value,
+                'type': itemData.type,
                 'date': $w('#datePicker1').value,
                 'startTime': $w('#startTime').value,
                 'endTime': $w('#endTime').value,
                 'eventName': $w('#eventName').value,
                 'description': selectedEvent.description,
-                'link': $w('#link').value,
+                'link': itemData.link,
                 'agentEmail': agentEmail
             }
 
             var toUpdateEvent
 
-            if ($w('#type').value === 'Formal Educational In-Person' || $w('#type').value === 'Informal Educational Event') {
+            if (itemData.type === 'In-Person Event') {
 
                 toUpdateEvent = {
                     '_id': itemData._id,
-                    'type': $w('#type').value,
+                    'type': itemData.type,
                     'date': date,
                     'startTime': $w('#startTime').value,
                     'endTime': $w('#endTime').value,
                     'eventName': $w('#eventName').value,
                     'description': selectedEvent.description,
-                    'link': $w('#link').value,
+                    'link': itemData.link,
                     'address_1': eventAddress.streetAddress.number + " " + eventAddress.streetAddress.name,
                     'city': eventAddress.city,
                     'country': eventAddress.country,
@@ -168,13 +173,13 @@ async function initForm(agentEmail, agentId, itemData) {
 
                 toUpdateEvent = {
                     '_id': itemData._id,
-                    'type': $w('#type').value,
+                    'type': itemData.type,
                     'date': date,
                     'startTime': $w('#startTime').value,
                     'endTime': $w('#endTime').value,
                     'eventName': $w('#eventName').value,
                     'description': selectedEvent.description,
-                    'link': $w('#link').value,
+                    'link': itemData.link,
                     'agentEmail': agentEmail,
                     'agentId': agentId,
                     'eventImage': getFullImageURL(selectedEvent.image),
@@ -188,13 +193,13 @@ async function initForm(agentEmail, agentId, itemData) {
 
             var toUpdate = {
                 '_id': itemData._id,
-                'type': $w('#type').value,
+                'type': itemData.type,
                 'date': $w('#datePicker1').value,
                 'startTime': $w('#startTime').value,
                 'endTime': $w('#endTime').value,
                 'eventName': $w('#eventName').value,
                 'description': selectedEvent.description,
-                'link': $w('#link').value,
+                'link': itemData.link,
                 'address': eventAddress,
                 'agentEmail': agentEmail,
                 'agentId': agentId,
@@ -224,8 +229,8 @@ async function initForm(agentEmail, agentId, itemData) {
                     $w('#message').show()
                     eventUpdateEmail(toEmail).then((res2) => {
                         console.log(res2);
-                        $w('#type').value = null
-                        $w('#type').resetValidityIndication()
+                        //$w('#type').value = null
+                        //$w('#type').resetValidityIndication()
                         $w('#datePicker1').value = null
                         $w('#datePicker1').resetValidityIndication()
                         $w('#startTime').value = null
@@ -234,10 +239,10 @@ async function initForm(agentEmail, agentId, itemData) {
                         $w('#endTime').resetValidityIndication()
                         $w('#eventName').value = null
                         $w('#eventName').resetValidityIndication()
-                        $w('#link').value = null
-                        $w('#link').resetValidityIndication()
-                        $w('#address').value = null
-                        $w('#address').resetValidityIndication()
+                        //$w('#link').value = null
+                        //$w('#link').resetValidityIndication()
+                        //$w('#address').value = null
+                        //$w('#address').resetValidityIndication()
                     }).then(() => {
                         wixWindow.lightbox.close()
                         setTimeout(function () {
@@ -366,4 +371,44 @@ export function addressOptions_itemReady($item, itemData, index) {
             
             })
     });
+}
+
+export function getGoogleMapData(placeId){
+
+    googleAddressDetails(placeId)
+        .then((googleDetails) => {
+            console.log("Google Details: ", googleDetails)
+            
+            const map = {
+                street_number: 'streetNumber',
+                route: 'streetName',
+                locality: 'city',
+                administrative_area_level_1: 'state',
+                postal_code: 'postalCode',
+                country: 'country'
+            };
+            const createAddress = {};
+            googleDetails.result.address_components.forEach(component => {
+                createAddress[map[component.types[0]]] = component.long_name;
+               
+            })   
+            
+            createAddress.longitude = googleDetails.result.geometry.location.lng;
+            createAddress.latitude = googleDetails.result.geometry.location.lat;
+            createAddress.formatted_address = googleDetails.result.formatted_address;
+
+            console.log("New Address Data: ", createAddress);
+
+            eventAddress = { 
+                formatted: createAddress.formatted_address, 
+                location: 
+                    { "latitude": createAddress.latitude, "longitude": createAddress.longitude }, 
+                streetAddress: 
+                    { name: createAddress.streetName, number: createAddress.streetNumber }, city: createAddress.city, subdivision: createAddress.state, country: createAddress.country, postalCode: createAddress.postalCode }
+
+            console.log("Event Address Data: ", eventAddress);
+
+            
+            })
+
 }

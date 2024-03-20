@@ -6,6 +6,7 @@ import wixWindow from 'wix-window';
 import { eventUpdateEmail } from "backend/email";
 import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
 let eventAddress
+let placeId
 
 
 $w.onReady(async function () {
@@ -19,8 +20,10 @@ $w.onReady(async function () {
 
 async function initForm(agentEmail, agentId, itemData) {
     console.log(itemData);
-    eventAddress = itemData.address;
-    console.log("Loaded Address: ", eventAddress, itemData.address)
+    
+    placeId = itemData.placeId;
+    console.log("Loaded Address: ", eventAddress, itemData.address, placeId)
+    getGoogleMapData(placeId);
     //$w('#type').value = itemData.type
     $w('#eventName').value = itemData.eventName
     $w('#datePicker1').value = itemData.date
@@ -298,7 +301,7 @@ function uniqueId() {
     return (idStr);
 }
 
-
+/*
 export function address_input(event) {
 
 	 googleAddress($w('#address').value)
@@ -325,7 +328,9 @@ export function address_input(event) {
 
         })
 }
+*/
 
+/*
 export function addressOptions_itemReady($item, itemData, index) {
 
 	$item("#addressFulfilled").text = itemData.address;
@@ -372,6 +377,7 @@ export function addressOptions_itemReady($item, itemData, index) {
             })
     });
 }
+*/
 
 export function getGoogleMapData(placeId){
 

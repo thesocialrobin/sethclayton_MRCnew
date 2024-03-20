@@ -51,7 +51,7 @@ export function createEvent(obj) {
 
     console.log('Creating Event');
 
-    if (obj.type === "Formal Educational Virtual") {
+    if (obj.type === "Virtual Event") {
         isOnline = true
         link = obj.link
     }
@@ -83,7 +83,7 @@ export function createEvent(obj) {
 }
 
 export function updateEvent(obj) {
-    if (obj.type === "Formal Educational Virtual") {
+    if (obj.type === "Virtual Event") {
         isOnline = true
     }
 

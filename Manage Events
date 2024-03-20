@@ -449,6 +449,8 @@ async function initForm(agentEmail, agentId) {
 
             var eventbriteObj
 
+            //Eventbrite Update 031924
+
             if ($w('#type').value === 'Formal Educational In-Person' || $w('#type').value === 'Informal Educational Event') {
                 eventbriteObj = {
                     'type': $w('#type').value,

@@ -1,0 +1,509 @@
+import { fetch } from 'wix-fetch'
+const axios = require("axios");
+const FormData = require("form-data")
+const base64 = require("base64-arraybuffer")
+const date = require('date-and-time');
+const { DateTime } = require("luxon");
+
+const MEDIA_UPLOAD_URL = 'https://www.eventbriteapi.com/v3/media/upload/'
+
+var myHeaders = {}
+myHeaders["Authorization"] = "Bearer ZKZM2G3NNEZTBYVYDLY3"
+myHeaders["Content-Type"] = "application/json"
+
+var isOnline = false
+var link
+
+var format = {
+    "resource_uri": "https://www.eventbriteapi.com/v3/formats/9/",
+    "id": "9",
+    "name": "Class, Training, or Workshop",
+    "name_localized": "Class, Training, or Workshop",
+    "short_name": "Class",
+    "short_name_localized": "Class"
+}
+
+var category = {
+    "resource_uri": "https://www.eventbriteapi.com/v3/categories/107/",
+    "id": "107",
+    "name": "Health & Wellness",
+    "name_localized": "Health & Wellness",
+    "short_name": "Health",
+    "short_name_localized": "Health"
+}
+
+var subCat = {
+    "resource_uri": "https://www.eventbriteapi.com/v3/subcategories/7999/",
+    "id": "7999",
+    "name": "Other",
+    "name_localized": "Other",
+    "parent_category": {
+        "resource_uri": "https://www.eventbriteapi.com/v3/categories/107/",
+        "id": "107",
+        "name": "Health & Wellness",
+        "name_localized": "Health & Wellness",
+        "short_name": "Health",
+        "short_name_localized": "Health"
+    }
+}
+
+export function createEvent(obj) {
+
+    console.log('Creating Event');
+
+    if (obj.type === "Formal Educational Virtual") {
+        isOnline = true
+        link = obj.link
+    }
+
+    return Promise.all([getLogoId(obj.eventImage), createVenue(obj)]).then((res1) => {
+        var logoId = res1[0]
+        var venueId = res1[1]
+        return constructEvent(obj, logoId, venueId).then((res2) => {
+            var eventUrl = res2.url
+            var eventId = res2.id
+            return createTicket(eventId, obj).then(() => {
+                return publishEvent(eventId).then(() => {
+                    return {
+                        "eventUrl": eventUrl,
+                        "eventId": eventId
+                    }
+                }).catch( (err) => {
+		return err;
+	    })
+            }).catch( (err) => {
+		return err;
+	})
+
+        }).catch( (err) => {
+		return err;
+	})
+    })
+
+}
+
+export function updateEvent(obj) {
+    if (obj.type === "Formal Educational Virtual") {
+        isOnline = true
+    }
+
+    return Promise.all([getLogoId(obj.eventImage), createVenue(obj)]).then((res1) => {
+        var logoId = res1[0]
+        var venueId = res1[1]
+        return update(obj, logoId, venueId).then((res2) => {
+            var eventUrl = res2.url
+            var eventId = res2.id
+            return publishEvent(eventId).then(() => {
+                return {
+                    "eventUrl": eventUrl,
+                    "eventId": eventId
+                }
+            })
+            // return {
+            //     "eventUrl": eventUrl,
+            //     "eventId": eventId
+            // }
+
+        })
+    })
+}
+
+function sleeper(ms) {
+    return function (x) {
+        return new Promise(resolve => setTimeout(() => resolve(x), ms));
+    };
+}
+
+//
+function getUploadInfo() {
+    return fetch(`https://www.eventbriteapi.com/v3/media/upload/?type=image-event-logo&token=ZKZM2G3NNEZTBYVYDLY3`)
+        .then(async (uploadInfo) => {
+            return await uploadInfo.json()
+        })
+        .catch(error => console.log('error', error))
+}
+
+//
+async function uploadImage(fileUrl, uploadData, uploadUrl) {
+
+    const response = await axios.get(fileUrl, { responseType: "arraybuffer" });
+    const buffer = Buffer.from(response.data)
+
+    var formData = new FormData();
+    formData.append("AWSAccessKeyId", uploadData.AWSAccessKeyId);
+    formData.append("bucket", uploadData.bucket);
+    formData.append("acl", uploadData.acl);
+    formData.append("key", uploadData.key);
+    formData.append("signature", uploadData.signature);
+    formData.append("policy", uploadData.policy);
+    formData.append("file", buffer, 'test')
+
+    var mRequestOptions = {
+        method: 'POST',
+        body: formData,
+        headers: {
+            "Content-Type": formData.getHeaders()
+        }
+    }
+
+    return fetch(uploadUrl, mRequestOptions)
+        .then(() => {
+            return 'Image Uploaded'
+        })
+        .catch(error => {
+            console.log('error', error);
+        })
+}
+
+//
+function confirmUpload(token) {
+
+    var image_data = {
+        "upload_token": token,
+        "crop_mask": {
+            "top_left": {
+                "y": 1,
+                "x": 1
+            },
+            "width": 5000,
+            "height": 3000
+        }
+    }
+
+    var cRequestOptions = {
+        method: 'POST',
+        body: JSON.stringify(image_data),
+        headers: {
+            "Content-Type": "application/json"
+        },
+        redirect: 'follow'
+    }
+
+    return fetch(`https://www.eventbriteapi.com/v3/media/upload/?token=ZKZM2G3NNEZTBYVYDLY3`, cRequestOptions)
+        .then(async (cRes) => {
+            console.log('Image Upload Confirmed');
+            return await cRes.json()
+        })
+        .catch(error => console.log('error', error))
+}
+
+//
+export function createVenue(obj) {
+
+    var body
+    if (isOnline === false) {
+        body = {
+            "venue": {
+                "name": obj.venueName,
+                "address": {
+                    "address_1": obj.address_1,
+                    "city": obj.city,
+                    "country": obj.country,
+                    "postal_code": obj.postal_code,
+                    "latitude": obj.latitude,
+                    "longitude": obj.longitude
+                },
+            }
+        }
+    } else {
+        body = {
+            "venue": {
+                "name": obj.venueName,
+                "address": {
+                    "address_1": obj.link,
+                },
+            }
+        }
+    }
+
+    console.log('body', body);
+
+    var vRequestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(body),
+        redirect: 'follow'
+    }
+
+    return fetch(`https://www.eventbriteapi.com/v3/organizations/909246732743/venues/`, vRequestOptions)
+        .then(async (venueDetails) => {
+
+            console.log('Venue Created');
+
+            return await venueDetails.json().then((res) => {
+                console.log(res);
+                return res.id
+            })
+
+        })
+        .catch(error => console.log('error', error))
+}
+
+//
+export async function constructEvent(obj, logoId, venueId) {
+
+    console.log('obj.date', obj.date);
+
+    var startTime = obj.startTime
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+
+    var endTime = obj.endTime
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+
+    var startDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: startHour + 4, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: endHour + 4, minute: endMin })
+
+    var startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    var endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log('startDate', startDateString);
+    console.log('endDate', endDateString);
+
+    //return 'test'
+
+    var description = `<p>${obj.description}</p>`
+
+    var summary = `<p>${obj.summary}</p>`
+
+    var event = {
+        "event": {
+            "name": {
+                "html": `${obj.eventName}`
+            },
+            // "description": {
+            //     "html": description
+            // },
+            "start": {
+                "timezone": "America/New_York",
+                "utc": startDateString
+            },
+            "end": {
+                "timezone": "America/New_York",
+                "utc": endDateString
+            },
+            "currency": "USD",
+            "online_event": isOnline,
+            "listed": true,
+            "shareable": true,
+            "invite_only": false,
+            "logo_id": logoId,
+            "organizer_id": "46405217473",
+            // "format": format,
+            // "category": category,
+            // "subcategory": subCat,
+            "summary": summary
+        }
+    }
+
+    if (!isOnline) {
+        event.event.venue_id = venueId
+    }
+
+    var eRequestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(event),
+        redirect: 'follow'
+    }
+
+    return fetch("https://www.eventbriteapi.com/v3/organizations/909246732743/events/", eRequestOptions)
+        .then(async (response) => {
+            console.log('Event Created');
+            var obj = await response.json()
+            if (isOnline) {
+                setEventLink(obj.id, obj)
+            }
+            console.log(obj);
+            return obj
+        })
+        .catch(error => console.log('error', error));
+}
+
+//
+export function createTicket(eventId, obj) {
+    var ticketData = JSON.stringify({
+        "ticket_class": {
+            "name": "Free",
+            "free": true,
+            "capacity": obj.capacity
+        }
+    });
+
+    var tRequestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: ticketData,
+        redirect: 'follow'
+    };
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/ticket_classes/`, tRequestOptions)
+        .then(async (response) => {
+            console.log('ticket obj', await response.text());
+            console.log('ticket created');
+            return 'Ticket Created'
+        })
+        .catch(error => console.log('error', error))
+}
+
+//
+export function publishEvent(eventId) {
+    var pRequestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/publish/`, pRequestOptions)
+        .then(async () => {
+            console.log('Event published');
+            return 'Event Published'
+        })
+        .catch(error => console.log('error', error))
+}
+
+export function getLogoId(fileUrl) {
+    return getUploadInfo().then((res1) => {
+        return uploadImage(fileUrl, res1.upload_data, res1.upload_url).then((res2) => {
+            console.log(res2);
+            return confirmUpload(res1.upload_token).then((res3) => {
+                return res3.id
+            })
+        })
+    })
+}
+
+export function setEventLink(eventId, obj) {
+
+    console.log('Setting Event Link');
+    console.log('link', link);
+
+    var toSend = {
+        "access_type": "public",
+        "publish": true,
+        "purpose": "digital_content",
+        "modules": [{
+            "data": {
+                "body": {
+                    "alignment": "center",
+                    "text": `<h2>Online Event Link</h2><p><a>${link}</a></p>`
+                },
+                "type": "text",
+            },
+            "type": "text"
+        }]
+    }
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(toSend),
+        redirect: 'follow'
+    };
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/structured_content/2/`, requestOptions)
+        .then(async (res) => {
+
+            console.log('Event link added');
+            var obj = await res.json()
+            console.log(obj);
+            return obj
+        })
+        .catch(error => console.log('error', error))
+}
+
+//
+export function deleteEvent(eventId) {
+    var pRequestOptions = {
+        method: 'DELETE',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/`, pRequestOptions)
+        .then(async () => {
+            console.log('Event deleted');
+            return 'Event Deleted'
+        })
+        .catch(error => console.log('error', error))
+}
+
+export async function update(obj, logoId, venueId) {
+
+    console.log('obj.date', obj.date);
+
+    var startTime = obj.startTime
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+
+    var endTime = obj.endTime
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+
+    console.log(startTime);
+    console.log(endTime);
+
+    var startDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: startHour + 4, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: endHour + 4, minute: endMin })
+
+    var startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    var endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log('startDate', startDateString);
+    console.log('endDate', endDateString);
+
+    var description = `<p>${obj.description}</p>`
+
+    var summary = `<p>${obj.summary}</p>`
+
+    var event = {
+        "event": {
+            "name": {
+                "html": `${obj.eventName}`
+            },
+            // "description": {
+            //     "html": description
+            // },
+            "start": {
+                "timezone": "America/New_York",
+                "utc": startDateString
+            },
+            "end": {
+                "timezone": "America/New_York",
+                "utc": endDateString
+            },
+            "currency": "USD",
+            "online_event": isOnline,
+            "listed": true,
+            "shareable": true,
+            "invite_only": false,
+            "logo_id": logoId,
+            "organizer_id": "46405217473",
+            "summary": summary
+        }
+    }
+
+    if (!isOnline) {
+        event.event.venue_id = venueId
+    }
+
+    var eRequestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(event),
+        redirect: 'follow'
+    }
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${obj.eventbriteId}/`, eRequestOptions)
+        .then(async (response) => {
+            console.log('Event Updated');
+            var obj2 = await response.json()
+            if (isOnline) {
+                setEventLink(obj2.id, obj2)
+            }
+            console.log(obj2);
+            return obj2
+        })
+        .catch(error => console.log('error', error));
+}

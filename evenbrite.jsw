@@ -128,13 +128,41 @@ export function updateEvent(obj) {
                     "eventUrl": eventUrl,
                     "eventId": eventId
                 }
-            })
-            // return {
-            //     "eventUrl": eventUrl,
-            //     "eventId": eventId
-            // }
+            }).catch( (err) => {
 
-        })
+                 //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error Creating Object", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+		return err;
+	})
+
+        }).catch( (err) => {
+
+                 //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Update Error",
+                              "log": "Error Updating", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+		return err;
+	})
     })
 }
 

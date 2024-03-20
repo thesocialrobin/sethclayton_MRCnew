@@ -4,6 +4,7 @@ const FormData = require("form-data")
 const base64 = require("base64-arraybuffer")
 const date = require('date-and-time');
 const { DateTime } = require("luxon");
+import wixData from 'wix-data';
 
 const MEDIA_UPLOAD_URL = 'https://www.eventbriteapi.com/v3/media/upload/'
 
@@ -69,9 +70,38 @@ export function createEvent(obj) {
                         "eventId": eventId
                     }
                 }).catch( (err) => {
+
+                    //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error publishing event", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
 		return err;
 	    })
             }).catch( (err) => {
+
+                 //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error creating ticket", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
 		return err;
 	})
 

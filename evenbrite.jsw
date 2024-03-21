@@ -106,6 +106,20 @@ export function createEvent(obj) {
 	})
 
         }).catch( (err) => {
+
+            //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error creating event", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
 		return err;
 	})
     })
@@ -248,6 +262,20 @@ function confirmUpload(token) {
 //
 export function createVenue(obj) {
 
+                    //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Venue Creation",
+                              "log": "Creating Venue", obj, isOnline
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
     var body
     if (isOnline === false) {
         body = {
@@ -288,13 +316,45 @@ export function createVenue(obj) {
 
             console.log('Venue Created');
 
+            //--log process--//
+                          let logResults2 = {
+                              "type": "Eventbrite Venue Creation",
+                              "log": "Venue Created", venueDetails
+                            };
+
+                            wixData.insert("devLog", logResults2 )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
             return await venueDetails.json().then((res) => {
                 console.log(res);
                 return res.id
             })
 
         })
-        .catch(error => console.log('error', error))
+        .catch( (err) => {
+
+                //--log process--//
+                          let logResults3 = {
+                              "type": "Eventbrite Venue Creation",
+                              "log": "Venue Creation Error", err
+                            };
+
+                            wixData.insert("devLog", logResults3 )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
+
+
+        })
 }
 
 //

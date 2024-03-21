@@ -376,9 +376,9 @@ async function initForm(agentEmail, agentId) {
 
             if(startDate >= endDate){
                 $w('#message').text = 'Start time can not be greater than the end time'
-            $w('#message').show()
+            $w('#message').expand()
             setTimeout(() => {
-                $w('#message').hide()
+                $w('#message').collapse()
             }, 5000);
             }
             console.log('clicked');
@@ -400,8 +400,8 @@ async function initForm(agentEmail, agentId) {
         } 
         
         if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid)) {
-            $w('#message').hide()    
-            $w('#loading').show()
+            $w('#message').collapse()    
+            $w('#loading').expand()
              $w('#message').text = "Event created"       
             console.log(eventTypes);
             var selectedEvent = {}
@@ -460,7 +460,6 @@ async function initForm(agentEmail, agentId) {
                     'eventName': $w('#eventName').value,
                     'description': selectedEvent.description,
                     'summary': selectedEvent.summary,
-                    'link': $w('#link').value,
                     'address_1': eventAddress.streetAddress.number + " " + eventAddress.streetAddress.name,
                     'city': eventAddress.city,
                     'country': eventAddress.country,
@@ -475,10 +474,16 @@ async function initForm(agentEmail, agentId) {
                 }
 
                 toEmail.address = eventAddress.formatted
+
+                console.log("Eventbrite Data: ", eventbriteObj, eventAddress.streetAddress.number + " " + eventAddress.streetAddress.name)
+
             } else {
 
                 let startFormatted = addHour($w('#startTime').value);
                 let endFormatted = addHour($w('#endTime').value);
+
+                //let startFormattedDST = addHour($w('#startTime').value);
+                //let endFormattedDST = addHour($w('#endTime').value);
 
                 eventbriteObj = {
                     'type': $w('#type').value,
@@ -544,9 +549,9 @@ async function initForm(agentEmail, agentId) {
                     })
 
                     $w('#message').text = 'Event Created'
-                    $w('#message').show()
+                    $w('#message').expand()
                     setTimeout(function () {
-                        $w('#message').hide()
+                        $w('#message').collapse()
                     }, 7000)
                     $w('#dataset1').refresh()
                 })

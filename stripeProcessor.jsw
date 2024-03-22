@@ -720,6 +720,13 @@ export async function addStripeSubscriptions(){
 
 export async function findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
+/*
+  let findmatchEssential = subscriptionData.find(item=> item.price === activeSubscription)
+	let findmatchGoogle = subscriptionData.find(item=> item.price === activeSubscription)
+	let findmatchBoost = subscriptionData.find(item=> item.price === activeSubscription)
+  */
+  
+
 let apiKeySk
 
 //-------set below for live or test Stripe----//
@@ -747,7 +754,7 @@ if(stripeMode == "test"){
     //---ACTIVE AND PRICE CONTAINS--//
 
     var findSubscriptions = await key.subscriptions.search({
-  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\'',
+  query: 'status:\'canceled\' AND metadata[\'cancel_at\']:\'6735\' OR metadata[\'order_id\']:\'6735\'',
 })
 
   
@@ -789,7 +796,7 @@ if(stripeMode == "test"){
 
 
 	return await key.subscriptions.search({
-  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\'',
+  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\' OR metadata[\'order_id\']:\'6735\'',
 })
 
 }

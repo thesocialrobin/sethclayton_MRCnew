@@ -3,6 +3,8 @@ import {getAPIKey} from 'backend/secrets.jsw';
 import { fetch } from "wix-fetch";
 import wixData from 'wix-data';
 let apiKey 
+const axios = require('axios');
+
 
 export function addLabels(userId) {
   const contactId = userId;
@@ -45,4 +47,46 @@ export async function googleAddress(string) {
         }
     });
 
+}
+
+export async function googleAddressDetails(place) {
+
+
+  apiKey = await getAPIKey("googleMaps");
+ let url = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
+ let queryParam = "&key=";
+ let input = place
+ let fullUrl = url + input + queryParam + apiKey;
+
+ return fetch(fullUrl, { method: 'get' }).then((httpResponse) => {
+    
+
+ if (httpResponse.ok) {
+ return httpResponse.json();
+        } else {
+
+          return httpResponse.json()
+        }
+    });
+
+}
+
+
+export async function connectAbstractApi(location){
+
+  location = "Oxford, United Kingdom"
+  let key = "56349ac32aa34f369a02f8c88c3df516";
+
+  const url = `https://timezone.abstractapi.com/v1/current_time/?api_key=${key}&location=${location}`;  
+  const response = await axios.get(url).then(response => {
+                      console.log(response.data);
+                      return response.data;
+                  })
+                  .catch(error => {
+                      console.log(error);
+                      return error
+                  })
+
+  return response;
+  
 }

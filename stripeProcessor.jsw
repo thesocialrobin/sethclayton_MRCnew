@@ -5,6 +5,7 @@ import wixData from 'wix-data';
 
 
 let subscriptionCheck = [];
+let subscriptionData = [];
 
 //---------------------------------------------Create Customer---------------------------------------------//
 
@@ -693,7 +694,8 @@ export async function addStripeSubscriptions(){
 
                       if(count == totalSusbcriptions){
 
-                        findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
+                        //findRemovePermissions()
+                        queryAgents(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
 
                          //--log process--//
                           let logResults = {
@@ -815,8 +817,7 @@ export function getStripeSubscriptions(cus, apiKeySk){
 						//no subscriptions
 					}
 
-					let subscriptionData = [];
-					let listItems = [];
+					
 
 			
 			let totalSubscriptionAmount = 0;
@@ -827,7 +828,7 @@ export function getStripeSubscriptions(cus, apiKeySk){
 				console.log("Billing Update")
 				
 
-				if (subscription.plan == null){
+				if (subscription.plan == null){ //--if cancelled && subscription greater than yesterday--//
 
 
                     let jointItems = subscription.items.data; //price_xx matches stripeSubscriptions database for multi-purchased items
@@ -839,7 +840,8 @@ export function getStripeSubscriptions(cus, apiKeySk){
 					console.log("Joint Subscription Plan ID", planId) //--HERE--//
 					
 					totalSubscriptionAmount = totalSubscriptionAmount + jointSubscription.plan.amount
-					let jointstatus = jointSubscription.status; //active
+					let jointstatus = jointSubscription.status; //active or canceled
+          let cancelDate = (new Date(jointSubscription.cancel_at*1000)); //date date
 					let jointprice = "$" + ((jointSubscription.plan.amount) / 100).toString();
 					let jointinterval = jointSubscription.plan.interval; //month or year
 
@@ -851,7 +853,6 @@ export function getStripeSubscriptions(cus, apiKeySk){
 							"Results: ", planResults
 						)
 
-						var planLogoImage = planResults.items[0].logo
 						var planName = planResults.items[0].title
 
 			
@@ -863,13 +864,11 @@ export function getStripeSubscriptions(cus, apiKeySk){
 								"price": "$" + ((jointSubscription.plan.amount) / 100).toString(),
 								"interval": jointSubscription.plan.interval,
 								"subscription": jointSubscription.subscription,
-								"planName": planName,
-								"planLogoImage": planLogoImage
+								"planName": planName
 
 								}
 
 								subscriptionData.push(newSubscription);
-								listItems.push(newSubscription);
 								subscriptionCheck.push(jointSubscription.plan.id);
 								console.log("Subscription Check: ", subscriptionCheck)
 
@@ -902,6 +901,7 @@ export function getStripeSubscriptions(cus, apiKeySk){
 				
 				let planId = subscription.plan.id; //price_xx matches stripeSubscriptions database
 				let status = subscription.status; //active
+        let cancelDate = (new Date(subscription.cancel_at*1000));
 				let price = "$" + ((subscription.plan.amount) / 100).toString();
 				let interval = subscription.plan.interval; //month or year
 
@@ -911,7 +911,6 @@ export function getStripeSubscriptions(cus, apiKeySk){
 										"Results: ", planResults
 									)
 
-									var planLogoImage = planResults.items[0].logo
 									var planName = planResults.items[0].title
 
 						
@@ -923,13 +922,11 @@ export function getStripeSubscriptions(cus, apiKeySk){
 											"price": "$" + ((subscription.plan.amount) / 100).toString(),
 											"interval": subscription.plan.interval,
 											"subscription": subscription.id,
-											"planName": planName,
-											"planLogoImage": planLogoImage
+											"planName": planName
 
 											}
 
 											subscriptionData.push(newSubscription);
-											listItems.push(newSubscription);
 											subscriptionCheck.push(subscription.plan.id)
 											console.log("Subscription Check: ", subscriptionCheck)
 
@@ -968,4 +965,84 @@ function uniqueId() {
     } while (idStr.length < idStrLen);
 
     return (idStr);
+}
+
+function formatDate (date) {
+		var d = new Date(date),
+        month = date.toLocaleString('default', { month: 'long' }),
+        day = ' ' + d.getDate(),
+        year = " " + d.getFullYear();
+
+    
+    if (day.length < 2) day = '0' + day;
+	let thisDate = month + " " + day + "," + year;
+
+    return thisDate
+}
+
+export function queryAgents(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
+
+  let apiKeySk
+
+//-------set below for live or test Stripe----//
+
+let stripeMode = "test";   //value is "test" or "live"
+
+if(stripeMode == "test"){
+
+    apiKeySk = "stripeTestSk";
+
+
+} else if(stripeMode == "live"){
+
+    apiKeySk = "stripeLiveSk";
+
+}
+
+
+      wixData.query('Team')
+      .find().then((res) => {
+
+        
+      let agents = res.items;  
+      let itemId = res.items[0]._id
+      
+      let databaseSubscriptions = res.items[0].subscriptionId;
+
+                                    //--log process--//
+                                      let logResults = {
+                                          "type": "Subscription Check",
+                                          "log": "All Agents"
+                                        };
+
+                                        wixData.insert("devLog", res)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
+
+          agents.forEach(agent => {
+
+                    let agentSubscriptions = agent.subscriptionId;
+                    let cus = agent.customerId;
+
+                    agentSubscriptions.forEach(subscription => {
+
+
+                        getStripeSubscriptions(cus, subscription, apiKeySk);
+
+
+                      
+                    });
+
+            
+          });
+
+    })
+
+
+
 }

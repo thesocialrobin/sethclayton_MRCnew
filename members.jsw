@@ -1,0 +1,86 @@
+import { authorization } from 'wix-members-backend';
+import wixData from 'wix-data';
+import { members } from 'wix-members-backend';
+
+const options = {
+    suppressAuth: true
+};
+
+
+export function assignEssential(memId) {
+    const roleId = "622d33e0-d047-4c12-9bcb-7b2355ce414f";
+    const memberId = memId;
+
+    return authorization.assignRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}
+
+export function assignBoost(memId) {
+    const roleId = "4f0115cb-c0b6-481d-804b-b83c36c911a3";
+    const memberId = memId;
+
+    return authorization.assignRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}
+
+export function assignGoogle(memId) {
+    const roleId = "334e368f-901a-4fe6-87ae-bb43a42fda19";
+    const memberId = memId;
+
+    return authorization.assignRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}
+
+export function removeEssential(memId) {
+    const roleId = "622d33e0-d047-4c12-9bcb-7b2355ce414f";
+    const memberId = memId;
+
+    return authorization.removeRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}
+
+export function removeBoost(memId) {
+    const roleId = "4f0115cb-c0b6-481d-804b-b83c36c911a3";
+    const memberId = memId;
+
+    return authorization.removeRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}
+
+export function removeGoogle(memId) {
+    const roleId = "334e368f-901a-4fe6-87ae-bb43a42fda19";
+    const memberId = memId;
+
+    return authorization.removeRole(roleId, memberId, options)
+    .then(() => {
+        return true;
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+}

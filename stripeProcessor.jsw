@@ -1054,11 +1054,12 @@ if(stripeMode == "test"){
                     let agentSubscriptions = agent.subscriptionId;
                     let cus = agent.customerId;
                     let agentEmail = agent.email;
+                    let agentId = agent._id;
 
                     agentSubscriptions.forEach(subscription => {
 
 
-                        checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail)
+                        checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail, agentId)
 
                       
                     });
@@ -1125,7 +1126,7 @@ export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoos
 
 }
 
-export async function checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail) {
+export async function checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail, agentId) {
     
     let subscriptions = await getStripeSubscription(cus, subscription, apiKeySk);
     console.log("Stripe Subscription Data Retrieved:", subscriptions);
@@ -1133,16 +1134,16 @@ export async function checkAgentSubscriptions(subscription, cus, apiKeySk, allBo
     
     let plans = subscriptions.items?.data || [];
     for (const item of plans) {
-        await processSubscriptionPlan(item.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail);
+        await processSubscriptionPlan(item.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail, agentId);
     }
 
    
     if (!plans.length && subscriptions.plan?.id) {
-        await processSubscriptionPlan(subscriptions.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail);
+        await processSubscriptionPlan(subscriptions.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail, agentId);
     }
 }
 
-async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail) {
+async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail, agentId) {
     console.log("Processing Plan: ", planId, subscriptions);
 
     

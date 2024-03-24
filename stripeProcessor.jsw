@@ -2,6 +2,8 @@ import stripe from 'stripe';
 //import {getSecret} from 'wix-secrets-backend';
 import wixSecretsBackend from 'wix-secrets-backend';
 import wixData from 'wix-data';
+import { removeEssential, removeBoost, removeGoogle } from 'backend/members.jsw';
+import { members } from 'wix-members.v2';
 
 
 let subscriptionCheck = [];
@@ -782,9 +784,9 @@ export async function addStripeSubscriptions(){
 export async function findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
 
-  let findmatchEssential = subscriptionData.find(item=> item.price === activeSubscription)
-	let findmatchGoogle = subscriptionData.find(item=> item.price === activeSubscription)
-	let findmatchBoost = subscriptionData.find(item=> item.price === activeSubscription)
+  let findmatchEssential = allEssentialSubscriptions.find(item=> item === planId)
+	let findmatchGoogle = allGoogleSubscriptions.find(item=> item === planId)
+	let findmatchBoost = allBoostSubscriptions.find(item=> item === planId)
  
   
 
@@ -1051,11 +1053,12 @@ if(stripeMode == "test"){
 
                     let agentSubscriptions = agent.subscriptionId;
                     let cus = agent.customerId;
+                    let agentEmail = agent.email;
 
                     agentSubscriptions.forEach(subscription => {
 
 
-                        checkAllSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
+                        checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail)
 
                       
                     });
@@ -1071,10 +1074,7 @@ if(stripeMode == "test"){
 
 export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
-            let findmatchEssential = subscriptionData.find(item=> item.price === activeSubscription)
-            let findmatchGoogle = subscriptionData.find(item=> item.price === activeSubscription)
-            let findmatchBoost = subscriptionData.find(item=> item.price === activeSubscription)
-
+           
 
 		await getStripeSubscription(cus,subscription,apiKeySk).then( (subscriptions) => {
 				
@@ -1122,5 +1122,83 @@ export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoos
 					}
 
 			})
+
+}
+
+export async function checkAgentSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, agentEmail) {
+    
+    let subscriptions = await getStripeSubscription(cus, subscription, apiKeySk);
+    console.log("Stripe Subscription Data Retrieved:", subscriptions);
+
+    
+    let plans = subscriptions.items?.data || [];
+    for (const item of plans) {
+        await processSubscriptionPlan(item.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail);
+    }
+
+   
+    if (!plans.length && subscriptions.plan?.id) {
+        await processSubscriptionPlan(subscriptions.plan.id, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail);
+    }
+}
+
+async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions, subscriptions, agentEmail) {
+    console.log("Processing Plan: ", planId, subscriptions);
+
+    
+    try {
+        let member = await getMemberId(agentEmail); 
+		let memberId = member[0].contactId;
+
+		let cancellationDays = 15; //set the number of days or range for how many days we want for the cancellation period to search
+
+		let today = new Date();
+        let cancellationRange = new Date(today.setDate(today.getDate() - cancellationDays));
+        cancellationRange.setHours(0,0,0,0); //
+		let formattedDate = formatDate(cancellationRange);
+		let cancelDate = new Date(subscriptions.canceled_at * 1000);
+		let cancelledDate = formatDate(cancelDate);
+        let status = subscriptions.status;
+
+        if (cancelDate.getTime() < cancellationRange.getTime() && status === "canceled") {
+            console.log("Subscription is within cancellation range.");
+            // Further process only if subscription was cancelled within the specified range
+            if (allEssentialSubscriptions.includes(planId)) {
+                console.log("Essential Match Found - Remove Essential Permissions & Role", memberId);
+            } else if (allGoogleSubscriptions.includes(planId)) {
+                console.log("Google Match Found - Remove Google Permissions & Role", memberId);
+            } else if (allBoostSubscriptions.includes(planId)) {
+                console.log("Boost Match Found - Remove Boost Permissions & Role", memberId);
+            }
+        } else {
+            console.log("Subscription cancellation is outside the specified range or not canceled.", formattedDate);
+        }
+
+
+    } catch (error) {
+        console.error("Error fetching memberId:", error);
+    }
+}
+
+export async function getMemberId(email){
+
+											const results = await members
+													.queryMembers()
+													.eq('loginEmail', email)
+													.find();
+
+												if (results.items.length > 0) {
+													const items = results.items;
+													const firstItem = items[0];
+													const pageSize = results.pageSize;
+													const hasNext = results.hasNext();
+													const hasPrev = results.hasPrev();
+													const length = results.length;
+													const query = results.query;
+
+													return items;
+												} else {
+													// Handle if no matching items found
+												}
 
 }

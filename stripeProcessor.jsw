@@ -709,10 +709,11 @@ export async function addStripeSubscriptions(){
   let allBoostSubscriptions = [];
   let allGoogleSubscriptions = [];
   let allEssentialSubscriptions = [];
+  let allSubscriptionOptions = [];
 
             wixData.query("stripeSubscriptions")    
                     .contains("title", "Boost")
-                        .or(
+                    .or(
                           wixData.query("stripeSubscriptions")
                           .contains("title", "Essential")
                             ) 
@@ -725,34 +726,32 @@ export async function addStripeSubscriptions(){
 
 					        	let totalSusbcriptions = results.items[0].apiId;
                     let allSubscriptions = results.items
-                    let totalSusbcriptionsLength = totalSusbcriptions.length;
+                    //let totalSusbcriptionsLength = totalSusbcriptions.length;
+                    let totalSusbcriptionsLength = allSubscriptionOptions.length;
                     let count = 0;
 
                     allSubscriptions.forEach(subscription => {
 
 
-                      if(subscription.includes("BOOST")){
-                        count++
-                        allBoostSubscriptions.push(subscription.apiId);
+                      if(subscription.title.includes("BOOST")){
 
-                      }
+                      allBoostSubscriptions.push(subscription.apiId);
+                      allSubscriptionOptions.push(subscription.apiId);
 
-                      if(subscription.includes("Essential")){
+                      } else if(subscription.title.includes("Essential")){
 
                         allEssentialSubscriptions.push(subscription.apiId);
+                        allSubscriptionOptions.push(subscription.apiId);
 
-                      }
-
-                      if(subscription.includes("Google")){
+                      } else if(subscription.title.includes("Google")){
 
                         allGoogleSubscriptions.push(subscription.apiId);
-
+                        allSubscriptionOptions.push(subscription.apiId);
+                        
                       }
                       
 
-                      if(count == totalSusbcriptions){
-
-                        //findRemovePermissions()
+                        
                         queryAgents(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
 
                          //--log process--//
@@ -772,7 +771,7 @@ export async function addStripeSubscriptions(){
 
                          //--end log process--//
 
-                      }
+                      
                       
                     });
 
@@ -782,42 +781,15 @@ export async function addStripeSubscriptions(){
 
 export async function findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
-/*
+
   let findmatchEssential = subscriptionData.find(item=> item.price === activeSubscription)
 	let findmatchGoogle = subscriptionData.find(item=> item.price === activeSubscription)
 	let findmatchBoost = subscriptionData.find(item=> item.price === activeSubscription)
-  */
+ 
   
-
-let apiKeySk
-
-//-------set below for live or test Stripe----//
-
-let stripeMode = "test";   //value is "test" or "live"
-
-if(stripeMode == "test"){
-
-    apiKeySk = "stripeTestSk";
-
-
-} else if(stripeMode == "live"){
-
-    apiKeySk = "stripeLiveSk";
-
-}
-
-
 
 //------BEGIN FUNCTION------//
 
-   let apiKey = await getAPIKey(apiKeySk);
-    const key = require("stripe")(apiKey);
-
-    //---ACTIVE AND PRICE CONTAINS--//
-
-    var findSubscriptions = await key.subscriptions.search({
-  query: 'status:\'canceled\' AND metadata[\'cancel_at\']:\'6735\' OR metadata[\'order_id\']:\'6735\'',
-})
 
   
       //--log process--//
@@ -853,13 +825,6 @@ if(stripeMode == "test"){
 
        //--end log process--//
 
-//cancelled let stripeSub = await stripe.subscriptions.list({customer: customerId, status: "canceled"});
- 
-
-
-	return await key.subscriptions.search({
-  query: 'status:\'active\' AND metadata[\'order_id\']:\'6735\' OR metadata[\'order_id\']:\'6735\'',
-})
 
 }
 
@@ -1106,14 +1071,18 @@ if(stripeMode == "test"){
 
 export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
+            let findmatchEssential = subscriptionData.find(item=> item.price === activeSubscription)
+            let findmatchGoogle = subscriptionData.find(item=> item.price === activeSubscription)
+            let findmatchBoost = subscriptionData.find(item=> item.price === activeSubscription)
+
 
 		await getStripeSubscription(cus,subscription,apiKeySk).then( (subscriptions) => {
 				
 					
-					let retrievedData = subscriptions
+					let retrievedData = subscriptions;
 					
 					let status = subscriptions.status; //active or canceled
-					console.log("Stripe Subscription Data Retreieved:", retrievedData);
+					console.log("Stripe Subscription Data Retrieved:", retrievedData);
 					
 
 					let cancelDate = (new Date(subscriptions.canceled_at*1000)); //subscription cancel date
@@ -1127,6 +1096,29 @@ export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoos
 
 						//remove the plan
 						//kick the member
+
+						if(subscriptions?.items?.data?.length > 1){
+							console.log("Multiple Subscriptions: ", subscriptions.items.data)
+							let plans = subscriptions.items.data;
+							console.log("Combo Subscriptions: ", plans)
+
+								plans.forEach(item => {
+									let planId = item.plan.id;
+									console.log("Combo Subscription: ", planId)
+									//find match and remove member from appropriate membership plan
+									//remove subscription from member's agents database
+									
+								});
+
+
+
+								} else {
+							let plan = subscriptions.plan.id;
+							console.log("Plan: ", plan)
+							//find match and remove member from appropriate membership plan
+							//remove subscription from member's agents database
+								
+								}
 					}
 
 			})

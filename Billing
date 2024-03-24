@@ -4,7 +4,7 @@ import wixLocation from 'wix-location';
 import {session} from 'wix-storage';
 import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
-import { retrieveMethod, retrieveSubscription,retrieveInvoices,cancelSubscription } from 'backend/stripeProcessor.jsw';
+import { retrieveMethod, retrieveSubscription,retrieveInvoices,cancelSubscription,getStripeSubscription } from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
 
 let apiKeyPk
@@ -80,6 +80,14 @@ if(stripeMode == "test"){
 		session.setItem("cus", res.items[0].customerId)
 
 		cus = res.items[0].customerId;
+		let databaseSubscriptions = res.items[0].subscriptionId;
+
+
+		addStripeSubscriptions(databaseSubscriptions);
+		
+	
+
+		
 		console.log("Customer", cus)
 
 	
@@ -195,11 +203,13 @@ if(stripeMode == "test"){
 
 							if(totalPages > 1){
 								
+								let displayCount = invoiceData.length;
 								$w('#totalPages').text =  "of " + totalPages.toString();
 
 								if(count !== totalPages){
 									let getNearestEight = roundEight(count);
-									$w('#pageSeries').text = "1" + "-" + getNearestEight.toString();
+									//$w('#pageSeries').text = "1" + "-" + getNearestEight.toString();
+									$w('#pageSeries').text = "1" + "-" + displayCount.toString();
 								} 
 
 								if (totalPages > 8){
@@ -1402,7 +1412,7 @@ export function retrieveMethods(){
 
 						})
 
-				//031024.0315
+				
 
 					
 				})	
@@ -1410,4 +1420,152 @@ export function retrieveMethods(){
 				
 			
 	});
+}
+
+export async function checkAllSubscriptions(subscription, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
+
+	//console.log("Database Subscriptions: ", allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
+
+
+		await getStripeSubscription(cus,subscription,apiKeySk).then( (subscriptions) => {
+				
+					
+					let retrievedData = subscriptions;
+					
+					let status = subscriptions.status; //active or canceled
+					console.log("Stripe Subscription Data Retrieved:", retrievedData);
+					
+
+					let cancelDate = (new Date(subscriptions.canceled_at*1000)); //subscription cancel date
+					let today = new Date();
+					let cancellationRange = new Date(today.setDate(today.getDate() - 15)); // reset the cancellation range in Days
+					//Note: This range can be set to find a period of cancellations to search and remove memberships for all cancellations
+
+					if (cancelDate.getTime() < cancellationRange.setHours(0,0,0,0) && status == "canceled") {
+						let formattedDate = formatDate(cancellationRange);
+						console.log("Canceled Plan: ", formattedDate)
+
+						//remove the plan
+						//kick the member
+
+						if(subscriptions?.items?.data?.length > 1){
+							console.log("Multiple Subscriptions: ", subscriptions.items.data)
+							let plans = subscriptions.items.data;
+							console.log("Combo Subscriptions: ", plans)
+
+								plans.forEach(item => {
+									let planId = item.plan.id;
+									console.log("Combo Subscription: ", planId)
+									//find match and remove member from appropriate membership plan
+									//remove subscription from member's agents database
+									
+								});
+
+
+
+								} else {
+							let plan = subscriptions.plan.id;
+							console.log("Plan: ", plan)
+							//find match and remove member from appropriate membership plan
+							//remove subscription from member's agents database
+								
+								}
+					}
+
+			})
+
+}
+
+export async function addStripeSubscriptions(databaseSubscriptions){
+
+  let allBoostSubscriptions = [];
+  let allGoogleSubscriptions = [];
+  let allEssentialSubscriptions = [];
+  let allSubscriptionOptions = [];
+
+            wixData.query("stripeSubscriptions")    
+                    .contains("title", "Boost")
+                    .or(
+                          wixData.query("stripeSubscriptions")
+                          .contains("title", "Essential")
+                            ) 
+                          .or(
+                          wixData.query("stripeSubscriptions")
+                          .contains("title", "Google")
+                            )     
+                    .find() 
+                    .then((results) => {
+
+					        	let totalSubscriptions = results.items[0].apiId;
+                    let allSubscriptions = results.items
+                    let totalSubscriptionsLength = allSubscriptionOptions.length;
+					
+                    let count = 0;
+
+					//console.log("Database Subscriptions: ", allGoogleSubscriptions, allBoostSubscriptions, allEssentialSubscriptions)
+
+                    allSubscriptions.forEach(subscription => {
+
+
+                      if(subscription.title.includes("BOOST")){
+                        count++
+                        allBoostSubscriptions.push(subscription.apiId);
+						allSubscriptionOptions.push(subscription.apiId);
+						console.log("Counts: ", count, totalSubscriptionsLength)
+
+                      }
+
+                      if(subscription.title.includes("Essential")){
+						  count++
+
+                        allEssentialSubscriptions.push(subscription.apiId);
+						allSubscriptionOptions.push(subscription.apiId);
+						console.log("Counts: ", count, totalSubscriptionsLength)
+
+                      }
+
+                      if(subscription.title.includes("Google")){
+						  count++
+
+                        allGoogleSubscriptions.push(subscription.apiId);
+						allSubscriptionOptions.push(subscription.apiId);
+						console.log("Counts: ", count, totalSubscriptionsLength)
+
+                      }
+                      
+					  console.log("Counts: ", count, allSubscriptionOptions.length)
+
+                      if(count == allSubscriptionOptions.length){
+
+
+						  databaseSubscriptions.forEach(subscription => {
+
+								checkAllSubscriptions(subscription, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions);
+								
+							});
+
+
+                         //--log process--//
+                          let logResults = {
+                              "type": "Find Remove Permissions Log",
+                              "log": "Log Stripe Subscriptions", allBoostSubscriptions, allEssentialSubscriptions, allGoogleSubscriptions
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                         //--end log process--//
+
+                      }
+                      
+                    });
+
+                    })
+
 }

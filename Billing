@@ -21,6 +21,7 @@ let memberId
 let roleIds = [];
 let toCancel = [];
 let cus
+let agentId
 
 var email 
 var planId
@@ -76,6 +77,7 @@ if(stripeMode == "test"){
 
 	wixData.query('Team').eq('email', email).find().then((res) => {
         var itemId = res.items[0]._id
+		agentId = itemId;
         session.setItem("id", itemId)
         session.setItem("userName", res.items[0].name)
 		session.setItem("subscriptionStatus", res.items[0].subscriptionStatus)
@@ -85,7 +87,7 @@ if(stripeMode == "test"){
 		let databaseSubscriptions = res.items[0].subscriptionId;
 
 
-		addStripeSubscriptions(databaseSubscriptions);
+			addStripeSubscriptions(databaseSubscriptions);
 		
 	
 
@@ -1469,6 +1471,27 @@ export async function checkAllSubscriptions(subscription, allBoostSubscriptions,
 										console.log("MemberId: ", memberId)
 										console.log("Essential Match Found - Remove Essential Permissions & Role", memberId)
 
+										wixData.get("Team", agentId)
+										.then((toUpdate) => {
+
+											let currentdatabaseSubs = [];
+											currentdatabaseSubs = toUpdate.subscriptionId;
+
+											//toUpdate.subscriptionId = currentdatabaseSubs;
+
+											console.log("Prepped Database Essential: ", toUpdate);
+											/*
+											wixData.update('Team', toUpdate).then((res) => {
+
+											})
+											*/
+
+											let objIndex = currentdatabaseSubs.findIndex(subscription=> subscription === planId)
+        										currentdatabaseSubs.splice(objIndex, 1);
+											console.log("Updated Database Essential: ", currentdatabaseSubs)
+
+										})
+
 										
 
 
@@ -1489,6 +1512,8 @@ export async function checkAllSubscriptions(subscription, allBoostSubscriptions,
 									let memberId = getMemberId(email);
 										console.log("MemberId: ", memberId)
 									console.log("Google Match Found - Remove Essential Permissions & Role", memberId)
+
+									
 
 									
 
@@ -1688,10 +1713,73 @@ async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleS
             // Further process only if subscription was cancelled within the specified range
             if (allEssentialSubscriptions.includes(planId)) {
                 console.log("Essential Match Found - Remove Essential Permissions & Role", memberId);
+
+				wixData.get("Team", agentId)
+										.then((toUpdate) => {
+
+											let currentdatabaseSubs = [];
+											currentdatabaseSubs = toUpdate.subscriptionId; // set the array
+											console.log("Prepped Database Essential: ", currentdatabaseSubs);
+											let objIndex = currentdatabaseSubs.findIndex(subscription=> subscription === planId)
+        									currentdatabaseSubs.splice(objIndex, 1); //spliced array
+											console.log("Updated Database Essential: ", currentdatabaseSubs)
+
+											//toUpdate.subscriptionId = currentdatabaseSubs; //set as new spliced array
+
+														/*								
+											wixData.update('Team', toUpdate).then((res) => {
+
+											})		*/									
+
+											
+										})
+
             } else if (allGoogleSubscriptions.includes(planId)) {
                 console.log("Google Match Found - Remove Google Permissions & Role", memberId);
+
+				wixData.get("Team", agentId)
+										.then((toUpdate) => {
+
+											let currentdatabaseSubs = [];
+											currentdatabaseSubs = toUpdate.subscriptionId;
+
+											//toUpdate.subscriptionId = currentdatabaseSubs;
+
+											console.log("Prepped Database Google: ", currentdatabaseSubs);
+											/*
+											wixData.update('Team', toUpdate).then((res) => {
+
+											})
+											*/
+
+											let objIndex = currentdatabaseSubs.findIndex(subscription=> subscription === planId)
+        									currentdatabaseSubs.splice(objIndex, 1);
+											console.log("Updated Database Google: ", currentdatabaseSubs)
+
+										})
             } else if (allBoostSubscriptions.includes(planId)) {
                 console.log("Boost Match Found - Remove Boost Permissions & Role", memberId);
+
+				wixData.get("Team", agentId)
+										.then((toUpdate) => {
+
+											let currentdatabaseSubs = [];
+											currentdatabaseSubs = toUpdate.subscriptionId;
+
+											//toUpdate.subscriptionId = currentdatabaseSubs;
+
+											console.log("Prepped Database Boost: ", currentdatabaseSubs);
+											/*
+											wixData.update('Team', toUpdate).then((res) => {
+
+											})
+											*/
+
+											let objIndex = currentdatabaseSubs.findIndex(subscription=> subscription === planId)
+        									currentdatabaseSubs.splice(objIndex, 1);
+											console.log("Updated Database Boost: ", currentdatabaseSubs)
+
+										})
             }
         } else {
             console.log("Subscription cancellation is outside the specified range or not canceled.", formattedDate);

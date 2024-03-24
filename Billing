@@ -1504,45 +1504,30 @@ export async function addStripeSubscriptions(databaseSubscriptions){
 
 					//console.log("Database Subscriptions: ", allGoogleSubscriptions, allBoostSubscriptions, allEssentialSubscriptions)
 
-                    allSubscriptions.forEach(subscription => {
+                  		  allSubscriptions.forEach(subscription => {
 
 
-                      if(subscription.title.includes("BOOST")){
-                        count++
-                        allBoostSubscriptions.push(subscription.apiId);
-						allSubscriptionOptions.push(subscription.apiId);
-						console.log("Counts: ", count, totalSubscriptionsLength)
+							if(subscription.title.includes("BOOST")){
 
-                      }
+							allBoostSubscriptions.push(subscription.apiId);
+							allSubscriptionOptions.push(subscription.apiId);
 
-                      if(subscription.title.includes("Essential")){
-						  count++
+							} else if(subscription.title.includes("Essential")){
 
-                        allEssentialSubscriptions.push(subscription.apiId);
-						allSubscriptionOptions.push(subscription.apiId);
-						console.log("Counts: ", count, totalSubscriptionsLength)
+								allEssentialSubscriptions.push(subscription.apiId);
+								allSubscriptionOptions.push(subscription.apiId);
 
-                      }
+							} else if(subscription.title.includes("Google")){
 
-                      if(subscription.title.includes("Google")){
-						  count++
-
-                        allGoogleSubscriptions.push(subscription.apiId);
-						allSubscriptionOptions.push(subscription.apiId);
-						console.log("Counts: ", count, totalSubscriptionsLength)
-
-                      }
-                      
-					  console.log("Counts: ", count, allSubscriptionOptions.length)
-
-                      if(count == allSubscriptionOptions.length){
-
-
-						  databaseSubscriptions.forEach(subscription => {
-
-								checkAllSubscriptions(subscription, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions);
+								allGoogleSubscriptions.push(subscription.apiId);
+								allSubscriptionOptions.push(subscription.apiId);
 								
-							});
+							}
+                      
+					  console.log("All Subscriptions Processed:", allSubscriptionOptions.length);
+
+
+						 
 
 
                          //--log process--//
@@ -1562,9 +1547,18 @@ export async function addStripeSubscriptions(databaseSubscriptions){
 
                          //--end log process--//
 
-                      }
+                      
                       
                     });
+
+					 databaseSubscriptions.forEach(userDatabaseSubscription => {
+
+
+							  console.log("All User Database Subscriptions: ", userDatabaseSubscription)
+
+								checkAllSubscriptions(userDatabaseSubscription, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions);
+								
+							});
 
                     })
 

@@ -6,6 +6,7 @@ import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
 import { retrieveMethod, retrieveSubscription,retrieveInvoices,cancelSubscription,getStripeSubscription } from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
+import { removeEssential, removeBoost, removeGoogle } from 'backend/members.jsw';
 
 let apiKeyPk
 let apiKeySk
@@ -1457,6 +1458,52 @@ export async function checkAllSubscriptions(subscription, allBoostSubscriptions,
 									let planId = item.plan.id;
 									console.log("Combo Subscription: ", planId)
 									//find match and remove member from appropriate membership plan
+									let findmatchEssential = allEssentialSubscriptions.find(item=> item === planId)
+									let findmatchGoogle = allGoogleSubscriptions.find(item=> item === planId)
+									let findmatchBoost = allBoostSubscriptions.find(item=> item === planId)
+
+									if(findmatchEssential){ //Essential
+
+
+										console.log("Essential Match Found - Remove Essential Permissions & Role")
+
+										/*
+										removeEssential(memberId).then((result) => {
+											console.log("Assigned Essential:", result)
+
+											//remove subscription from Wix Agent .subscriptionId array
+										})
+										*/
+
+
+
+									} else if(findmatchGoogle){ //Google
+
+									console.log("Google Match Found - Remove Essential Permissions & Role")
+
+
+									/*
+
+										removeGoogle(memberId).then((result) => {
+											console.log("Assigned Google:", result)
+										})
+
+										*/
+
+									} else if(findmatchBoost){ //Boost
+
+									console.log("Boost Match Found - Remove Essential Permissions & Role")
+
+
+										/*
+										removeBoost(memberId).then((result) => {
+											console.log("Removed Boost:", result)
+
+										})
+										*/
+										
+									}
+
 									//remove subscription from member's agents database
 									
 								});
@@ -1464,8 +1511,8 @@ export async function checkAllSubscriptions(subscription, allBoostSubscriptions,
 
 
 								} else {
-							let plan = subscriptions.plan.id;
-							console.log("Plan: ", plan)
+							let planId = subscriptions.plan.id;
+							console.log("Plan: ", planId)
 							//find match and remove member from appropriate membership plan
 							//remove subscription from member's agents database
 								

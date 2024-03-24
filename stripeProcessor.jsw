@@ -311,6 +311,64 @@ export async function cancelSubscription(sub,apiKeySk){
 	});
 
 }
+
+export async function getStripeSubscription(cus,subscription,apiKeySk){
+
+   let apiKey = await getAPIKey(apiKeySk);
+    const key = require("stripe")(apiKey);
+
+    return await key.subscriptions.retrieve(subscription)
+
+    /*
+
+    var subscription = await key.subscriptions.retrieve(subscription);
+
+  
+      //--log process--//
+                          let logResults = {
+                              "type": "Stripe Log",
+                              "log": "Retrieve Subscription", cus, subscription
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+
+
+                                   //--log process--//
+                                      let logResults = {
+                                          "type": "Stripe Log",
+                                          "log": "Retrieve Invoices Error", cus, errorMsg
+                                        };
+
+                                        wixData.insert("devLog", logResults)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
+                            } );
+
+       //--end log process--//
+
+	return await key.subscriptions.retrieve(subscription).then( function(err, subscription) {
+		if (err) {
+			return Promise.resolve(err); //does not work
+		}
+			return Promise.resolve(subscription);
+	})
+	.catch( (err) => {
+		return err;
+	});
+*/
+	
+}
 export async function retrieveInvoices(cus,apiKeySk){
 
    let apiKey = await getAPIKey(apiKeySk);
@@ -805,7 +863,7 @@ if(stripeMode == "test"){
 
 }
 
-export function getStripeSubscriptions(cus, apiKeySk){
+export function getStripeSubscriptions(cus, subscription, apiKeySk){
 
   retrieveSubscription(cus, apiKeySk)
 			.then( (subscriptions) => {
@@ -841,7 +899,7 @@ export function getStripeSubscriptions(cus, apiKeySk){
 					
 					totalSubscriptionAmount = totalSubscriptionAmount + jointSubscription.plan.amount
 					let jointstatus = jointSubscription.status; //active or canceled
-          let cancelDate = (new Date(jointSubscription.cancel_at*1000)); //date date
+          let cancelDate = (new Date(jointSubscription.cancel_at*1000)); // date
 					let jointprice = "$" + ((jointSubscription.plan.amount) / 100).toString();
 					let jointinterval = jointSubscription.plan.interval; //month or year
 
@@ -1032,8 +1090,7 @@ if(stripeMode == "test"){
                     agentSubscriptions.forEach(subscription => {
 
 
-                        getStripeSubscriptions(cus, subscription, apiKeySk);
-
+                        checkAllSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions)
 
                       
                     });
@@ -1044,5 +1101,34 @@ if(stripeMode == "test"){
     })
 
 
+
+}
+
+export async function checkAllSubscriptions(subscription, cus, apiKeySk, allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
+
+
+		await getStripeSubscription(cus,subscription,apiKeySk).then( (subscriptions) => {
+				
+					
+					let retrievedData = subscriptions
+					
+					let status = subscriptions.status; //active or canceled
+					console.log("Stripe Subscription Data Retreieved:", retrievedData);
+					
+
+					let cancelDate = (new Date(subscriptions.canceled_at*1000)); //subscription cancel date
+					let today = new Date();
+					let cancellationRange = new Date(today.setDate(today.getDate() - 15)); // reset the cancellation range in Days
+					//Note: This range can be set to find a period of cancellations to search and remove memberships for all cancellations
+
+					if (cancelDate.getTime() < cancellationRange.setHours(0,0,0,0) && status == "canceled") {
+						let formattedDate = formatDate(cancellationRange);
+						console.log("Canceled Plan: ", formattedDate)
+
+						//remove the plan
+						//kick the member
+					}
+
+			})
 
 }

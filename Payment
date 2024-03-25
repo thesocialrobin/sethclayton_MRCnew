@@ -766,7 +766,7 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                         $w("#submit").label = "Subscribed!";
 						$w("#newCard").label = "Subscribed!";
 
-						/*
+						
 						checkSubscriptionsPermissions().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
@@ -783,27 +783,6 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
 							} );
 
                         }, 2000);
-
-
-						})
-						*/
-
-						checkSubscriptionsPermissionsNew().then((res) => {
-
-							// After 2 seconds, change the state of the multistate box to 'licensing'
-                        setTimeout(() => {
-                            $w('#processorText').text = "Taking to Dashboard...";
-							$w('#defaultProcessorText').text = "Taking to Dashboard...";
-
-                        }, 15000);
-
-                        setTimeout(() => {
-
-                            wixWindow.lightbox.close( {
-								"lightBoxSend1": "Success",
-							} );
-
-                        }, 15000);
 
 
 						})
@@ -838,7 +817,7 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
 
-						/*
+						
 						checkSubscriptionsPermissions().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
@@ -857,27 +836,6 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
 
 
 						})
-						*/
-
-						checkSubscriptionsPermissionsNew().then((res) => {
-
-							// After 2 seconds, change the state of the multistate box to 'licensing'
-                        setTimeout(() => {
-                            $w('#processorText').text = "Taking to Dashboard...";
-							$w('#defaultProcessorText').text = "Taking to Dashboard...";
-
-                        }, 15000);
-
-                        setTimeout(() => {
-
-                            wixWindow.lightbox.close( {
-								"lightBoxSend1": "Success",
-							} );
-
-                        }, 15000);
-
-
-						})
 
                         
                     })
@@ -888,72 +846,6 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
 
 }
 
-async function checkSubscriptionsPermissions(){
-
-	let essentialMonthly = "price_1OSk4TGjvTpCU0nDMP9tc4Yi";
-	let essentialAnnual = "price_1OSk71GjvTpCU0nDxg7qNTie";
-	let boostMonthly = "price_1Ogal7GjvTpCU0nDrLO2Whvn";
-	let boostAnnual = "price_1Ogam3GjvTpCU0nDcPIzyAR6";
-	let google750 = "price_1OgansGjvTpCU0nD6kKk0N74";
-	let google500 = "price_1OganPGjvTpCU0nDpjsCIR8x";
-	let google250 = "price_1OgammGjvTpCU0nD3AGBzEhz";
-
-
-	let findmatchEssentialMonthly = subscriptionCheckoutData.find(item=> item.price === essentialMonthly)
-	let findmatchEssentialAnnual = subscriptionCheckoutData.find(item=> item.price === essentialAnnual)
-	let findmatchBoostMonthly = subscriptionCheckoutData.find(item=> item.price === boostMonthly)
-	let findmatchBoostAnnual = subscriptionCheckoutData.find(item=> item.price === boostAnnual)
-
-	console.log("Subscriptions Permissions Check and Find Match", findmatchBoostAnnual, findmatchBoostMonthly, findmatchEssentialAnnual, findmatchEssentialMonthly)
-
-	if(subscriptionCheckoutData.length > 0){
-
-		
-
-		if(findmatchEssentialMonthly || findmatchEssentialAnnual){
-
-			assignEssential(memberId).then((result) => {
-				console.log("Assigned Essential:", result)
-			})
-
-		}
-
-		if(findmatchBoostMonthly || findmatchBoostAnnual){
-
-			assignBoost(memberId).then((result) => {
-				console.log("Assigned Boost:", result)
-			})
-
-		}
-
-
-	}
-
-	if(planId != undefined){
-
-		if(planId == essentialMonthly || planId == essentialAnnual){
-
-			assignEssential(memberId).then((result) => {
-				console.log("Assigned Essential:", result)
-			})
-
-		}
-
-		if(planId == boostMonthly || planId == boostAnnual){
-
-			assignBoost(memberId).then((result) => {
-				console.log("Assigned Boost:", result)
-			})
-
-		}
-
-
-	}
-
-
-
-
-}
 
 export async function addStripeSubscriptions() {
     console.log("Starting to fetch subscription options from Wix Data...");
@@ -993,7 +885,7 @@ export async function addStripeSubscriptions() {
     };
 }
 
-async function checkSubscriptionsPermissionsNew() {
+async function checkSubscriptionsPermissions() {
 
     console.log("Checking subscriptions permissions...");
 

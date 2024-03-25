@@ -795,7 +795,7 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                             $w('#processorText').text = "Taking to Dashboard...";
 							$w('#defaultProcessorText').text = "Taking to Dashboard...";
 
-                        }, 1000);
+                        }, 15000);
 
                         setTimeout(() => {
 
@@ -803,7 +803,7 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
 								"lightBoxSend1": "Success",
 							} );
 
-                        }, 2000);
+                        }, 15000);
 
 
 						})
@@ -838,6 +838,7 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
                         console.log('updated');
                         $w("#submit").label = "Subscribed!";
 
+						/*
 						checkSubscriptionsPermissions().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
@@ -853,6 +854,27 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
 							} );
 
                         }, 2000);
+
+
+						})
+						*/
+
+						checkSubscriptionsPermissionsNew().then((res) => {
+
+							// After 2 seconds, change the state of the multistate box to 'licensing'
+                        setTimeout(() => {
+                            $w('#processorText').text = "Taking to Dashboard...";
+							$w('#defaultProcessorText').text = "Taking to Dashboard...";
+
+                        }, 15000);
+
+                        setTimeout(() => {
+
+                            wixWindow.lightbox.close( {
+								"lightBoxSend1": "Success",
+							} );
+
+                        }, 15000);
 
 
 						})
@@ -934,59 +956,78 @@ async function checkSubscriptionsPermissions(){
 }
 
 export async function addStripeSubscriptions() {
-
+    console.log("Starting to fetch subscription options from Wix Data...");
     let allBoostSubscriptions = [];
     let allGoogleSubscriptions = [];
     let allEssentialSubscriptions = [];
 
-    let results = await wixData.query("stripeSubscriptions")
-        .contains("title", "Boost")
-        .or(wixData.query("stripeSubscriptions").contains("title", "Essential"))
-        .or(wixData.query("stripeSubscriptions").contains("title", "Google"))
-        .find();
+    try {
+        let results = await wixData.query("stripeSubscriptions")
+            .contains("title", "Boost")
+            .or(wixData.query("stripeSubscriptions").contains("title", "Essential"))
+            .or(wixData.query("stripeSubscriptions").contains("title", "Google"))
+            .find();
 
-    results.items.forEach(subscription => {
+        console.log(`Fetched ${results.items.length} subscription items.`);
 
-        if (subscription.title.includes("BOOST")) {
-            allBoostSubscriptions.push(subscription.apiId);
-        } else if (subscription.title.includes("Essential")) {
-            allEssentialSubscriptions.push(subscription.apiId);
-        } else if (subscription.title.includes("Google")) {
-            allGoogleSubscriptions.push(subscription.apiId);
-        }
+        results.items.forEach(subscription => {
+            console.log(`Processing subscription: ${subscription.title} with API ID: ${subscription.apiId}`);
+            if (subscription.title.includes("BOOST")) {
+                allBoostSubscriptions.push(subscription.apiId);
+            } else if (subscription.title.includes("Essential")) {
+                allEssentialSubscriptions.push(subscription.apiId);
+            } else if (subscription.title.includes("Google")) {
+                allGoogleSubscriptions.push(subscription.apiId);
+            }
+        });
 
-    });
+        console.log("Finished processing all subscriptions.");
+    } catch (error) {
+        console.error("Failed to fetch subscription options:", error);
+    }
 
     return {
-
         allBoostSubscriptions,
         allGoogleSubscriptions,
         allEssentialSubscriptions
-
     };
 }
 
-async function checkSubscriptionsPermissionsNew(memberId, subscriptionCheckoutData, planId) {
+async function checkSubscriptionsPermissionsNew() {
 
-    const {
-        allBoostSubscriptions,
-        allGoogleSubscriptions,
-        allEssentialSubscriptions
-    } = await addStripeSubscriptions();
+    console.log("Checking subscriptions permissions...");
 
-    const checkAndAssign = (prices, assignFunction) => {
-        if (subscriptionCheckoutData.some(item => prices.includes(item.price))) {
-            assignFunction(memberId).then(result => {
-                console.log("Assignment Result:", result);
-            });
-        }
-    };
+    try {
+        const {
+            allBoostSubscriptions,
+            allGoogleSubscriptions,
+            allEssentialSubscriptions
+        } = await addStripeSubscriptions();
 
-   
-    checkAndAssign(allEssentialSubscriptions, assignEssential);
-    checkAndAssign(allBoostSubscriptions, assignBoost);
-    checkAndAssign(allGoogleSubscriptions, assignGoogle);
+        console.log("Subscriptions fetched:", { allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions });
 
+        const checkAndAssign = (prices, assignFunction, functionName) => { //dev check
+            console.log(`Checking for matches with ${functionName}...`);
+            if (subscriptionCheckoutData.some(item => prices.includes(item.price))) {
+                console.log(`Match found for ${functionName}. Assigning now...`);
+                assignFunction(memberId).then(result => {
+                    console.log(`Assignment result for ${functionName}:`, result);
+                });
+            } else {
+                console.log(`No matches found for ${functionName}.`);
+            }
+        };
+
+       
+        checkAndAssign(allEssentialSubscriptions, assignEssential, "Essential");
+        checkAndAssign(allBoostSubscriptions, assignBoost, "Boost");
+        checkAndAssign(allGoogleSubscriptions, assignGoogle, "Google");
+
+        
+    } catch (error) {
+
+        console.error("Error in checkSubscriptionsPermissions:", error);
+    }
 }
 
 export function cancelSubscription_click(event) {

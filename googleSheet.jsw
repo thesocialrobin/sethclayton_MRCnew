@@ -1,0 +1,1816 @@
+import wixData from 'wix-data';
+const { google } = require("googleapis");
+import { createClient, getSheetId, getTokens } from 'backend/common-googleSheet'
+
+
+let options = {
+	"suppressAuth": true // suppress db auth to allow secure db permissions
+};
+
+
+async function createAuthorizedClient() {
+	try {
+		const oAuth2Client = await createClient();
+		let tokens = await getTokens();
+		oAuth2Client.setCredentials(tokens);
+		// const accessToken = await oAuth2Client.refreshAccessToken(tokens); // deprecated
+        const accessToken = oAuth2Client.getAccessToken(); // replaces deprecated API call				
+		oAuth2Client.getTokenInfo(accessToken); // checks validity of tokens
+		//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Authorization Success: ", oAuth2Client,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+		return oAuth2Client;
+	} catch (err) {
+		console.log("failed to refresh token" + err);
+					//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Authorization Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function runGoogleSheet() {
+
+	//FIRST CREATE CRON JOB  30 MINS EALIER and RELATED FUNCTION TO DELETE ALL RECORDS IN WIX DATABSE
+
+	const authorizedAuthClient = await createAuthorizedClient();
+	const sheetId = await getSheetId();
+	//return insertRow(values, authorizedAuthClient, sheetId);
+	return readValuesJson(authorizedAuthClient, sheetId)
+}
+
+export async function saveFormData(values) {
+	const authorizedAuthClient = await createAuthorizedClient();
+	const sheetId = await getSheetId();
+	return insertRow(values, authorizedAuthClient, sheetId);
+}
+
+function insertRow(values, authClient, ssID) {
+	var sheets = google.sheets('v4');
+	const request = {
+		spreadsheetId: ssID,
+		valueInputOption: 'RAW',  
+		insertDataOption: 'INSERT_ROWS',  
+		range: 'A1:A2', 
+		resource: {
+			"values": [
+				values
+			]
+		},
+		auth: authClient,
+	};
+	try {
+		return sheets.spreadsheets.values.append(request, function (err, response) {
+			if (err) {
+				console.log("error in append:" + err);
+				return;
+			}
+			return response;
+		});
+	} catch (err) {
+		console.log("error in append values" + err);
+	}
+}
+
+export async function insertResetRow(values, authClient, ssID) {
+	var sheets = google.sheets('v4');
+	const request = {
+		spreadsheetId: ssID,
+		valueInputOption: 'RAW',  
+		insertDataOption: 'INSERT_ROWS',  
+		range: 'A1:A6', 
+		resource: {
+			"values": [
+				values
+			]
+		},
+		auth: authClient,
+	};
+	try {
+		await sheets.spreadsheets.values.append(request, function (err, response) {
+			if (err) {
+				console.log("error in append:" + err);
+			}
+			                        //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Prepped",
+                              "log": "New Header Sheet1"
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+		});
+	} catch (err) {
+		console.log("error in append values" + err);
+     //--log process--//
+                          let logResults7 = {
+                              "type": "Analytics Prepped Error",
+                              "log": err
+                            };
+
+                            wixData.insert("devLog", logResults7)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function insertResetRowSeven(values, authClient, ssID) {
+	var sheets = google.sheets('v4');
+	const request = {
+		spreadsheetId: ssID,
+		valueInputOption: 'RAW',  
+		insertDataOption: 'INSERT_ROWS',  
+		range: 'Sheet2', 
+		resource: {
+			"values": [
+				values
+			]
+		},
+		auth: authClient,
+	};
+	try {
+		await sheets.spreadsheets.values.append(request, function (err, response) {
+			if (err) {
+				console.log("error in append:" + err);
+			}
+			                        //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Prepped",
+                              "log": "New Header Sheet2"
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+		});
+	} catch (err) {
+		console.log("error in append values" + err);
+     //--log process--//
+                          let logResults7 = {
+                              "type": "Analytics Prepped Error 7",
+                              "log": err
+                            };
+
+                            wixData.insert("devLog", logResults7)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSheetData() {
+	const authorizedAuthClient = await createAuthorizedClient();
+	const sheetId = await getSheetId();
+	//getSpreadsheetData(authorizedAuthClient, sheetId);
+  getSpreadsheetData2(authorizedAuthClient, sheetId);
+  //getSpreadsheetData3(authorizedAuthClient, sheetId);
+}
+
+export async function getSheetDataSeven() {
+	const authorizedAuthClient = await createAuthorizedClient();
+	const sheetId = await getSheetId();
+  getSpreadsheetData7(authorizedAuthClient, sheetId);
+}
+
+export async function getSheetDataManual(type) {
+	const authorizedAuthClient = await createAuthorizedClient();
+	const sheetId = await getSheetId();
+  if(type == "30 Days"){
+  getSpreadsheetDataManual(authorizedAuthClient, sheetId);
+  } else if (type == "7 Days"){
+    getSpreadsheetDataManual7(authorizedAuthClient, sheetId);
+  }
+  
+}
+
+export async function deleteSpreadsheet(authClient, ssID) {
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+  // sheetId is the number after gid in the URL
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		resource: {
+      requests: [
+        {
+      "updateCells": {
+        "range": {
+          "sheetId": "0"
+        },
+        "fields": "userEnteredValue"
+      }
+    }
+      ],
+    },
+		auth: authClient
+	};
+
+	try {
+    await sheets.spreadsheets.batchUpdate(request);
+    await sheets.spreadsheets.batchUpdate(request);
+
+     //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Delete",
+                              "log": "Removed Sheet1"
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              let values = ["Day", "Page path", "Page views", "Site sessions", "Unique visitors", "Avg. time on page"]
+
+                              insertResetRow(values, authClient, ssID)
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  }
+
+  catch (err5) {
+
+    //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Delete",
+                              "log": "Error - Delete", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+  }
+
+}
+
+export async function deleteSpreadsheetSeven(authClient, ssID) {
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+  // sheetId is the number after gid in the URL
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		resource: {
+      requests: [
+        {
+      "updateCells": {
+        "range": {
+          "sheetId": "1175936551"
+        },
+        "fields": "userEnteredValue"
+      }
+    }
+      ],
+    },
+		auth: authClient
+	};
+
+	try {
+    await sheets.spreadsheets.batchUpdate(request);
+    await sheets.spreadsheets.batchUpdate(request);
+
+     //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Delete",
+                              "log": "Removed Sheet2"
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              let values = ["Day", "Page path", "Page views", "Site sessions", "Unique visitors", "Avg. time on page"]
+
+                              insertResetRowSeven(values, authClient, ssID)
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  }
+
+  catch (err5) {
+
+    //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Delete",
+                              "log": "Error - Delete 7", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+  }
+
+}
+
+export async function getSpreadsheetData(authClient, ssID) {
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet1',
+		auth: authClient
+	};
+
+	try {
+
+ let rows = await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Run Google Sheet Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let status = response.status
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen",
+                              "log": "Get Spreadsheet Success 1105", status, length
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              let itemsProcessed = 0
+
+                              newRows.values.forEach(function(item,index,array){
+                              let id = index.toString()
+                              itemsProcessed++
+                              const toInsert = {
+                                  "_id": id,
+                                  "title": item[1],
+                                  "row": index,
+                                  "pagepath": item[1],
+                                  "timeOnPage": item[5],
+                                  "siteSessions": item[3],
+                                  "pageViews": item[2],
+                                  "uniqueVisitors": item[4],
+                              }
+                              wixData.insert("analytics",toInsert,options)
+                              .then((results)=>{
+                                  let item2 = results
+
+                                  if(itemsProcessed === length){
+                                    deleteSpreadsheet(authClient, ssID);
+
+                                  }
+
+
+
+
+                              }).catch( (err) => {
+                                            let errorMsg = err;
+                                            
+                                          } );
+                                    }
+                              )
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     
+
+
+                rows.data.values.forEach(function(item,index,array){
+                let id = index.toString()
+                const toInsert = {
+                    "_id": id,
+                    "title": item[12],
+                    "row": index,
+                    "pagepath": item[12],
+                    "timeOnPage": item[32],
+                    "siteSessions": item[27],
+                    "pageViews": item[26],
+                    "uniqueVisitors": item[28],
+                }
+                wixData.insert("analytics",toInsert,options)
+                .then((results)=>{
+                    let item2 = results
+                }).catch( (err) => {
+                              let errorMsg = err;
+                              
+                            } );
+            }
+
+            
+
+            )
+
+                
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen",
+                              "log": "Error - Return", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSpreadsheetData2(authClient, ssID) {
+
+  let options = {
+  "suppressAuth": true
+};
+
+wixData.truncate("analytics", options)
+  .then(() => {
+    console.log("All items removed");
+    //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Analytics Cleared", 
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet1',
+		auth: authClient
+	};
+
+	try {
+await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Run Google Sheet Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let rowsMin = Number(length - 1);
+      let status = response.status
+      let itemsProcessed = length;
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Get Spreadsheet Success 091223 0305", status, length, rowsMin
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+
+                              newRows.forEach(function(item,index,array){
+                                itemsProcessed--;
+
+                                   if(itemsProcessed == 0){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                           deleteSpreadsheet(authClient, ssID);
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 10){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached 10"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 5){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached 5"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                var pagePathString = item[1].split('/')[1];
+                                var pagePathStringPro = item[1].split('/')[2];
+
+                                if(pagePathString == "medicarepros" && pagePathStringPro !== null && pagePathStringPro !== undefined){
+
+                                  let id = index.toString()
+                                  const toInsert = {
+                                       "_id": id,
+                                      "title": item[1],
+                                      "row": index,
+                                      "pagepath": item[1],
+                                      "timeOnPage": item[5],
+                                      "siteSessions": item[3],
+                                      "pageViews": item[2],
+                                      "uniqueVisitors": item[4],
+                                  }
+                                      wixData.insert("analytics",toInsert,options)
+                                      .then((results)=>{
+                                          let item2 = results
+
+                                            
+
+
+
+                                      }).catch( (err) => {
+                                                    let errorMsg = err;
+                                                    
+                                                  } );
+                                        }
+
+                                     
+
+
+                                  }
+
+
+                              ).catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+/*
+                     
+                const rows = response.data.values;
+                rows.data.values.forEach(function(item,index,array){
+                let id = index.toString()
+                const toInsert = {
+                    "_id": id,
+                    "title": item[12],
+                    "row": index,
+                    "pagepath": item[12],
+                    "timeOnPage": item[32],
+                    "siteSessions": item[27],
+                    "pageViews": item[26],
+                    "uniqueVisitors": item[28],
+                }
+                wixData.insert("analytics",toInsert,options)
+                .then((results)=>{
+                    let item2 = results
+                }).catch( (err) => {
+                              let errorMsg = err;
+                              
+                            } );
+            }
+
+            
+
+            )
+            */
+
+                
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen",
+                              "log": "Error - Return", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSpreadsheetData7(authClient, ssID) {
+
+  let options = {
+  "suppressAuth": true
+};
+
+wixData.truncate("analyticsSeven", options)
+  .then(() => {
+    console.log("All items removed");
+    //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Analytics Cleared Seven", 
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet2',
+		auth: authClient
+	};
+
+	try {
+await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Run Google Sheet Error 7: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let rowsMin = Number(length - 1);
+      let status = response.status
+      let itemsProcessed = length;
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen 2-7",
+                              "log": "Get Spreadsheet Success 101223 0305", status, length, rowsMin
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen 2-7",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+
+                              newRows.forEach(function(item,index,array){
+                                itemsProcessed--;
+
+                                   if(itemsProcessed == 0){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7",
+                                          "log": "Count Reached"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                           deleteSpreadsheetSeven(authClient, ssID);
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 10){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7",
+                                          "log": "Count Reached 10"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 5){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7",
+                                          "log": "Count Reached 5"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                var pagePathString = item[1].split('/')[1];
+                                var pagePathStringPro = item[1].split('/')[2];
+
+                                if(pagePathString == "medicarepros" && pagePathStringPro !== null && pagePathStringPro !== undefined){
+
+                                  let id = index.toString()
+                                  const toInsert = {
+                                       "_id": id,
+                                      "title": item[1],
+                                      "row": index,
+                                      "pagepath": item[1],
+                                      "timeOnPage": item[5],
+                                      "siteSessions": item[3],
+                                      "pageViews": item[2],
+                                      "uniqueVisitors": item[4],
+                                  }
+                                      wixData.insert("analyticsSeven",toInsert,options)
+                                      .then((results)=>{
+                                          let item2 = results
+
+                                            
+
+
+
+                                      }).catch( (err) => {
+                                                    let errorMsg = err;
+                                                    
+                                                  } );
+                                        }
+
+                                     
+
+
+                                  }
+
+
+                              ).catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+             
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen",
+                              "log": "Error - Return 7", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSpreadsheetDataManual(authClient, ssID) {
+
+  let options = {
+  "suppressAuth": true
+};
+
+wixData.truncate("analytics", options)
+  .then(() => {
+    console.log("All items removed");
+    //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Analytics Cleared", 
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet1',
+		auth: authClient
+	};
+
+	try {
+await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen 2 MANUAL",
+                              "log": "Run Google Sheet Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let rowsMin = Number(length - 1);
+      let status = response.status
+      let itemsProcessed = length;
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Get Spreadsheet Success RUN MANUAL", status, length, rowsMin
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen 2",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+
+                              newRows.forEach(function(item,index,array){
+                                itemsProcessed--;
+
+                                   if(itemsProcessed == 0){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                           deleteSpreadsheet(authClient, ssID);
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 10){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached 10"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 5){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2",
+                                          "log": "Count Reached 5"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                var pagePathString = item[1].split('/')[1];
+                                var pagePathStringPro = item[1].split('/')[2];
+
+                                if(pagePathString == "medicarepros" && pagePathStringPro !== null && pagePathStringPro !== undefined){
+
+                                  let id = index.toString()
+                                  const toInsert = {
+                                       "_id": id,
+                                      "title": item[1],
+                                      "row": index,
+                                      "pagepath": item[1],
+                                      "timeOnPage": item[5],
+                                      "siteSessions": item[3],
+                                      "pageViews": item[2],
+                                      "uniqueVisitors": item[4],
+                                  }
+                                      wixData.insert("analytics",toInsert,options)
+                                      .then((results)=>{
+                                          let item2 = results
+
+                                            
+
+
+
+                                      }).catch( (err) => {
+                                                    let errorMsg = err;
+                                                    
+                                                  } );
+                                        }
+
+                                     
+
+
+                                  }
+
+
+                              ).catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+/*
+                     
+                const rows = response.data.values;
+                rows.data.values.forEach(function(item,index,array){
+                let id = index.toString()
+                const toInsert = {
+                    "_id": id,
+                    "title": item[12],
+                    "row": index,
+                    "pagepath": item[12],
+                    "timeOnPage": item[32],
+                    "siteSessions": item[27],
+                    "pageViews": item[26],
+                    "uniqueVisitors": item[28],
+                }
+                wixData.insert("analytics",toInsert,options)
+                .then((results)=>{
+                    let item2 = results
+                }).catch( (err) => {
+                              let errorMsg = err;
+                              
+                            } );
+            }
+
+            
+
+            )
+            */
+
+                
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen",
+                              "log": "Error - Return", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSpreadsheetDataManual7(authClient, ssID) {
+
+  let options = {
+  "suppressAuth": true
+};
+
+wixData.truncate("analyticsSeven", options)
+  .then(() => {
+    console.log("All items removed");
+    //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen MANUAL",
+                              "log": "Analytics Cleared Seven", 
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet2',
+		auth: authClient
+	};
+
+	try {
+await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen 2 MANUAL",
+                              "log": "Run Google Sheet Error 7: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let rowsMin = Number(length - 1);
+      let status = response.status
+      let itemsProcessed = length;
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen 2-7 MANUAL",
+                              "log": "Get Spreadsheet Success 101223 0305", status, length, rowsMin
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen 2-7 MANUAL",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+
+                              newRows.forEach(function(item,index,array){
+                                itemsProcessed--;
+
+                                   if(itemsProcessed == 0){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7 MANUAL",
+                                          "log": "Count Reached"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                           deleteSpreadsheetSeven(authClient, ssID);
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 10){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7 MANUAL",
+                                          "log": "Count Reached 10"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                  if(itemsProcessed == 5){
+
+                                      //--log process--//
+                                      let logResults8 = {
+                                          "type": "Analytics Gen 2-7 MANUAL",
+                                          "log": "Count Reached 5"
+                                        };
+
+                                        wixData.insert("devLog", logResults8)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                        } )
+                                        .catch( (err) => {
+                                          let errorMsg = err;
+                                        } );
+
+                                       //--end log process--//
+
+
+                                  }
+
+                                var pagePathString = item[1].split('/')[1];
+                                var pagePathStringPro = item[1].split('/')[2];
+
+                                if(pagePathString == "medicarepros" && pagePathStringPro !== null && pagePathStringPro !== undefined){
+
+                                  let id = index.toString()
+                                  const toInsert = {
+                                       "_id": id,
+                                      "title": item[1],
+                                      "row": index,
+                                      "pagepath": item[1],
+                                      "timeOnPage": item[5],
+                                      "siteSessions": item[3],
+                                      "pageViews": item[2],
+                                      "uniqueVisitors": item[4],
+                                  }
+                                      wixData.insert("analyticsSeven",toInsert,options)
+                                      .then((results)=>{
+                                          let item2 = results
+
+                                            
+
+
+
+                                      }).catch( (err) => {
+                                                    let errorMsg = err;
+                                                    
+                                                  } );
+                                        }
+
+                                     
+
+
+                                  }
+
+
+                              ).catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+             
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen MANUAL",
+                              "log": "Error - Return 7", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function getSpreadsheetData3(authClient, ssID) {
+	//var sheets = google.sheets('v4');
+	//var sheets = google.sheets({version: 'v4', auth: authClient})
+	const sheets = google.sheets({ version: 'v4', authClient});
+	const request = {
+		spreadsheetId: ssID, 
+		range: 'Sheet2',
+		auth: authClient
+	};
+
+	try {
+await sheets.spreadsheets.values.get(request, function (err, response) {
+
+      //console.log(rows);
+
+
+			if (err) {
+				//--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen 3",
+                              "log": "Run Google Sheet Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+				
+			}
+
+      
+
+      const newRows = response.data.values
+      let length = newRows.length
+      let status = response.status
+      //let responseLength = rows.length //resulted in no response
+
+			//--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen 3",
+                              "log": "Get Spreadsheet Success 1054", status, length
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+                     //--log process--//
+                          let logResults6 = {
+                              "type": "Analytics Gen 3",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults6)
+                            .then( (results) => {
+                              //let item = results; //see item below
+
+                              newRows.forEach(function(item,index,array){
+                              let id = index.toString()
+                              /*
+                              const toInsert = {
+                                  "_id": id,
+                                  "title": item[0],
+                                  "row": index,
+                                  "pagepath": item[1]
+                              }
+                              */
+
+                              const toInsert = {
+                                  "_id": id,
+                                  "title": item,
+                                  "row": index
+                              }
+                              wixData.insert("analytics",toInsert,options)
+                              .then((results)=>{
+                                  let item2 = results
+                              }).catch( (err) => {
+                                            let errorMsg = err;
+                                            
+                                          } );
+                                    }
+                              ).catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+
+
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+
+/*
+                     
+                const rows = response.data.values;
+                rows.data.values.forEach(function(item,index,array){
+                let id = index.toString()
+                const toInsert = {
+                    "_id": id,
+                    "title": item[12],
+                    "row": index,
+                    "pagepath": item[12],
+                    "timeOnPage": item[32],
+                    "siteSessions": item[27],
+                    "pageViews": item[26],
+                    "uniqueVisitors": item[28],
+                }
+                wixData.insert("analytics",toInsert,options)
+                .then((results)=>{
+                    let item2 = results
+                }).catch( (err) => {
+                              let errorMsg = err;
+                              
+                            } );
+            }
+
+            
+
+            )
+            */
+
+                
+       
+			
+		});
+
+
+
+	
+
+	} catch (err5) {
+		console.log("error in append values" + err5);
+
+		 //--log process--//
+                          let logResults5 = {
+                              "type": "Analytics Gen 3",
+                              "log": "Error - Return", err5,
+                            };
+
+                            wixData.insert("devLog", logResults5)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+	}
+}
+
+export async function readValuesJson(authorizedAuthClient, sheetId) { //-----CURRENT TEST------///
+    const sheets = await google.sheets ({version: "v4", authorizedAuthClient});
+    return await sheets.spreadsheets.values.get(
+        {
+            spreadhsheetId: sheetId,
+            range:"Sheet2",
+			      auth: authorizedAuthClient,
+        },
+        (err,res) => {
+            if (err){
+                console.log("Error")
+				 //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Run Google Sheet Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+                return err
+            }
+        const rows = res.data.values
+        if (rows.length === 0){
+            console.log("No data")
+			  return "No Data"
+        } else {
+			
+			 //--log process--//
+                          let logResults4 = {
+                              "type": "Analytics Gen",
+                              "log": "Success - Run for Each",
+                            };
+
+                            wixData.insert("devLog", logResults4)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+            rows.forEach(function(item,index,array){
+                let id = index.toString()
+
+                /*
+                const toInsert = {
+                    "title": item[12],
+                    "row": index,
+                    "pagepath": item[12],
+                    "timeOnPage": item[32],
+                    "siteSessions": item[27],
+                    "pageViews": item[26],
+                    "uniqueVisitors": item[28],
+                }
+                */
+
+                const toInsert = {
+                    "title": item[0],
+                    "row": item[1],
+                }
+                wixData.insert("analytics",toInsert,options)
+                .then((results)=>{
+                    let item2 = results
+                })
+            }
+
+            )
+        }
+        }
+    ) 
+}

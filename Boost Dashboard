@@ -1,0 +1,367 @@
+import { getQrCodeDownloadUrl } from 'backend/qrCode'; // replace 'yourBackendModule' with the name of your backend file without the .jsw extension
+import wixUsers from 'wix-users';
+import wixLocation from 'wix-location';
+import wixData from 'wix-data';
+import wixPaidPlans from 'wix-paid-plans';
+import wixWindow from 'wix-window';
+import { getSheetDataManual } from 'backend/googleSheet'
+import wixWindowFrontend from 'wix-window-frontend';
+import {session} from 'wix-storage';
+
+let user = wixUsers.currentUser;
+let userId = user.id;
+const loggedIn = user.loggedIn;
+let getMatchHistory
+let ratings = null;
+let average = null;
+ratings = [];
+average = [];
+let agentAverage
+let orderId; 
+let analyticsAccess
+
+$w.onReady(async function () {
+    var agentEmail = await wixUsers.currentUser.getEmail()
+    wixData.query("Team")
+        .eq("email", agentEmail)
+        .find()
+        .then((results) => {
+            if (results.items.length > 0) {
+                // Check if the 'agency' field is true
+                if (results.items[0].qrCode) {
+                    $w("#qrCodeBox").expand();
+                }
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+    $w("#downloadQRCode").onClick(() => {
+        const userId = wixUsers.currentUser.id;
+        getQrCodeDownloadUrl(userId)
+            .then(downloadUrl => {
+                // Navigate to the download URL regardless of whether it exists or not
+                wixLocation.to(downloadUrl);
+            })
+            .catch(error => {
+                console.error("Error getting download URL: ", error);
+            });
+    });
+
+    let analyticsOptions = $w("#analyticsType").options;
+    analyticsOptions.forEach(option => {
+											let thisIndex = analyticsOptions.indexOf(option)
+											let findMatch = analyticsOptions.find(item=> item.value === "30 Days")
+												if (findMatch){
+                                                    $w("#analyticsType").selectedIndex = thisIndex;
+                                                    console.log("Completed Search: ", thisIndex, findMatch)
+                                                }
+    })
+    $w("#analyticsType").value = null;
+    $w("#analyticsType").value = "30 Days";
+
+	wixData.query('Team').eq('email', agentEmail).find().then((res) => {
+        var item = res.items[0]
+        console.log("Details: ", item)
+       
+        analyticsAccess = item.analytics
+
+
+    //********RUN ANALYTICS IF PAID PLAN IN WIX*******//
+
+    wixPaidPlans.getCurrentMemberOrders()
+        .then(orders => {
+            if(orders.length > 0){
+                orders.forEach(order => {
+             if(order.paymentStatus == "PAID" && order.status == "ACTIVE" && order.planName == "Growth"){
+
+                 //getMemberAnalytics(memberPage)
+
+             }
+             
+         });
+			let firstOrder = orders[0];
+			//orderId = firstOrder["id"]
+            console.log("Subscriptions: ", orders.length, orders)
+			//console.log("First Order: ", orderId)
+            } else {
+
+                 //$w('#analyticsBox').collapse()
+                 //$w('#upgradeBox').expand()
+
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
+    let memberPage = item["link-team-title"]; 
+    session.setItem("memberPage",memberPage)
+
+    //********RUN ANALYTICS IF PAID PLAN IN WIX  END*******//
+
+    //********RUN ANALYTICS IF BOOLEAN PLAN IN AGENT DATABASE*******//
+
+    if(analyticsAccess == true){
+
+        getMemberAnalytics(memberPage)
+        $w("#analyticsType").show();
+
+        if(wixWindowFrontend.formFactor === "Mobile"){
+  // code that will only run on mobile
+        $w("#analyticsType").show();
+        getMemberAnalytics(memberPage)
+        }
+
+    } else {
+
+        $w('#analyticsBox').collapse()
+        $w('#upgradeBox').expand()
+
+
+    }
+
+
+    //********RUN ANALYTICS IF BOOLEAN PLAN IN AGENT DATABASE*******//
+
+
+    if(agentEmail == "seth@resourcemedicare.com"){
+
+        //$w("#runManualCode").show();
+        $w("#analyticsType").show();
+        
+    }
+    
+        
+    })
+});
+
+export function switch1_change(event) {
+    if ($w("#monthRepeater").collapsed) {
+        $w("#monthRepeater").expand();
+        $w("#yearRepeater").collapse();
+    } else {
+        $w("#monthRepeater").collapse();
+        $w("#yearRepeater").expand();
+    }
+}
+
+export function getMemberAnalytics(memberPage){
+    
+    $w('#analyticsBox').expand()
+    $w('#upgradeBox').collapse()
+
+   console.log("PagePath Thirty: ", memberPage)
+
+    wixData.query('analytics').eq('pagepath', memberPage).find().then((res) => {
+
+        let pageViewsTotal = 0;
+        let uniqueVisitorsTotal = 0
+        let siteSessionsTotal = 0;
+        let totalTimeOnPage
+        let hours = 0;
+        let minutes = 0;
+        let seconds = 0;
+
+
+        let items = res.items
+        let totalItems = items.length;
+        let count = 0;
+        console.log("Total: ", totalItems)
+        let averageSeconds
+        let averageMinutes
+
+
+        items.forEach(item => {
+            count++
+
+           let addViewsCount = Number(item.pageViews);
+           pageViewsTotal = pageViewsTotal + addViewsCount;
+
+           let uniqueVisitorsCount =  Number(item.uniqueVisitors);
+           uniqueVisitorsTotal = uniqueVisitorsTotal + uniqueVisitorsCount;
+
+           let siteSessionsCount =  Number(item.siteSessions);
+           siteSessionsTotal = siteSessionsTotal + siteSessionsCount;
+
+//timeOnPage average begin
+
+           let timeOnPage = item.timeOnPage;   //timeOnPage item variable 1
+           let timeOnPageCount = timeOnPage.length; //timeOnPage item variable 2
+
+            
+           if(timeOnPageCount < 4){ //seconds only
+           const split = timeOnPage.split('s')
+           let countedseconds = Number(split[0]);
+           seconds = seconds + countedseconds;
+
+           } else if(timeOnPageCount < 8){   //has minutes and seconds
+           const split = timeOnPage.split('m')
+           let countedminutes = Number(split[0]);
+           minutes = minutes + countedminutes;
+           let toSplitSeconds = split[1]
+           let secondsSplit = toSplitSeconds.split('s');
+           let countedseconds = Number(secondsSplit[0])
+           seconds = seconds + countedseconds;
+
+           }
+
+//timeOnPage average end
+
+           if(count == totalItems){
+                console.log("Total Reached!")
+                let convertedSeconds = (seconds / 60);
+                console.log("Seconds to minutes: ", convertedSeconds)
+                console.log("Minutes: ", minutes)
+                console.log("Seconds: ", seconds)
+                
+                let averageSeconds = Math.round(seconds/totalItems);
+                let averageMinutes = Math.round(minutes/totalItems);
+                let fieldData = averageMinutes + "m" +  " " + averageSeconds + "s";
+                console.log("FieldData: ", fieldData, pageViewsTotal, uniqueVisitorsTotal, siteSessionsTotal);     
+                $w('#pageViews').text = pageViewsTotal.toString();
+                $w('#siteSessions').text = siteSessionsTotal.toString();
+                $w('#uniqueVisitors').text = uniqueVisitorsTotal.toString();
+                $w('#timeOnPage').text = fieldData.toString();  //timeOnPage UI variable
+
+            
+        }
+
+        });
+
+        
+        
+
+    })
+
+
+
+}
+
+export function analyticsType_change(event) {
+
+ let memberPage = session.getItem("memberPage");
+    let type = $w('#analyticsType').value;
+    console.log("Type Changed: ", type, memberPage)
+
+	if(type == "7 Days"){
+
+        getMemberAnalyticsSeven(memberPage)
+
+                if(wixWindowFrontend.formFactor === "Mobile"){
+                // code that will only run on mobile
+                getMemberAnalyticsSeven(memberPage)
+
+                }
+
+
+    } else if(type == "30 Days"){
+
+            getMemberAnalytics(memberPage)
+
+                if(wixWindowFrontend.formFactor === "Mobile"){
+                // code that will only run on mobile
+                getMemberAnalytics(memberPage)
+
+                }
+
+
+    }
+
+}
+
+export function getMemberAnalyticsSeven(memberPage){
+
+    console.log("PagePath Seven: ", memberPage)
+
+    wixData.query('analyticsSeven').eq('pagepath', memberPage).find().then((res) => {
+
+        if(res.length < 1){
+                $w('#pageViews').text = "0"
+                $w('#siteSessions').text = "0"
+                $w('#uniqueVisitors').text = "0"
+                $w('#timeOnPage').text = "0m 0s"
+
+        } else if (res.length > 0){
+
+        console.log("Results of Seven: ", res)
+
+        let pageViewsTotal = 0;
+        let uniqueVisitorsTotal = 0
+        let siteSessionsTotal = 0;
+        let totalTimeOnPage
+        let hours = 0;
+        let minutes = 0;
+        let seconds = 0;
+
+
+        let items = res.items
+        let totalItems = items.length;
+        let count = 0;
+        console.log("Total: ", totalItems)
+        let averageSeconds
+        let averageMinutes
+
+
+        items.forEach(item => {
+            count++
+
+           let addViewsCount = Number(item.pageViews);
+           pageViewsTotal = pageViewsTotal + addViewsCount;
+
+           let uniqueVisitorsCount =  Number(item.uniqueVisitors);
+           uniqueVisitorsTotal = uniqueVisitorsTotal + uniqueVisitorsCount;
+
+           let siteSessionsCount =  Number(item.siteSessions);
+           siteSessionsTotal = siteSessionsTotal + siteSessionsCount;
+
+//timeOnPage average begin
+
+           let timeOnPage = item.timeOnPage;   //timeOnPage item variable 1
+           let timeOnPageCount = timeOnPage.length; //timeOnPage item variable 2
+
+            
+           if(timeOnPageCount < 4){ //seconds only
+           const split = timeOnPage.split('s')
+           let countedseconds = Number(split[0]);
+           seconds = seconds + countedseconds;
+
+           } else if(timeOnPageCount < 8){   //has minutes and seconds
+           const split = timeOnPage.split('m')
+           let countedminutes = Number(split[0]);
+           minutes = minutes + countedminutes;
+           let toSplitSeconds = split[1]
+           let secondsSplit = toSplitSeconds.split('s');
+           let countedseconds = Number(secondsSplit[0])
+           seconds = seconds + countedseconds;
+
+           }
+
+//timeOnPage average end
+
+           if(count == totalItems){
+                console.log("Total Reached!")
+                let convertedSeconds = (seconds / 60);
+                console.log("Seconds to minutes: ", convertedSeconds)
+                console.log("Minutes: ", minutes)
+                console.log("Seconds: ", seconds)
+                
+                let averageSeconds = Math.round(seconds/totalItems);
+                let averageMinutes = Math.round(minutes/totalItems);
+                let fieldData = averageMinutes + "m" +  " " + averageSeconds + "s";
+                console.log("FieldData: ", fieldData, pageViewsTotal, uniqueVisitorsTotal, siteSessionsTotal);     
+                $w('#pageViews').text = pageViewsTotal.toString();
+                $w('#siteSessions').text = siteSessionsTotal.toString();
+                $w('#uniqueVisitors').text = uniqueVisitorsTotal.toString();
+                $w('#timeOnPage').text = fieldData.toString();  //timeOnPage UI variable
+
+            
+        }
+
+        });
+
+         } 
+
+    })
+
+}

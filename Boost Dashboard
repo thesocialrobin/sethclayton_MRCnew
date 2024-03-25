@@ -7,6 +7,7 @@ import wixWindow from 'wix-window';
 import { getSheetDataManual } from 'backend/googleSheet'
 import wixWindowFrontend from 'wix-window-frontend';
 import {session} from 'wix-storage';
+import { currentMember } from 'wix-members';
 
 let user = wixUsers.currentUser;
 let userId = user.id;
@@ -19,13 +20,23 @@ average = [];
 let agentAverage
 let orderId; 
 let analyticsAccess
+let agentEmail
+let approved
 
 $w.onReady(async function () {
-    var agentEmail = await wixUsers.currentUser.getEmail()
+  
+    agentEmail = await wixUsers.currentUser.getEmail()
     wixData.query("Team")
         .eq("email", agentEmail)
         .find()
         .then((results) => {
+
+          let agent = results.items[0];
+          approved = agent.approved;
+          console.log("Approved", approved)
+
+          runMemberCheck();
+
             if (results.items.length > 0) {
                 // Check if the 'agency' field is true
                 if (results.items[0].qrCode) {
@@ -48,92 +59,7 @@ $w.onReady(async function () {
             });
     });
 
-    let analyticsOptions = $w("#analyticsType").options;
-    analyticsOptions.forEach(option => {
-											let thisIndex = analyticsOptions.indexOf(option)
-											let findMatch = analyticsOptions.find(item=> item.value === "30 Days")
-												if (findMatch){
-                                                    $w("#analyticsType").selectedIndex = thisIndex;
-                                                    console.log("Completed Search: ", thisIndex, findMatch)
-                                                }
-    })
-    $w("#analyticsType").value = null;
-    $w("#analyticsType").value = "30 Days";
-
-	wixData.query('Team').eq('email', agentEmail).find().then((res) => {
-        var item = res.items[0]
-        console.log("Details: ", item)
-       
-        analyticsAccess = item.analytics
-
-
-    //********RUN ANALYTICS IF PAID PLAN IN WIX*******//
-
-    wixPaidPlans.getCurrentMemberOrders()
-        .then(orders => {
-            if(orders.length > 0){
-                orders.forEach(order => {
-             if(order.paymentStatus == "PAID" && order.status == "ACTIVE" && order.planName == "Growth"){
-
-                 //getMemberAnalytics(memberPage)
-
-             }
-             
-         });
-			let firstOrder = orders[0];
-			//orderId = firstOrder["id"]
-            console.log("Subscriptions: ", orders.length, orders)
-			//console.log("First Order: ", orderId)
-            } else {
-
-                 //$w('#analyticsBox').collapse()
-                 //$w('#upgradeBox').expand()
-
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-
-    let memberPage = item["link-team-title"]; 
-    session.setItem("memberPage",memberPage)
-
-    //********RUN ANALYTICS IF PAID PLAN IN WIX  END*******//
-
-    //********RUN ANALYTICS IF BOOLEAN PLAN IN AGENT DATABASE*******//
-
-    if(analyticsAccess == true){
-
-        getMemberAnalytics(memberPage)
-        $w("#analyticsType").show();
-
-        if(wixWindowFrontend.formFactor === "Mobile"){
-  // code that will only run on mobile
-        $w("#analyticsType").show();
-        getMemberAnalytics(memberPage)
-        }
-
-    } else {
-
-        $w('#analyticsBox').collapse()
-        $w('#upgradeBox').expand()
-
-
-    }
-
-
-    //********RUN ANALYTICS IF BOOLEAN PLAN IN AGENT DATABASE*******//
-
-
-    if(agentEmail == "seth@resourcemedicare.com"){
-
-        //$w("#runManualCode").show();
-        $w("#analyticsType").show();
-        
-    }
     
-        
-    })
 });
 
 export function switch1_change(event) {
@@ -362,6 +288,109 @@ export function getMemberAnalyticsSeven(memberPage){
 
          } 
 
+    })
+
+}
+
+export async function runMemberCheck(){
+
+	let essentialRole = "622d33e0-d047-4c12-9bcb-7b2355ce414f";
+	let boostRole = "4f0115cb-c0b6-481d-804b-b83c36c911a3";
+	let googleRole = "334e368f-901a-4fe6-87ae-bb43a42fda19";
+
+	try {
+        const member = await currentMember.getMember();
+        if (member) {
+            const memberId = member._id;
+            console.log("Member Found", memberId);
+
+            const roles = await currentMember.getRoles();
+            const roleIds = roles.map(role => role._id);
+            console.log("Roles: ", roleIds);
+
+            
+            const hasEssentialRole = roleIds.includes(essentialRole);
+            const hasBoostRole = roleIds.includes(boostRole);
+            const hasGoogleRole = roleIds.includes(googleRole);
+
+            
+            if (hasEssentialRole || approved) {
+                console.log("Member has Essential Role");
+              
+            } else if (hasBoostRole || approved) {
+                console.log("Member has Boost Role");
+                runAnalytics();
+                $w("#upgradeBox").collapse();
+                 
+               
+            } else if (hasGoogleRole) {
+                console.log("Member has Google Role");               
+
+               
+            } else {
+                console.log("Member does not have any specific roles.");
+                $w("#upgradeBox").expand();
+               
+            }
+        } else {
+            console.log("No member found.");
+        }
+    } catch (error) {
+        console.error("Error checking member roles:", error);
+        $w("#upgradeBox").expand();
+    }
+
+}
+
+export function runAnalytics(){
+  let analyticsOptions = $w("#analyticsType").options;
+    analyticsOptions.forEach(option => {
+											let thisIndex = analyticsOptions.indexOf(option)
+											let findMatch = analyticsOptions.find(item=> item.value === "30 Days")
+												if (findMatch){
+                                                    $w("#analyticsType").selectedIndex = thisIndex;
+                                                    console.log("Completed Search: ", thisIndex, findMatch)
+                                                }
+    })
+    $w("#analyticsType").value = null;
+    $w("#analyticsType").value = "30 Days";
+
+	wixData.query('Team').eq('email', agentEmail).find().then((res) => {
+        var item = res.items[0]
+        console.log("Details: ", item)
+       
+   
+
+    let memberPage = item["link-team-title"]; 
+    session.setItem("memberPage",memberPage)
+
+
+   
+
+        getMemberAnalytics(memberPage)
+        $w("#analyticsType").show();
+        $w("#boostAnalytics").expand();
+
+        if(wixWindowFrontend.formFactor === "Mobile"){
+  // code that will only run on mobile
+        $w("#analyticsType").show();
+        $w("#boostAnalytics").expand();
+        getMemberAnalytics(memberPage)
+        }
+
+   
+
+
+
+
+    if(agentEmail == "seth@resourcemedicare.com"){
+
+        //$w("#runManualCode").show();
+        $w("#analyticsType").show();
+        
+    }
+    
+        
     })
 
 }

@@ -6,7 +6,7 @@ import wixWindow from 'wix-window';
 import {stripeToken} from 'public/stripe.js';
 import {createCustomer, createSubscription, createMultipleSubscriptions, createSubscriptionNewMethod,createPurchase, createOrder, finalizeOrder, payIntentComplete, payOrder, retrieveMethod, createMethod,cancelSubscription,updateCard,updateCustomer} from 'backend/stripeProcessor.jsw';
 import { currentMember } from 'wix-members';
-import { assignEssential, assignBoost } from 'backend/members.jsw';
+import { assignEssential, assignBoost, assignGoogle } from 'backend/members.jsw';
 
 let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
 let stripePurpose
@@ -553,7 +553,7 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 //-----------------------------------------------------------------Subscribe-----------------------------------------------------------------//
 
 async function subscription(cus, lastFour, brand, method, token) {
-
+$w('#cardDetailsSubtext').collapse();
 	console.log("Method: ", method)
 	let plan = [];
 	let data = {
@@ -568,7 +568,8 @@ async function subscription(cus, lastFour, brand, method, token) {
 		console.log("Default", session.getItem("Default"))
 		if(defaultMethod == "No"){
 			console.log("New Method No", stripePurpose)
-			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
+			$w('#cardDetailsSubtext').text = "This will be your new default payment method for all subscriptions.";
+			$w('#cardDetailsSubtext').expand();
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			$w("#newCard").label = "Subscribing..."
@@ -618,7 +619,8 @@ async function subscription(cus, lastFour, brand, method, token) {
 			$w("#defaultCard").collapse();
 			console.log("Default", stripePurpose)
 			$w("#newCard").label = "Subscribing..."
-			$w('#cardDetailsSubtext').text = "Enter your card details below.";
+			$w('#cardDetailsSubtext').collapse();
+
 
 			createSubscription(cus, plan, apiKeySk)
 		.then( (response) => {
@@ -661,7 +663,8 @@ async function subscription(cus, lastFour, brand, method, token) {
 		if(defaultMethod == "No"){
 			console.log("My Subscriptions No", stripePurpose)
 
-			$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
+			$w('#cardDetailsSubtext').text = "This will be your new default payment method for all subscriptions.";
+			$w('#cardDetailsSubtext').expand();
 
 			updateCard(token, apiKeySk, customerId)
 				.then( (response) => {
@@ -704,7 +707,7 @@ async function subscription(cus, lastFour, brand, method, token) {
 
 		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
 			console.log("My Subscriptions Default", stripePurpose)
-			$w('#cardDetailsSubtext').text = "Enter your card details below.";
+			$w('#cardDetailsSubtext').collapse();
 
 			createMultipleSubscriptions(cus, subscriptionCheckoutData, apiKeySk)
 			.then( (response) => {
@@ -763,7 +766,29 @@ async function signUpMember(response, cus, lastFour, brand, subStatus) {
                         $w("#submit").label = "Subscribed!";
 						$w("#newCard").label = "Subscribed!";
 
+						/*
 						checkSubscriptionsPermissions().then((res) => {
+
+							// After 2 seconds, change the state of the multistate box to 'licensing'
+                        setTimeout(() => {
+                            $w('#processorText').text = "Taking to Dashboard...";
+							$w('#defaultProcessorText').text = "Taking to Dashboard...";
+
+                        }, 1000);
+
+                        setTimeout(() => {
+
+                            wixWindow.lightbox.close( {
+								"lightBoxSend1": "Success",
+							} );
+
+                        }, 2000);
+
+
+						})
+						*/
+
+						checkSubscriptionsPermissionsNew().then((res) => {
 
 							// After 2 seconds, change the state of the multistate box to 'licensing'
                         setTimeout(() => {
@@ -847,6 +872,10 @@ async function checkSubscriptionsPermissions(){
 	let essentialAnnual = "price_1OSk71GjvTpCU0nDxg7qNTie";
 	let boostMonthly = "price_1Ogal7GjvTpCU0nDrLO2Whvn";
 	let boostAnnual = "price_1Ogam3GjvTpCU0nDcPIzyAR6";
+	let google750 = "price_1OgansGjvTpCU0nD6kKk0N74";
+	let google500 = "price_1OganPGjvTpCU0nDpjsCIR8x";
+	let google250 = "price_1OgammGjvTpCU0nD3AGBzEhz";
+
 
 	let findmatchEssentialMonthly = subscriptionCheckoutData.find(item=> item.price === essentialMonthly)
 	let findmatchEssentialAnnual = subscriptionCheckoutData.find(item=> item.price === essentialAnnual)
@@ -901,6 +930,62 @@ async function checkSubscriptionsPermissions(){
 
 
 
+
+}
+
+export async function addStripeSubscriptions() {
+
+    let allBoostSubscriptions = [];
+    let allGoogleSubscriptions = [];
+    let allEssentialSubscriptions = [];
+
+    let results = await wixData.query("stripeSubscriptions")
+        .contains("title", "Boost")
+        .or(wixData.query("stripeSubscriptions").contains("title", "Essential"))
+        .or(wixData.query("stripeSubscriptions").contains("title", "Google"))
+        .find();
+
+    results.items.forEach(subscription => {
+
+        if (subscription.title.includes("BOOST")) {
+            allBoostSubscriptions.push(subscription.apiId);
+        } else if (subscription.title.includes("Essential")) {
+            allEssentialSubscriptions.push(subscription.apiId);
+        } else if (subscription.title.includes("Google")) {
+            allGoogleSubscriptions.push(subscription.apiId);
+        }
+
+    });
+
+    return {
+
+        allBoostSubscriptions,
+        allGoogleSubscriptions,
+        allEssentialSubscriptions
+
+    };
+}
+
+async function checkSubscriptionsPermissionsNew(memberId, subscriptionCheckoutData, planId) {
+
+    const {
+        allBoostSubscriptions,
+        allGoogleSubscriptions,
+        allEssentialSubscriptions
+    } = await addStripeSubscriptions();
+
+    const checkAndAssign = (prices, assignFunction) => {
+        if (subscriptionCheckoutData.some(item => prices.includes(item.price))) {
+            assignFunction(memberId).then(result => {
+                console.log("Assignment Result:", result);
+            });
+        }
+    };
+
+   
+    checkAndAssign(allEssentialSubscriptions, assignEssential);
+    checkAndAssign(allBoostSubscriptions, assignBoost);
+    checkAndAssign(allGoogleSubscriptions, assignGoogle);
 
 }
 
@@ -982,7 +1067,8 @@ export function newCard_click(event) {
 	$w('#stripePayment').changeState("Main");
 	session.setItem("Default","No")
 	console.log("Default Click: ", session.getItem("Default"), stripePurpose)
-	$w('#cardDetailsSubtext').text = "Enter your card details below. This will be your new default payment method for all subscriptions.";
+	$w('#cardDetailsSubtext').text = "This will be your new payment method for past and future subscriptions.";
+	$w('#cardDetailsSubtext').expand();
 
 
 
@@ -1053,3 +1139,4 @@ export function retrieveMethods(){
 			
 	});
 }
+

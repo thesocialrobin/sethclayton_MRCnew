@@ -59,6 +59,13 @@ $w.onReady(async function () {
             });
     });
 
+
+    /*
+    let type = $w('#analyticsType').value;
+    console.log("Type: ", type)
+	  getSheetDataManual(type);
+    */
+
     
 });
 
@@ -316,28 +323,33 @@ export async function runMemberCheck(){
             
             if (hasEssentialRole || approved) {
                 console.log("Member has Essential Role");
-              
-            } else if (hasBoostRole || approved) {
+                // Perform action for Essential Role
+                
+            }
+            
+            if (hasBoostRole || approved) {
                 console.log("Member has Boost Role");
                 runAnalytics();
                 $w("#upgradeBox").collapse();
-                 
-               
-            } else if (hasGoogleRole) {
-                console.log("Member has Google Role");               
+            }
+            
+            if (hasGoogleRole) {
+                console.log("Member has Google Role");
+                // Perform action for Google Role
+                
+            }
 
-               
-            } else {
+            // If member does not have any of the specific roles
+            if (!hasEssentialRole && !hasBoostRole && !hasGoogleRole) {
                 console.log("Member does not have any specific roles.");
                 $w("#upgradeBox").expand();
-               
             }
+
         } else {
             console.log("No member found.");
         }
     } catch (error) {
         console.error("Error checking member roles:", error);
-        $w("#upgradeBox").expand();
     }
 
 }

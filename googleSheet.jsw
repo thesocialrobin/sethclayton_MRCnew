@@ -117,7 +117,7 @@ export async function insertResetRow(values, authClient, ssID) {
 			                        //--log process--//
                           let logResults5 = {
                               "type": "Analytics Prepped",
-                              "log": "New Header Sheet1"
+                              "log": "New Header Sheet3"
                             };
 
                             wixData.insert("devLog", logResults5)
@@ -156,7 +156,7 @@ export async function insertResetRowSeven(values, authClient, ssID) {
 		spreadsheetId: ssID,
 		valueInputOption: 'RAW',  
 		insertDataOption: 'INSERT_ROWS',  
-		range: 'Sheet2', 
+		range: 'Sheet4', 
 		resource: {
 			"values": [
 				values
@@ -172,7 +172,7 @@ export async function insertResetRowSeven(values, authClient, ssID) {
 			                        //--log process--//
                           let logResults5 = {
                               "type": "Analytics Prepped",
-                              "log": "New Header Sheet2"
+                              "log": "New Header Sheet4"
                             };
 
                             wixData.insert("devLog", logResults5)
@@ -259,7 +259,7 @@ export async function deleteSpreadsheet(authClient, ssID) {
      //--log process--//
                           let logResults5 = {
                               "type": "Analytics Delete",
-                              "log": "Removed Sheet1"
+                              "log": "Removed Sheet3"
                             };
 
                             wixData.insert("devLog", logResults5)
@@ -327,7 +327,7 @@ export async function deleteSpreadsheetSeven(authClient, ssID) {
      //--log process--//
                           let logResults5 = {
                               "type": "Analytics Delete",
-                              "log": "Removed Sheet2"
+                              "log": "Removed Sheet4"
                             };
 
                             wixData.insert("devLog", logResults5)
@@ -372,7 +372,7 @@ export async function getSpreadsheetData(authClient, ssID) {
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet1',
+		range: 'Sheet3',
 		auth: authClient
 	};
 
@@ -569,7 +569,7 @@ wixData.truncate("analytics", options)
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet1',
+		range: 'Sheet3',
 		auth: authClient
 	};
 
@@ -843,7 +843,7 @@ wixData.truncate("analyticsSeven", options)
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet2',
+		range: 'Sheet4',
 		auth: authClient
 	};
 
@@ -1087,7 +1087,7 @@ wixData.truncate("analytics", options)
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet1',
+		range: 'Sheet3',
 		auth: authClient
 	};
 
@@ -1361,7 +1361,7 @@ wixData.truncate("analyticsSeven", options)
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet2',
+		range: 'Sheet4',
 		auth: authClient
 	};
 
@@ -1577,7 +1577,7 @@ export async function getSpreadsheetData3(authClient, ssID) {
 	const sheets = google.sheets({ version: 'v4', authClient});
 	const request = {
 		spreadsheetId: ssID, 
-		range: 'Sheet2',
+		range: 'Sheet4',
 		auth: authClient
 	};
 
@@ -1740,7 +1740,7 @@ export async function readValuesJson(authorizedAuthClient, sheetId) { //-----CUR
     return await sheets.spreadsheets.values.get(
         {
             spreadhsheetId: sheetId,
-            range:"Sheet2",
+            range:"Sheet4",
 			      auth: authorizedAuthClient,
         },
         (err,res) => {

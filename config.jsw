@@ -1,0 +1,133 @@
+import wixData from 'wix-data';
+import { createClient, getSheetId, getTokens } from 'backend/common-googleSheet'
+
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']; 
+//const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+
+let options = {
+	"suppressAuth": true // suppress db auth to allow secure db permissions
+};
+
+export async function clearConfig() {
+	let response = await wixData.query("config").eq('title', 'client config').find(options);
+	await wixData.remove("config", response.items[0]._id, options);
+
+	response = await wixData.query("config").eq('title', 'sheet id').find(options);
+	await wixData.remove("config", response.items[0]._id, options);
+
+	response = await wixData.query("config").eq('title', 'refresh token').find(options);
+	await wixData.remove("config", response.items[0]._id, options);
+}
+
+export async function isConfig() {
+	let response = await wixData.query("config").eq('title', 'client config').find(options);
+	if(response.items.length === 0) return false;
+	let cc = (response.items[0].value) ? true : false;
+
+	response = await wixData.query("config").eq('title', 'sheet id').find(options);
+	if(response.items.length === 0) return false;
+	let id = (response.items[0].value) ? true : false;
+
+	response = await wixData.query("config").eq('title', 'refresh token').find(options);
+	if(response.items.length === 0) return false;
+	let tk = (response.items[0].value) ? true : false;
+
+	return (cc && id && tk);
+}
+
+export async function client(config) {
+	let response = await wixData.query("config").eq('title', 'client config').find(options);
+	if (response.items.length === 0) {
+		const toInsert = {
+			"title": "client config",
+			"value": config
+		};
+		response = await wixData.insert("config", toInsert, options);
+		return;
+	}
+
+	let items = response.items;
+	let item = items[0];
+	const toUpdate = {
+		"_id": item._id,
+		"title": "client config",
+		"value": config
+	};
+	return await wixData.update("config", toUpdate, options);
+}
+
+export async function sheetId(url) {
+	var regex = new RegExp('/spreadsheets/d/([a-zA-Z0-9-_]+)');
+	let result = url.match(regex);
+
+	let response = await wixData.query("config").eq('title', 'sheet id').find(options);
+	if (response.items.length === 0) {
+		const toInsert = {
+			"title": "sheet id",
+			"value": result[1]
+		};
+		response = await wixData.insert("config", toInsert, options);
+		return;
+	}
+
+	let items = response.items;
+	let item = items[0];
+	const toUpdate = {
+		"_id": item._id,
+		"title": "sheet id",
+		"value": result[1]
+	};
+	return await wixData.update("config", toUpdate, options);
+}
+
+export async function getAuthUrl() {
+	const oAuth2Client = await createClient();
+	const res = oAuth2Client.generateAuthUrl({
+		access_type: 'offline',
+		scope: SCOPES,
+	})
+	return Promise.resolve(res);
+}
+
+export async function generateTokens(offlineCode) {
+	const authClient = await createClient();
+	return authClient.getToken(offlineCode, async (err, tokenJson) => {
+		if (err) {
+			console.log(err);
+			     //--log process--//
+                          let logResults2 = {
+                              "type": "Analytics Gen",
+                              "log": "Token Error: ", err,
+                            };
+
+                            wixData.insert("devLog", logResults2)
+                            .then( (results) => {
+                              let item = results; //see item below
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                     //--end log process--//
+		} else {
+			let response = await wixData.query("config").eq('title', 'refresh token').find(options);
+			if (response.items.length === 0) {
+				const toInsert = {
+					"title": "refresh token",
+					"value": JSON.stringify(tokenJson)
+				};
+				response = await wixData.insert("config", toInsert, options);
+				return;
+			}
+
+			let items = response.items;
+			let item = items[0];
+			const toUpdate = {
+				"_id": item._id,
+				"title": "refresh token",
+				"value": JSON.stringify(tokenJson)
+			};
+			const ret = await wixData.update("config", toUpdate, options);
+		}
+	})
+}

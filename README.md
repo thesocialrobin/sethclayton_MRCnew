@@ -24,3 +24,43 @@ let address =
       "country": "US",
       "postalCode": "94158"
   }
+
+
+//Google Sheets API Authorization
+
+//config.jsw
+
+Added in 
+
+Code for generating manual tokens getAuthUrl Step #1 and Step#2
+
+/* Code for generating manual tokens for Google Sheets Step #1
+  getAuthUrl().then((url) => {
+			$w("#getCode").link = url;
+			$w("#getCode").enable();
+		}).catch(console.log);
+    //--page update 082823--//
+ 
+ */
+
+
+ 
+export function button8_click(event) {
+
+// Code for Generating Manual Analytics tokens Step #2 // Do not delete
+
+
+let offlineCode = ($w('#input10').value).toString(); // Create input field
+
+
+
+generateTokens(offlineCode).then((result) => {
+				console.log("Results:", result);
+			})
+			.catch(error => {
+				console.log("Result Error:", error);
+			});
+
+}
+
+//--End Google Sheets API Authentication Required for Oauth2 Setup--//

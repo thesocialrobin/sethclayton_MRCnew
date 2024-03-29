@@ -377,8 +377,10 @@ async function initForm(agentEmail, agentId) {
             if(startDate >= endDate){
                 $w('#message').text = 'Start time can not be greater than the end time'
             $w('#message').expand()
+            $w('#submit').disable()
             setTimeout(() => {
                 $w('#message').collapse()
+                $w('#submit').enable()
             }, 5000);
             }
             console.log('clicked');
@@ -660,9 +662,11 @@ export function addHour(time){
 
             if(startDate >= endDate){
                 $w('#message').text = 'Start time can not be greater than the end time'
-            $w('#message').show()
+            $w('#message').expand()
+            $w('#submit').disable()
             } else {
-                $w('#message').hide()
+                $w('#message').collapse()
+                $w('#submit').enable()
             }
 
         return formattedTime;
@@ -688,9 +692,11 @@ export function endTime_change(event) {
 
             if(startDate >= endDate){
                 $w('#message').text = 'Start time can not be greater than the end time'
-            $w('#message').show()
+            $w('#message').expand()
+            $w('#submit').disable()
             } else {
-                $w('#message').hide()
+                $w('#message').collapse()
+                $w('#submit').enable()
             }
 }
 
@@ -786,3 +792,4 @@ export function addressOptions_itemReady($item, itemData, index) {
             })
     });
 }
+

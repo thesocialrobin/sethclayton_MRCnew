@@ -242,7 +242,7 @@ export async function deleteSpreadsheet(authClient, ssID) {
         {
       "updateCells": {
         "range": {
-          "sheetId": "0"
+          "sheetId": "2043920455"
         },
         "fields": "userEnteredValue"
       }
@@ -310,7 +310,7 @@ export async function deleteSpreadsheetSeven(authClient, ssID) {
         {
       "updateCells": {
         "range": {
-          "sheetId": "1175936551"
+          "sheetId": "1458836246"
         },
         "fields": "userEnteredValue"
       }

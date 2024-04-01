@@ -522,9 +522,7 @@ export async function createSubscriptionNewMethod(cus, plan, apiKeySk,method) {
 
 	return await key.subscriptions.create({
 		customer: cus,
-		items: plan,
-    default_payment_method: method,
-    default_source: method
+		items: plan
 	})
 	.then( function(err, subscription) {
 		if (err) {
@@ -567,9 +565,7 @@ export async function createMultipleSubscriptions(cus, items, apiKeySk, method) 
 	//let subscription = "price_1LBhr9JK0SbxJv9ljx0VLrCZ";
 	return await key.subscriptions.create({
 		customer: cus,
-		items: items,
-    default_payment_method: method,
-    default_source: method
+		items: items
 	})
 	.then( function(err, subscription) {
 		if (err) {
@@ -781,54 +777,7 @@ export async function addStripeSubscriptions(){
 
 }
 
-export async function findRemovePermissions(allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions){
 
-
-  let findmatchEssential = allEssentialSubscriptions.find(item=> item === planId)
-	let findmatchGoogle = allGoogleSubscriptions.find(item=> item === planId)
-	let findmatchBoost = allBoostSubscriptions.find(item=> item === planId)
- 
-  
-
-//------BEGIN FUNCTION------//
-
-
-  
-      //--log process--//
-                          let logResults = {
-                              "type": "Stripe Log",
-                              "log": "Retrieve Active Subscriptions", findSubscriptions
-                            };
-
-                            wixData.insert("devLog", logResults)
-                            .then( (results) => {
-                              let item = results; //see item below
-                              
-                            } )
-                            .catch( (err) => {
-                              let errorMsg = err;
-
-
-                                   //--log process--//
-                                      let logResults = {
-                                          "type": "Stripe Log",
-                                          "log": "Retrieve Invoices Error"
-                                        };
-
-                                        wixData.insert("devLog", logResults)
-                                        .then( (results) => {
-                                          let item = results; //see item below
-                                          
-                                        } )
-                                       
-
-                                  //--end log process--//
-                            } );
-
-       //--end log process--//
-
-
-}
 
 export function getStripeSubscriptions(cus, subscription, apiKeySk){
 
@@ -1167,12 +1116,31 @@ async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleS
             if (allEssentialSubscriptions.includes(planId)) {
                 console.log("Essential Match Found - Remove Essential Permissions & Role", memberId);
 
-                  removeEssential(memberId).then((result) => {
+                wixData.get("Team", agentId)
+										.then((toUpdate) => {
+
+                      if(toUpdate.approved == false) {
+
+                     removeEssential(memberId).then((resultEssential) => {
+
+                        //--log process--//
+                                      let logResults = {
+                                          "type": "Subscription Removed",
+                                          "log": "Essentials Removed Not Approved"
+                                        };
+
+                                        wixData.insert("devLog", resultEssential)
+                                        .then( (results) => {
+                                          let item = results; //see item below
+                                          
+                                        } )
+                                       
+
+                                  //--end log process--//
 										
 
 											
-                      wixData.get("Team", agentId)
-										.then((toUpdate) => {
+                      
 
 											let currentdatabaseSubs = [];
 											currentdatabaseSubs = toUpdate.subscriptionId; // set the array
@@ -1182,6 +1150,7 @@ async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleS
 											console.log("Updated Database Essential: ", currentdatabaseSubs)
 
 											toUpdate.subscriptionId = currentdatabaseSubs; //set as new spliced array
+                      toUpdate.essential = false;
 
 																						
 											wixData.update('Team', toUpdate).then((res) => {
@@ -1189,7 +1158,8 @@ async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleS
 											})											
 
 											
-										})
+										  })
+                    }
 
 										})
 
@@ -1252,7 +1222,7 @@ async function processSubscriptionPlan(planId, allBoostSubscriptions, allGoogleS
 
             }
         } else {
-            console.log("Subscription cancellation is outside the specified range or not canceled.", formattedDate);
+           //Subscription cancellation is outside the specified range or not canceled
         }
 
 

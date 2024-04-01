@@ -6,10 +6,16 @@ import { eventUpdateEmail } from "backend/email";
 import wixLocation from 'wix-location';
 import { generateEventImage } from "backend/generateImage";
 import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
+import { connectAbstractApi } from 'backend/getData.jsw';
+const { DateTime } = require("luxon");
 let eventAddress
 let placeId
 
 let errorText
+let startDateString
+let endDateString
+let city
+let state
 
 
 $w.onReady(async function () {
@@ -314,6 +320,8 @@ async function initForm(agentEmail, agentId) {
             $w('#venueName').enable()
             $w('#venueName').value = ''
             $w('#venueName').resetValidityIndication()
+            eventTypes
+
         } else {
             $w('#link').show()
 			$w('#selectText').hide()
@@ -328,6 +336,7 @@ async function initForm(agentEmail, agentId) {
     })
 
     var eventTypes = await wixData.query('EventTypes').find().then((res) => {
+        console.log("All Events: ", res)
         var items = res.items
         var dropdownOptions = []
         items.forEach(element => {
@@ -404,7 +413,7 @@ async function initForm(agentEmail, agentId) {
         if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid)) {
             $w('#message').collapse()    
             $w('#loading').expand()
-             $w('#message').text = "Event created"       
+             $w('#message').text = "Creating Event..."       
             console.log(eventTypes);
             var selectedEvent = {}
 
@@ -421,6 +430,8 @@ async function initForm(agentEmail, agentId) {
                 'month': $w('#datePicker1').value.getMonth(),
                 'date': $w('#datePicker1').value.getDate(),
             }
+
+            console.log("Data Date: ", date)
 
             var toEmail = {
                 'title': 'Event Created',
@@ -450,6 +461,8 @@ async function initForm(agentEmail, agentId) {
                 'venueName': $w('#venueName').value,
                 'summary': selectedEvent.summary
             }
+
+    
 
             var eventbriteObj
 
@@ -631,6 +644,15 @@ export function getFullImageURL(imageSRC) {
 export function startTime_change(event) {
 	console.log("Time: ", $w('#startTime').value);
     addHour($w('#startTime').value)
+    if($w('#startTime').valid && $w('#endTime').valid && $w('#datePicker1').valid){
+        var date = {
+                'year': $w('#datePicker1').value.getFullYear(),
+                'month': $w('#datePicker1').value.getMonth(),
+                'date': $w('#datePicker1').value.getDate(),
+            }
+
+        getTime(date);
+    }
 
         
 }
@@ -698,6 +720,16 @@ export function endTime_change(event) {
                 $w('#message').collapse()
                 $w('#submit').enable()
             }
+
+            if($w('#startTime').valid && $w('#endTime').valid && $w('#datePicker1').valid){
+        var date = {
+                'year': $w('#datePicker1').value.getFullYear(),
+                'month': $w('#datePicker1').value.getMonth(),
+                'date': $w('#datePicker1').value.getDate(),
+            }
+
+        getTime(date);
+    }
 }
 
 function uniqueId() {
@@ -776,8 +808,10 @@ export function addressOptions_itemReady($item, itemData, index) {
             createAddress.longitude = googleDetails.result.geometry.location.lng;
             createAddress.latitude = googleDetails.result.geometry.location.lat;
             createAddress.formatted_address = googleDetails.result.formatted_address;
+            city = createAddress.city;
+            state = createAddress.state;
 
-            console.log("New Address Data: ", createAddress);
+            console.log("New Address Data: ", createAddress, city, state);
 
             eventAddress = { 
                 formatted: createAddress.formatted_address, 
@@ -793,3 +827,60 @@ export function addressOptions_itemReady($item, itemData, index) {
     });
 }
 
+export async function getTime(date){
+
+    var startTime = $w('#startTime').value
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+     console.log("Get Time Date 1: ", startTime, startHour, startMin)
+
+    var endTime = $w('#endTime').value
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+    console.log("Get Time Date 2: ", endTime, endHour, endMin)
+
+    var startDatev2 = await DateTime.fromObject({ year: date.year, month: date.month, day: date.date, hour: startHour, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: date.year, month: date.month, day: date.date, hour: endHour, minute: endMin })
+    console.log("Get Time Date 3: ", startDatev2, endDatev2)
+    
+
+    startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log("Get Time Date: ", startDateString, endDateString)
+
+
+}
+
+export async function runAbstractApiAndCalculateTimes() {
+    let location = `${city}, ${state}`; // Ensure 'city' and 'state' are correctly defined
+
+    try {
+        let result = await connectAbstractApi(location);
+        console.log("Abstract API Result: ", result);
+
+        if (Object.keys(result).length === 0) {
+            console.error("Abstract API Result Not Found");
+            return; // Exit if no time zone information is found
+        }
+
+        let userTimeZone = result.timezone_name;
+        console.log("Abstract API Logged: ", result);
+
+        // Assuming 'date', 'startTime', and 'endTime' are defined and available
+        // For example:
+        // let date = {year: 2024, month: 4, day: 1};
+        // let startTime = '09:00';
+        // let endTime = '17:00';
+
+        let startTimeResult = await getTime(date, startTime, userTimeZone); // Adjust getTime as needed
+        let endTimeResult = await getTime(date, endTime, userTimeZone); // Adjust getTime as needed
+
+        console.log("Time Results: ", startTimeResult, endTimeResult)
+
+    
+
+    } catch (error) {
+        console.error("Error in runAbstractApiAndCalculateTimes:", error);
+    }
+}

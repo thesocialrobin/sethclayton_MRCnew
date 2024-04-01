@@ -537,6 +537,7 @@ async function customerCreation(token, lastFour, brand, cardId,agentName) {
 		if(response.id !== undefined) {
 			console.log("Create customer");
 			let cus = response.id;
+			customerId = cus;
 
 			subscription(cus, lastFour, brand);
 
@@ -566,6 +567,7 @@ $w('#cardDetailsSubtext').collapse();
 
 	if(stripePurpose == "Subscribe"){
 		console.log("Default", session.getItem("Default"))
+
 		if(defaultMethod == "No"){
 			console.log("New Method No", stripePurpose)
 			$w('#cardDetailsSubtext').text = "This will be your new default payment method for all subscriptions.";
@@ -578,11 +580,14 @@ $w('#cardDetailsSubtext').collapse();
 				.then( (response) => {
 						
 						let id = response.id;
+						console.log("Update Response", response)
 
 					updateCustomer(id, apiKeySk, customerId)
 					.then( (customerResponse) => {
 
-						createSubscriptionNewMethod(cus, plan, apiKeySk, method)
+						console.log("Update Customer", customerResponse)
+
+						createSubscriptionNewMethod(cus, plan, apiKeySk)
 
 							.then( (response) => {
 							if(response.id !== undefined && response.status === 'active') {
@@ -898,15 +903,35 @@ async function checkSubscriptionsPermissions() {
 
         console.log("Subscriptions fetched:", { allBoostSubscriptions, allGoogleSubscriptions, allEssentialSubscriptions });
 
-        const checkAndAssign = (prices, assignFunction, functionName) => { //dev check
-            console.log(`Checking for matches with ${functionName}...`);
+        const checkAndAssign = async (prices, assignFunction, subscriptionPackage) => { //dev check
+            console.log(`Checking for matches with ${subscriptionPackage}...`);
             if (subscriptionCheckoutData.some(item => prices.includes(item.price))) {
-                console.log(`Match found for ${functionName}. Assigning now...`);
+                console.log(`Match found for ${subscriptionPackage}. Assigning now...`);
+
+				/*
+				
                 assignFunction(memberId).then(result => {
-                    console.log(`Assignment result for ${functionName}:`, result);
+                    console.log(`Subscription assignment result for ${subscriptionPackage}:`, result);
+					
                 });
+				*/
+
+				try {
+                    const result = await assignFunction(memberId);
+                    console.log(`Subscription assignment result for ${subscriptionPackage}:`, result);
+
+                    if (subscriptionPackage === "Essential") {
+                        const manualResult = await assignEssentialManual(memberId);
+
+                        console.log(`Manual assignment result for ${subscriptionPackage}:`, manualResult);
+                    }
+
+				} catch (error) {
+                    console.error(`Error in assigning ${subscriptionPackage}:`, error);
+                }
+				
             } else {
-                console.log(`No matches found for ${functionName}.`);
+                console.log(`No matches found for ${subscriptionPackage}.`);
             }
         };
 
@@ -1071,5 +1096,32 @@ export function retrieveMethods(){
 				
 			
 	});
+}
+
+async function assignEssentialManual(memberId) {
+
+	let thisId = session.getItem("id")
+
+    try {
+       
+        const member = await wixData.get("Team", thisId);
+
+        if (member) {
+           
+
+            member.essential = true;
+
+            const updatedMember = await wixData.update("Team", member);
+            console.log("Member's essential status updated:", updatedMember);
+										
+            return updatedMember; 
+        } else {
+            console.log("Error updating");
+            return null; 
+        }
+    } catch (error) {
+        console.error("Error updating manual Essential status:", error);
+        throw error; 
+    }
 }
 

@@ -8,6 +8,7 @@ import { members } from 'wix-members.v2';
 
 let subscriptionCheck = [];
 let subscriptionData = [];
+let mode = "live"; //---set #1 to "live" for live settings, set to "test" for test settings---//
 
 //---------------------------------------------Create Customer---------------------------------------------//
 
@@ -711,13 +712,16 @@ export async function addStripeSubscriptions(){
 
             wixData.query("stripeSubscriptions")    
                     .contains("title", "Boost")
+                    .eq("type", mode) 
                     .or(
                           wixData.query("stripeSubscriptions")
                           .contains("title", "Essential")
+                          .eq("type", mode) 
                             ) 
                           .or(
                           wixData.query("stripeSubscriptions")
                           .contains("title", "Google")
+                          .eq("type", mode) 
                             )     
                     .find() 
                     .then((results) => {
@@ -821,7 +825,10 @@ export function getStripeSubscriptions(cus, subscription, apiKeySk){
 
 					console.log("Joint Subscription Plan ID + Data", planId, jointprice, jointinterval) //--HERE--//
 
-					wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+					wixData.query('stripeSubscriptions')
+          .eq('apiId', planId)
+          .eq("type", mode) 
+          .find().then((planResults) => {
 
 						console.log(
 							"Results: ", planResults
@@ -879,7 +886,10 @@ export function getStripeSubscriptions(cus, subscription, apiKeySk){
 				let price = "$" + ((subscription.plan.amount) / 100).toString();
 				let interval = subscription.plan.interval; //month or year
 
-				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
+				wixData.query('stripeSubscriptions')
+        .eq('apiId', planId)
+        .eq("type", mode) 
+        .find().then((planResults) => {
 
 									console.log(
 										"Results: ", planResults
@@ -960,7 +970,7 @@ export function queryAgents(allBoostSubscriptions, allGoogleSubscriptions, allEs
 
 //-------set below for live or test Stripe----//
 
-let stripeMode = "test";   //value is "test" or "live"
+let stripeMode = "live";   //value is "test" or "live"
 
 if(stripeMode == "test"){
 

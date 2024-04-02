@@ -3,7 +3,8 @@ import wixUsers from 'wix-users';
 import { session } from 'wix-storage';
 import wixWindow from 'wix-window';
 import wixLocation from 'wix-location';
-import { retrieveMethod, retrieveSubscription,retrieveInvoices } from 'backend/stripeProcessor.jsw';
+import { retrieveMethod, retrieveSubscription, retrieveInvoices } from 'backend/stripeProcessor.jsw';
+import { currentMember } from 'wix-members';
 
 let apiKeyPk
 let apiKeySk
@@ -20,10 +21,13 @@ let zipCode
 let adSpend
 let newCount;
 newCount = 0;
+let agentEmail
+let approved
 
-var email 
+var email
 var planId
 
+let mode = "live"; //---set #1 to "live" for live settings, set to "test" for test settings---//
 
 //List plans to collapse here via plan name; match to stripeSubscriptions title
 
@@ -31,11 +35,9 @@ var planId
 
 let essentialPlanName = "Essential";
 
-
 //Add-Ons
 
 let boostPlanName = "BOOST Social";
-
 
 //Google Ads
 
@@ -45,240 +47,215 @@ let googlePlanName = "Google Ads";
 
 let addOnCount = 2;
 
-
 $w.onReady(async function () {
 
-//-------set below for live or test Stripe----//
+    //-------set below for live or test Stripe----//
 
-let stripeMode = "test";   //value is "test" or "live"
+    let stripeMode = "live"; //value is "test" or "live"
 
-if(stripeMode == "test"){
+    if (stripeMode == "test") {
 
-    apiKeyPk = "stripeTestPk";
-    apiKeySk = "stripeTestSk";
+        apiKeyPk = "stripeTestPk";
+        apiKeySk = "stripeTestSk";
 
+    } else if (stripeMode == "live") {
 
-} else if(stripeMode == "live"){
+        apiKeyPk = "stripeLivePk";
+        apiKeySk = "stripeLiveSk";
 
-    apiKeyPk = "stripeLivePk";
-    apiKeySk = "stripeLiveSk";
+    }
 
-}
-
-//--------------------end--------------------//
+    //--------------------end--------------------//
 
     email = await wixUsers.currentUser.getEmail();
 
-	wixData.query('Team').eq('email', email).find().then((res) => {
+    wixData.query('Team').eq('email', email).find().then((res) => {
         var itemId = res.items[0]._id
         session.setItem("id", itemId)
         session.setItem("userName", res.items[0].name)
-		session.setItem("cus", res.items[0].customerId)
+        session.setItem("cus", res.items[0].customerId)
 
-		let cus = res.items[0].customerId;
-		console.log("Customer", cus)
+        let cus = res.items[0].customerId;
+        console.log("Customer", cus)
 
+        retrieveSubscription(cus, apiKeySk)
+            .then((subscriptions) => {
 
-	retrieveSubscription(cus, apiKeySk)
-			.then( (subscriptions) => {
-				
-					console.log("Stripe Subscriptions:", subscriptions);
-					let allItems = subscriptions.data
+                console.log("Stripe Subscriptions:", subscriptions);
+                let allItems = subscriptions.data
 
-					let subscriptionData = [];
+                let subscriptionData = [];
 
-			
-			
-			allItems.forEach(subscription => {
+                allItems.forEach(subscription => {
 
+                    if (subscription.plan == null) {
 
-                if (subscription.plan == null){
+                        let jointItems = subscription.items.data;
 
+                        jointItems.forEach(jointSubscription => {
 
-                    let jointItems = subscription.items.data;
+                            let planId = jointSubscription.plan.id;
 
-                    jointItems.forEach(jointSubscription => {
+                            wixData.query('stripeSubscriptions')
+                            .eq('apiId', planId)
+                            .eq("type", mode)
+                            .find().then((planResults) => {
 
-                    let planId = jointSubscription.plan.id;
+                                console.log(
+                                    "Results: ", planResults
+                                )
 
-                    wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
-                                    
+                                var planName = planResults.items[0].title
 
-									console.log(
-										"Results: ", planResults
-									)
+                                console.log("This Plan Name", planName)
 
-									
-									var planName = planResults.items[0].title
+                                if (planName.includes(essentialPlanName)) {
 
-                                    console.log("This Plan Name", planName)
+                                    console.log("Essentials Plan Subscriber")
 
-                                     if(planName.includes(essentialPlanName)){
+                                    $w('#essentialBox').collapse()
+                                    $w('#plansTitle').collapse()
+                                    $w('#plansSubtitle').collapse()
 
-                                         console.log("Essentials Plan Subscriber")
+                                }
 
-                                         $w('#essentialBox').collapse()
-                                         $w('#plansTitle').collapse()
-                                         $w('#plansSubtitle').collapse()
+                                if (planName.includes(boostPlanName)) {
 
-                                     }
+                                    newCount++
 
-                                     if(planName.includes(boostPlanName)){
+                                    console.log("Boost Plan Subscriber", newCount)
 
-                                         newCount++
+                                    $w('#boostBox').collapse()
 
-                                         console.log("Boost Plan Subscriber", newCount)
+                                    if (newCount == addOnCount) {
 
-                                         $w('#boostBox').collapse()
+                                        $w('#addOnsTitle').collapse()
+                                        $w('#addOnsSubtitle').collapse()
 
-                                          if(newCount == addOnCount){
+                                    }
 
-                                             $w('#addOnsTitle').collapse()
-                                             $w('#addOnsSubtitle').collapse()
+                                }
 
-                                         }
+                                if (planName.includes(googlePlanName)) {
 
-                                     }
+                                    newCount++
 
-                                     if(planName.includes(googlePlanName)){
+                                    console.log("Google Ads Plan Subscriber", newCount)
 
-                                         newCount++
+                                    $w('#googleAdsBox').collapse()
 
-                                         console.log("Google Ads Plan Subscriber", newCount)
+                                    if (newCount == addOnCount) {
 
-                                         $w('#googleAdsBox').collapse()
+                                        $w('#addOnsTitle').collapse()
+                                        $w('#addOnsSubtitle').collapse()
 
-                                          if(newCount == addOnCount){
+                                    }
 
-                                             $w('#addOnsTitle').collapse()
-                                             $w('#addOnsSubtitle').collapse()
+                                }
 
-                                         }
+                            })
 
-                                     }
+                        })
 
-						
+                    }
 
+                    if (subscription.plan !== null) {
 
-				})
+                        let planId = subscription.plan.id;
 
+                        wixData.query('stripeSubscriptions')
+                        .eq('apiId', planId)
+                        .eq("type", mode)
+                        .find().then((planResults) => {
+
+                            console.log(
+                                "Results: ", planResults, newCount
+                            )
+
+                            var planName = planResults.items[0].title
+
+                            console.log("This Plan Name", planName)
+
+                            if (planName.includes(essentialPlanName)) {
+
+                                console.log("Essentials Plan Subscriber")
+
+                                $w('#essentialBox').collapse()
+                                $w('#plansTitle').collapse()
+                                $w('#plansSubtitle').collapse()
+
+                            }
+
+                            if (planName.includes(boostPlanName)) {
+
+                                newCount++
+
+                                console.log("Boost Plan Subscriber", newCount)
+
+                                $w('#boostBox').collapse()
+
+                                if (newCount == addOnCount) {
+
+                                    $w('#addOnsTitle').collapse()
+                                    $w('#addOnsSubtitle').collapse()
+
+                                }
+
+                            }
+
+                            if (planName.includes(googlePlanName)) {
+
+                                newCount++
+
+                                console.log("Google Ads Plan Subscriber", newCount)
+
+                                $w('#googleAdsBox').collapse()
+
+                                if (newCount == addOnCount) {
+
+                                    $w('#addOnsTitle').collapse()
+                                    $w('#addOnsSubtitle').collapse()
+
+                                }
+
+                            }
+
+                        })
+
+                    }
 
                 })
 
-
-                }  
-                
-                if (subscription.plan !== null){
-
-                    let planId = subscription.plan.id;
-
-				
-
-				wixData.query('stripeSubscriptions').eq('apiId', planId).find().then((planResults) => {
-
-
-									console.log(
-										"Results: ", planResults, newCount
-									)
-
-									
-									var planName = planResults.items[0].title
-
-                                    console.log("This Plan Name", planName)
-
-                                     if(planName.includes(essentialPlanName)){
-
-                                         console.log("Essentials Plan Subscriber")
-
-                                         $w('#essentialBox').collapse()
-                                         $w('#plansTitle').collapse()
-                                         $w('#plansSubtitle').collapse()
-
-                                     }
-
-                                     if(planName.includes(boostPlanName)){
-
-                                         newCount++
-
-                                         console.log("Boost Plan Subscriber", newCount)
-
-                                         $w('#boostBox').collapse()
-
-                                         if(newCount == addOnCount){
-
-                                             $w('#addOnsTitle').collapse()
-                                             $w('#addOnsSubtitle').collapse()
-
-                                         }
-
-                                     }
-
-                                     if(planName.includes(googlePlanName)){
-
-                                          newCount++
-
-                                         console.log("Google Ads Plan Subscriber", newCount)
-
-                                         $w('#googleAdsBox').collapse()
-
-                                         if(newCount == addOnCount){
-
-                                             $w('#addOnsTitle').collapse()
-                                             $w('#addOnsSubtitle').collapse()
-
-                                         }
-
-                                     }
-
-						
-
-
-				})
-
-
-                }
-
-                
-
-
-
-                
-
-				
-				})		
-					
-					
-		});
-
+            });
 
     })
 
 });
 
 export function adSpend_change(event) {
-    let selectedValue = $w("#adSpend").value; 
+    let selectedValue = $w("#adSpend").value;
     if (selectedValue === "250") {
         $w("#clicks").text = "2-6";
-		$w("#adCost").text = "$250";
-		$w("#startingAt").collapse();
+        $w("#adCost").text = "$250";
+        $w("#startingAt").collapse();
         $w("#zipText").expand();
         $w("#zipCode").expand();
     } else if (selectedValue === "500") {
         $w("#clicks").text = "4-10";
-		$w("#adCost").text = "$500";
-		$w("#startingAt").collapse();
+        $w("#adCost").text = "$500";
+        $w("#startingAt").collapse();
         $w("#zipText").expand();
         $w("#zipCode").expand();
     } else if (selectedValue === "750") {
         $w("#clicks").text = "6-15";
-		$w("#adCost").text = "$750";
-		$w("#startingAt").collapse();
+        $w("#adCost").text = "$750";
+        $w("#startingAt").collapse();
         $w("#zipText").expand();
         $w("#zipCode").expand();
     }
 }
 
-export function executePayment(){
+export function executePayment() {
     console.log("Payment Executed")
 
     session.setItem("stripePurpose", "mySubscriptions");
@@ -305,7 +282,7 @@ export function executePayment(){
 
                 //--Code TBD--//
 
-            } else if (receivedData === "Success"){
+            } else if (receivedData === "Success") {
 
                 wixLocation.to("/account/billing");
 
@@ -314,19 +291,16 @@ export function executePayment(){
 
 }
 
-
 export function essentialPlan_click(event) {
-
- 
 
     let planName = "Essential";
     let duration = "Monthly"
 
-    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+    let findMatch = subscriptions.find(subscription => subscription.planSelection === planName)
 
-    if (findMatch !== undefined){
+    if (findMatch !== undefined) {
 
-        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        let objIndex = subscriptions.findIndex(subscription => subscription.planSelection === planName)
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
@@ -336,31 +310,29 @@ export function essentialPlan_click(event) {
     } else {
 
         let subscriptionData = {
-        "planSelection": planName,
-        "duration": duration
+            "planSelection": planName,
+            "duration": duration
+
+        }
+
+        subscriptions.push(subscriptionData);
+        $w("#essentialPlan").label = "Added to Cart!"
+        $w('#checkoutEssential').expand();
+
+        console.log("My Subscriptions: ", subscriptions)
 
     }
-
-    subscriptions.push(subscriptionData);
-    $w("#essentialPlan").label = "Added to Cart!"
-    $w('#checkoutEssential').expand();
-
-    console.log("My Subscriptions: ", subscriptions)
-
-    }
-
-	
 
 }
 
 export function boostSocialPlan_click(event) {
-	let planName = 'BOOST Social'
+    let planName = 'BOOST Social'
 
-    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+    let findMatch = subscriptions.find(subscription => subscription.planSelection === planName)
 
-    if (findMatch !== undefined){
+    if (findMatch !== undefined) {
 
-        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        let objIndex = subscriptions.findIndex(subscription => subscription.planSelection === planName)
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
@@ -369,81 +341,74 @@ export function boostSocialPlan_click(event) {
 
     } else {
 
-         let subscriptionData = {
-        "planSelection": planName
+        let subscriptionData = {
+            "planSelection": planName
 
         }
 
-    subscriptions.push(subscriptionData);
-    $w("#boostSocialPlan").label = "Added to Cart!"
-    $w('#checkoutBoostSocial').expand();
+        subscriptions.push(subscriptionData);
+        $w("#boostSocialPlan").label = "Added to Cart!"
+        $w('#checkoutBoostSocial').expand();
 
-    console.log("My Subscriptions: ", subscriptions)
-        
+        console.log("My Subscriptions: ", subscriptions)
+
     }
-
-   
 
 }
 
 export function googleAdsPlan_click(event) {
 
-	let planName = 'Google Ads ' + ($w('#adSpend').value).toString()
+    let planName = 'Google Ads ' + ($w('#adSpend').value).toString()
     let adSpend = $w('#adSpend').value;
     let zipCode = $w('#zipCode').value;
 
-    let findMatch = subscriptions.find(subscription=> subscription.planSelection === planName)
+    let findMatch = subscriptions.find(subscription => subscription.planSelection === planName)
 
-    if (findMatch !== undefined){
+    if (findMatch !== undefined) {
 
-        let objIndex = subscriptions.findIndex(subscription=> subscription.planSelection === planName)
+        let objIndex = subscriptions.findIndex(subscription => subscription.planSelection === planName)
         subscriptions.splice(objIndex, 1);
 
         console.log("My Subscriptions: ", subscriptions)
         $w('#checkoutGoogle').collapse();
         $w("#googleAdsPlan").label = "Sign Up"
-        
 
     } else {
 
-        if(adSpend.length > 0 && zipCode.length > 4){
+        if (adSpend.length > 0 && zipCode.length > 4) {
 
-             let subscriptionData = {
-        "planSelection": planName,
-        "adSpend": adSpend,
-        "zipCode": zipCode
+            let subscriptionData = {
+                "planSelection": planName,
+                "adSpend": adSpend,
+                "zipCode": zipCode
 
-    }
+            }
 
-    subscriptions.push(subscriptionData);
-    $w("#googleAdsPlan").label = "Added to Cart!"
-    $w('#checkoutGoogle').expand();
+            subscriptions.push(subscriptionData);
+            $w("#googleAdsPlan").label = "Added to Cart!"
+            $w('#checkoutGoogle').expand();
 
-    console.log("My Subscriptions: ", subscriptions)
+            console.log("My Subscriptions: ", subscriptions)
 
         }
 
-       
-        
     }
 
-    
 }
 
 export function checkoutGoogle_click(event) {
-	executePayment()
+    executePayment()
 }
 
 export function checkoutEssential_click(event) {
-	executePayment()
+    executePayment()
 }
 
 export function checkoutBoostSocial_click(event) {
     executePayment()
 }
 
-
-function unixCode (){ 
-  var timeStamp = Math.floor(Date.now()/1000);
-  return timeStamp.toString(); 
+function unixCode() {
+    var timeStamp = Math.floor(Date.now() / 1000);
+    return timeStamp.toString();
 }

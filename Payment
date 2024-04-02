@@ -8,7 +8,7 @@ import {createCustomer, createSubscription, createMultipleSubscriptions, createS
 import { currentMember } from 'wix-members';
 import { assignEssential, assignBoost, assignGoogle } from 'backend/members.jsw';
 
-let mode = "test"; //---set to "live" for live settings, set to "test" for test settings---//
+let mode = "live"; //---set #1 to "live" for live settings, set to "test" for test settings---//
 let stripePurpose
 let apiKeyPk
 let apiKeySk
@@ -32,9 +32,9 @@ if (member) {
 		console.log("Member Found", memberId)
 } 
 
-//-------set below for live or test Stripe----//
+//-------set below #2 for live or test Stripe----//
 
-let stripeMode = "test";   //value is "test" or "live"
+let stripeMode = "live";   //value is "test" or "live"
 
 if(stripeMode == "test"){
 
@@ -861,6 +861,7 @@ export async function addStripeSubscriptions() {
     try {
         let results = await wixData.query("stripeSubscriptions")
             .contains("title", "Boost")
+			.eq("type", mode)  
             .or(wixData.query("stripeSubscriptions").contains("title", "Essential"))
             .or(wixData.query("stripeSubscriptions").contains("title", "Google"))
             .find();

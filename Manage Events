@@ -19,6 +19,7 @@ let endDateStringAbstract
 let city
 let state
 let eventDate
+let abstractDate
 
 
 $w.onReady(async function () {
@@ -413,7 +414,7 @@ async function initForm(agentEmail, agentId) {
             
         } 
         
-        if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid)) {
+        if ($w('#type').valid && $w('#datePicker1').valid && $w('#startTime').valid && $w('#endTime').valid && $w('#eventName').valid && ($w('#link').valid || $w('#address').valid) && startDateString !== null && endDateString !== null) {
             $w('#message').collapse()    
             $w('#loading').expand()
              $w('#message').text = "Creating Event..."       
@@ -534,7 +535,7 @@ async function initForm(agentEmail, agentId) {
             console.log(toInsert);
             console.log('evobj', eventbriteObj);
 
-            createEvent(eventbriteObj).then((res) => {
+            createEvent(eventbriteObj, startDateString, endDateString).then((res) => {
 
                 console.log(res);
                 var eventbriteLink = res.eventUrl
@@ -671,7 +672,20 @@ export function startTime_change(event) {
 
         //getTime(date);
         runAbstractApiAndCalculateTimes().then((results) => {
-            console.log("Abstract API Return Start: ", results)
+
+            let eventStartTime = results.startTimeResult;
+            let eventEndTime = results.endTimeResult;
+            abstractDate = {
+                startTime: eventStartTime.split(' ')[1],
+                endTime: eventEndTime.split(' ')[1],
+                date: eventStartTime.split(' ')[0]
+            }
+                   
+            console.log("Abstract API Return Start: ", eventStartTime, eventEndTime, abstractDate);
+
+            getTime()
+
+
 
         })
     }
@@ -760,7 +774,19 @@ export function endTime_change(event) {
 
         //getTime(date);
         runAbstractApiAndCalculateTimes().then((results) => {
-            console.log("Abstract API Return End: ", results)
+            
+            let eventStartTime = results.startTimeResult;
+            let eventEndTime = results.endTimeResult;
+            abstractDate = {
+                startTime: eventStartTime.split(' ')[1],
+                endTime: eventEndTime.split(' ')[1],
+                date: eventStartTime.split(' ')[0]
+            }
+                   
+            console.log("Abstract API Return End: ", eventStartTime, eventEndTime, abstractDate);
+
+            getTime()
+            
 
         }) 
     }
@@ -861,27 +887,29 @@ export function addressOptions_itemReady($item, itemData, index) {
     });
 }
 
-export async function getTime(date){
+export async function getTime(){
 
-    var startTime = $w('#startTime').value
+    var startTime = abstractDate.startTime;
     var startHour = parseInt(startTime.substr(0, 2))
     var startMin = parseInt(startTime.substr(3, 2))
-     console.log("Get Time Date 1: ", startTime, startHour, startMin, date)
+     console.log("Get Time Date 1 Abstract: ", startTime, startHour, startMin, abstractDate)
 
-    var endTime = $w('#endTime').value
+    var endTime = abstractDate.endTime
     var endHour = parseInt(endTime.substr(0, 2))
     var endMin = parseInt(endTime.substr(3, 2))
-    console.log("Get Time Date 2: ", endTime, endHour, endMin, date)
+    console.log("Get Time Date 2 Abstract: ", endTime, endHour, endMin, abstractDate)
 
-    var startDatev2 = await DateTime.fromObject({ year: date.year, month: date.month, day: date.date, hour: startHour, minute: startMin })
-    var endDatev2 = await DateTime.fromObject({ year: date.year, month: date.month, day: date.date, hour: endHour, minute: endMin })
-    console.log("Get Time Date 3: ", startDatev2, endDatev2, date)
+    //Note - takes calendar date from selected value and not from converted value
+
+    var startDatev2 = await DateTime.fromObject({ year: abstractDate.year, month: abstractDate.month, day: eventDate.date, hour: startHour, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: abstractDate.year, month: abstractDate.month, day: eventDate.date, hour: endHour, minute: endMin })
+    console.log("Get Time Date 3 Abstract: ", startDatev2, endDatev2, abstractDate)
     
 
     startDateString = startDatev2.toISO().split('.')[0] + "Z"
     endDateString = endDatev2.toISO().split('.')[0] + "Z"
 
-    console.log("Get Time Date: ", startDateString, endDateString)
+    console.log("Get Time Date Abstract: ", startDateString, endDateString)
 
 
 }
@@ -910,6 +938,8 @@ export async function runAbstractApiAndCalculateTimes() {
 
     startDateString = startDatev2.toISO().split('.')[0] + "Z"
     endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log("Get Time Date: ", startDateString, endDateString)
     
 
     startDateStringAbstract = startDatev2.toISO().split('.')[0] 

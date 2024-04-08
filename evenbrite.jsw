@@ -48,7 +48,7 @@ var subCat = {
     }
 }
 
-export function createEvent(obj) {
+export function createEvent(obj, startDateString, endDateString) {
 
     console.log('Creating Event');
 
@@ -60,11 +60,28 @@ export function createEvent(obj) {
     return Promise.all([getLogoId(obj.eventImage), createVenue(obj)]).then((res1) => {
         var logoId = res1[0]
         var venueId = res1[1]
-        return constructEvent(obj, logoId, venueId).then((res2) => {
+        
+        //--log process--//
+                          let logResultsPrep = {
+                              "type": "Eventbrite Object",
+                              "log": "Construct Event Prep", obj, logoId, venueId, res1
+                            };
+
+                            wixData.insert("devLog", logResultsPrep)
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+        return constructEvent(obj, startDateString, endDateString, logoId, venueId).then((res2) => {
             var eventUrl = res2.url
             var eventId = res2.id
             return createTicket(eventId, obj).then(() => {
                 return publishEvent(eventId).then(() => {
+                   
+                setEventDescription(eventId, obj.description); //added 033124
+            
                     return {
                         "eventUrl": eventUrl,
                         "eventId": eventId
@@ -108,11 +125,108 @@ export function createEvent(obj) {
         }).catch( (err) => {
 
             //--log process--//
-                          let logResults = {
-                              "type": "Eventbrite Error",
-                              "log": "Error creating event", err
+                            let errorMessage = err.message || "Unknown error";
+                            let errorStack = err.stack || "No stack trace";
+                            let logResults = {
+                                "type": "Eventbrite Error",
+                                "log": `Error Creating Object: ${errorMessage}, Stack: ${errorStack}`
+                            };
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+		return err;
+	})
+    })
+
+}
+
+export function createEventOld(obj, startDateString, endDateString) {
+
+    console.log('Creating Event');
+
+    if (obj.type === "Virtual Event") {
+        isOnline = true
+        link = obj.link
+    }
+
+    return Promise.all([getLogoId(obj.eventImage), createVenue(obj)]).then((res1) => {
+        var logoId = res1[0]
+        var venueId = res1[1]
+        
+        //--log process--//
+                          let logResultsPrep = {
+                              "type": "Eventbrite Object",
+                              "log": "Construct Event Prep", obj, logoId, venueId, res1
                             };
 
+                            wixData.insert("devLog", logResultsPrep)
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+        return constructEvent(obj, startDateString, endDateString, logoId, venueId).then((res2) => {
+            var eventUrl = res2.url
+            var eventId = res2.id
+            return createTicket(eventId, obj).then(() => {
+                return publishEvent(eventId).then(() => {
+                   
+                setEventDescription(eventId, obj.description); //added 033124
+            
+                    return {
+                        "eventUrl": eventUrl,
+                        "eventId": eventId
+                    }
+                }).catch( (err) => {
+
+                    //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error publishing event", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
+		return err;
+	    })
+            }).catch( (err) => {
+
+                 //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Error",
+                              "log": "Error creating ticket", err
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+		return err;
+	})
+
+        }).catch( (err) => {
+
+            //--log process--//
+                            let errorMessage = err.message || "Unknown error";
+                            let errorStack = err.stack || "No stack trace";
+                            let logResults = {
+                                "type": "Eventbrite Error",
+                                "log": `Error Creating Object: ${errorMessage}, Stack: ${errorStack}`
+                            };
                             wixData.insert("devLog", logResults, )
                             .then( (results) => {
                               let item = results; 
@@ -317,12 +431,12 @@ export function createVenue(obj) {
             console.log('Venue Created');
 
             //--log process--//
-                          let logResults2 = {
+                          let logResults3 = {
                               "type": "Eventbrite Venue Creation",
                               "log": "Venue Created", venueDetails
                             };
 
-                            wixData.insert("devLog", logResults2 )
+                            wixData.insert("devLog", logResults3 )
                             .then( (results) => {
                               let item = results; 
                               
@@ -339,12 +453,12 @@ export function createVenue(obj) {
         .catch( (err) => {
 
                 //--log process--//
-                          let logResults3 = {
+                          let logResults4 = {
                               "type": "Eventbrite Venue Creation",
                               "log": "Venue Creation Error", err
                             };
 
-                            wixData.insert("devLog", logResults3 )
+                            wixData.insert("devLog", logResults4 )
                             .then( (results) => {
                               let item = results; 
                               
@@ -358,9 +472,27 @@ export function createVenue(obj) {
 }
 
 //
-export async function constructEvent(obj, logoId, venueId) {
+export async function constructEvent(obj, startDateString, endDateString, logoId, venueId) {
 
     console.log('obj.date', obj.date);
+    let objData = obj;
+     
+     
+
+    //--log process--//
+                          let logResults3 = {
+                              "type": "Eventbrite Data Creation",
+                              "log": "Date Time", objData 
+                            };
+
+                            wixData.insert("devLog", logResults3 )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+    
 
     var startTime = obj.startTime
     var startHour = parseInt(startTime.substr(0, 2))
@@ -372,14 +504,30 @@ export async function constructEvent(obj, logoId, venueId) {
 
     var startDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: startHour + 4, minute: startMin })
     var endDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: endHour + 4, minute: endMin })
+    
 
-    var startDateString = startDatev2.toISO().split('.')[0] + "Z"
-    var endDateString = endDatev2.toISO().split('.')[0] + "Z"
+    //var startDateString = startDatev2.toISO().split('.')[0] + "Z" //prev
+    //var endDateString = endDatev2.toISO().split('.')[0] + "Z" //prev
+
+   
 
     console.log('startDate', startDateString);
     console.log('endDate', endDateString);
 
     //return 'test'
+
+/*
+    let testData = {
+        "startTime": startTime,
+        "startHour": startHour,
+        "startMin": startMin,
+        "startDatev2": startDatev2,
+        "endDatev2": endDatev2,
+        "startDateString": startDateString,
+        "endDateString": endDateString
+    }
+    */
+
 
     var description = `<p>${obj.description}</p>`
 
@@ -492,6 +640,72 @@ export function getLogoId(fileUrl) {
     })
 }
 
+export function setEventDescription(eventId, description) {
+
+    console.log('Setting Event Description');
+
+    var toSend = {
+        "access_type": "public",
+        "publish": true,
+        "purpose": "listing",
+        "modules": [{
+            "data": {
+                "body": {
+                    "alignment": "center",
+                    "text": `<p>${description}</p>`
+                },
+                "type": "text",
+            },
+            "type": "text"
+        }]
+    }
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(toSend),
+        redirect: 'follow'
+    };
+
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/structured_content/2/`, requestOptions)
+        .then(async (res) => {
+
+            console.log('Event description added');
+            //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite API",
+                              "log": "Success publishing description", res
+                            };
+
+                            wixData.insert("devLog", logResults, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+
+            var obj = await res.json()
+            console.log(obj);
+            return obj
+        })
+        .catch(error => {
+                      //--log process--//
+                          let logResults2 = {
+                              "type": "Eventbrite API",
+                              "log": "Error publishing description", error
+                            };
+
+                            wixData.insert("devLog", logResults2, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
+                  })
+}
+
 export function setEventLink(eventId, obj) {
 
     console.log('Setting Event Link');
@@ -520,7 +734,7 @@ export function setEventLink(eventId, obj) {
         redirect: 'follow'
     };
 
-    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/structured_content/2/`, requestOptions)
+    return fetch(`https://www.eventbriteapi.com/v3/events/${eventId}/structured_content/3/`, requestOptions)
         .then(async (res) => {
 
             console.log('Event link added');
@@ -619,7 +833,7 @@ export async function update(obj, logoId, venueId) {
             var obj2 = await response.json()
             if (isOnline) {
                 setEventLink(obj2.id, obj2)
-            }
+            } 
             console.log(obj2);
             return obj2
         })

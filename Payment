@@ -593,7 +593,138 @@ $w('#cardDetailsSubtext').collapse();
 							if(response.id !== undefined && response.status === 'active') {
 								let subStatus = 'ACTIVE';
 								$w('#processorText').text = "Finalizing Subscription...";
-								signUpMember(response, cus, lastFour, brand, subStatus);
+
+								let subscriptions = context
+								console.log("Plan Details: ", context)
+								console.log("First Plan Details: ", context[0].planSelection)
+
+								if(subscriptions.length < 2){
+
+									console.log("Single Plan Details: ", context[0].planSelection)
+
+									
+
+											if(context[0].duration !== undefined){
+
+												console.log("Duration: ", context[0].duration)
+
+												wixData.query("stripeSubscriptions")
+													.eq("title", context[0].planSelection)      
+													.eq("type", mode)  
+													.eq("duration", context[0].duration) 
+													.find() 
+													.then((results) => { 
+
+														let apiId = results.items[0].apiId
+														planId = apiId
+														let price = {
+															price: apiId
+														}
+														subscriptionCheckoutData.push(price);
+														console.log("Found ID", apiId)
+														console.log("Found plan", results)
+														console.log("Plan Logged:", planId)
+														signUpMember(response, cus, lastFour, brand, subStatus);
+
+													})
+
+
+											} else {
+
+												wixData.query("stripeSubscriptions")
+													.eq("title", context[0].planSelection)      
+													.eq("type", mode)  
+													.find() 
+													.then((results) => { 
+
+														let apiId = results.items[0].apiId
+														planId = apiId
+														let price = {
+															price: apiId
+														}
+														subscriptionCheckoutData.push(price);
+														console.log("Found ID", apiId)
+														console.log("Found plan", results)
+														console.log("Plan Logged:", planId)
+														signUpMember(response, cus, lastFour, brand, subStatus);
+
+													})
+
+
+											}
+
+
+								} else {
+
+									let count = 0;
+									let total = subscriptions.length;
+
+									subscriptions.forEach(subscription => {
+
+										count++
+
+										console.log("This Plan Details: ", subscription.planSelection)
+
+										
+
+											if(subscription.duration !== undefined){
+
+												console.log("Duration found: ", subscription.duration)
+
+												wixData.query("stripeSubscriptions")
+													.eq("title", subscription.planSelection)      
+													.eq("type", mode)  
+													.eq("duration", subscription.duration) 
+													.find() 
+													.then((results) => { 
+
+														let apiId = results.items[0].apiId
+														let price = {
+															price: apiId
+														}
+														subscriptionCheckoutData.push(price);
+
+														console.log("Found ID", apiId)
+														console.log("Found plan", results)
+														console.log("Subscription Plans: ", subscriptionCheckoutData)
+
+													})
+
+											} else {
+
+												console.log("No Duration")
+
+												wixData.query("stripeSubscriptions")
+													.eq("title", subscription.planSelection)      
+													.eq("type", mode)  
+													.find() 
+													.then((results) => { 
+
+														let apiId = results.items[0].apiId
+														let price = {
+															price: apiId
+														}
+														subscriptionCheckoutData.push(price);
+
+														console.log("Found ID", apiId)
+														console.log("Found plan", results)
+														console.log("Subscription Plans: ", subscriptionCheckoutData)
+
+													})
+
+											}
+
+										if(count == total){
+
+
+											console.log("All Plans Loaded: ", subscriptionCheckoutData)
+											signUpMember(response, cus, lastFour, brand, subStatus);
+
+										}
+										
+									});
+								}
+								
 							} else if(response.id !== undefined && response.status !== 'active') {
 								let subStatus = 'PENDING';
 								//signUpMember(response, cus, lastFour, brand, subStatus);	
@@ -687,6 +818,7 @@ $w('#cardDetailsSubtext').collapse();
 									console.log("Subscriptions Updated: ", agentSubscriptions)
 									let subStatus = 'ACTIVE';
 									$w('#processorText').text = "Finalizing Subscription...";
+
 									signUpMultiMember(response, cus, lastFour, brand, subStatus);
 								} else if(response.id !== undefined && response.status !== 'active') {
 									let subStatus = 'PENDING';

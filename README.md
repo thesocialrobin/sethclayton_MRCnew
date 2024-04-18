@@ -64,3 +64,13 @@ generateTokens(offlineCode).then((result) => {
 }
 
 //--End Google Sheets API Authentication Required for Oauth2 Setup--//
+
+
+// ID's for Testing $1 Pricing for Essential Plans
+
+DEV API ID Essentials Monthly $1
+price_1P74jJGjvTpCU0nDiLc7pCbE
+
+Live API ID Essentials Monthly
+price_1P0wRfGjvTpCU0nDCXKnhgnV
+

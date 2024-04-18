@@ -843,7 +843,7 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
                         setTimeout(() => {
                             $w('#processorText').text = "Taking to Dashboard...";
 
-                        }, 1000);
+                        }, 2000);
 
                         setTimeout(() => {
 
@@ -851,7 +851,7 @@ async function signUpMultiMember(response, cus, lastFour, brand, subStatus) {
 								"lightBoxSend1": "Success",
 							} );
 
-                        }, 2000);
+                        }, 4000);
 
 
 						})

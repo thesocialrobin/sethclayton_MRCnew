@@ -422,7 +422,7 @@ function createCardToken() {
 			if ((customerId === undefined || customerId === "") && stripePurpose !== "updateCard"){
 
 				console.log("Customer Id undefined: ", customerId) //Does not exist in system, create new customer
-				customerCreation(token, lastFour, brand, signupName);
+				customerCreation(token, lastFour, brand, cardId, signupName);
 				
 
 			} else if ((customerId !== undefined || customerId !== "") && stripePurpose !== "updateCard") {
@@ -529,7 +529,7 @@ function createToken(name, card, mm, yyyy, cvc, line1, city, state, zip) {
 
 //-----------------------------------------------------------------Create Customer-----------------------------------------------------------------//
 
-async function customerCreation(token, lastFour, brand, cardId,agentName) {
+async function customerCreation(token, lastFour, brand, cardId, agentName) {
 
 	createCustomer(token, email, apiKeySk, agentName)
 	.then( (response) => {

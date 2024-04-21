@@ -572,7 +572,7 @@ $w('#cardDetailsSubtext').collapse();
 
 	let defaultMethod = session.getItem("Default")
 
-	if(stripePurpose == "Subscribe"){
+	if(stripePurpose == "Subscribe"){ //Account Setup
 		console.log("Default", session.getItem("Default"))
 
 		if(defaultMethod == "No"){
@@ -632,7 +632,7 @@ $w('#cardDetailsSubtext').collapse();
 
 		}
 
-		if(defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == ""){
+		if((defaultMethod == "Yes" || defaultMethod == undefined || defaultMethod == "") && defaultMethod !== "No"){
 			$w("#newCard").disable();
 			$w("#defaultCard").collapse();
 			console.log("Default", stripePurpose)

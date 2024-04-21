@@ -5,8 +5,17 @@ import { createEvent, deleteEvent, updateEvent } from "backend/eventbrite";
 import wixWindow from 'wix-window';
 import { eventUpdateEmail } from "backend/email";
 import {googleAddress, googleAddressDetails} from 'backend/getData.jsw';
+import { connectAbstractApi, convertAbstractApi } from 'backend/getData.jsw';
+const { DateTime } = require("luxon");
+
 let eventAddress
 let placeId
+let abstractDate
+let startDateString
+let endDateString
+let startDateStringAbstract
+let endDateStringAbstract
+let eventDate
 
 
 $w.onReady(async function () {
@@ -218,7 +227,21 @@ async function initForm(agentEmail, agentId, itemData) {
 
             console.log(toUpdate);
 
-            updateEvent(toUpdateEvent).then((res) => {
+            updateEvent(toUpdateEvent, startDateString, endDateString).then((res) => {
+
+                        //--log process--//
+                          let logResults2 = {
+                              "type": "Eventbrite API",
+                              "log": "Success updating event", res
+                            };
+
+                            wixData.insert("devLog", logResults2, )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
 
                 console.log(res);
                 var eventbriteLink = res.eventUrl
@@ -425,5 +448,220 @@ export function getGoogleMapData(placeId){
 
             
             })
+
+}
+
+export async function getTime() {
+
+    var startTime = abstractDate.startTime;
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+    console.log("Get Time Date 1 Abstract: ", startTime, startHour, startMin, abstractDate)
+
+    var endTime = abstractDate.endTime
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+    console.log("Get Time Date 2 Abstract: ", endTime, endHour, endMin, abstractDate)
+
+    //Note - takes calendar date from selected value and not from converted value
+
+    var startDatev2 = await DateTime.fromObject({ year: abstractDate.year, month: abstractDate.month, day: eventDate.date, hour: startHour, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: abstractDate.year, month: abstractDate.month, day: eventDate.date, hour: endHour, minute: endMin })
+    console.log("Get Time Date 3 Abstract: ", startDatev2, endDatev2, abstractDate)
+
+    startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log("Get Time Date Abstract: ", startDateString, endDateString)
+
+}
+
+export async function runAbstractApiAndCalculateTimes() {
+
+    let eventBriteCity = "New York";
+    let eventBriteState = "NY";
+    let convertLocation = "Reykjavik, Iceland";
+
+    let startingLocation = `${eventBriteCity}, ${eventBriteState}`; // Ensure 'city' and 'state' are correctly defined
+
+    var startTime = $w('#startTime').value
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+    console.log("Get Time Date 1: ", startTime, startHour, startMin, eventDate)
+
+    var endTime = $w('#endTime').value
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+    console.log("Get Time Date 2: ", endTime, endHour, endMin, eventDate)
+
+    var startDatev2 = await DateTime.fromObject({ year: eventDate.year, month: eventDate.month, day: eventDate.date, hour: startHour, minute: startMin })
+    var endDatev2 = await DateTime.fromObject({ year: eventDate.year, month: eventDate.month, day: eventDate.date, hour: endHour, minute: endMin })
+    console.log("Get Time Date 3: ", startDatev2, endDatev2, eventDate)
+
+    startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    endDateString = endDatev2.toISO().split('.')[0] + "Z"
+
+    console.log("Get Time Date: ", startDateString, endDateString)
+
+    startDateStringAbstract = startDatev2.toISO().split('.')[0]
+    endDateStringAbstract = endDatev2.toISO().split('.')[0]
+
+    try {
+
+        let startTimeResult = await convertAbstractApi(startingLocation, startDateStringAbstract, convertLocation);
+        let endTimeResult = await convertAbstractApi(startingLocation, endDateStringAbstract, convertLocation);
+
+        console.log("Time Results: ", startTimeResult, endTimeResult, startTimeResult.target_location.datetime, endTimeResult.target_location.datetime);
+
+        if (Object.keys(startTimeResult).length === 0) {
+            console.error("Abstract API Start Result Not Found");
+            return null; // Return null if no time zone information is found
+        }
+
+        if (Object.keys(endTimeResult).length === 0) {
+            console.error("Abstract API End Result Not Found");
+            return null; // Return null if no time zone information is found
+        }
+
+        return {
+            startTimeResult: startTimeResult.target_location.datetime,
+            endTimeResult: endTimeResult.target_location.datetime
+        };
+    } catch (error) {
+        console.error("Error in runAbstractApiAndCalculateTimes:", error);
+        return null; // Return null in case of an error
+    }
+}
+
+
+export function startTime_change(event) {
+	console.log("Time: ", $w('#startTime').value);
+    addHour($w('#startTime').value)
+    if ($w('#startTime').valid && $w('#endTime').valid && $w('#datePicker1').valid) {
+        var date = {
+            'year': $w('#datePicker1').value.getFullYear(),
+            'month': $w('#datePicker1').value.getMonth(),
+            'date': $w('#datePicker1').value.getDate(),
+        }
+
+        eventDate = {
+            'year': $w('#datePicker1').value.getFullYear(),
+            'month': Number($w('#datePicker1').value.getMonth()) + 1,
+            'date': $w('#datePicker1').value.getDate(),
+        }
+
+        console.log("Data Date: ", date, eventDate)
+
+        //getTime(date);
+        runAbstractApiAndCalculateTimes().then((results) => {
+
+            let eventStartTime = results.startTimeResult;
+            let eventEndTime = results.endTimeResult;
+            abstractDate = {
+                startTime: eventStartTime.split(' ')[1],
+                endTime: eventEndTime.split(' ')[1],
+                date: eventStartTime.split(' ')[0]
+            }
+
+            console.log("Abstract API Return Start: ", eventStartTime, eventEndTime, abstractDate);
+
+            getTime()
+
+        })
+    }
+}
+
+export function endTime_change(event) {
+	var startDate = new Date()
+    var startTime = $w('#startTime').value
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+
+    startDate.setHours(startHour, startMin)
+
+    var endDate = new Date()
+    var endTime = $w('#endTime').value
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+
+    endDate.setHours(endHour, endMin)
+
+    if (startDate >= endDate) {
+        $w('#message').text = 'Start time can not be greater than the end time'
+        $w('#message').expand()
+        $w('#submit').disable()
+    } else {
+        $w('#message').collapse()
+        $w('#submit').enable()
+    }
+
+    if ($w('#startTime').valid && $w('#endTime').valid && $w('#datePicker1').valid) {
+        var date = {
+            'year': $w('#datePicker1').value.getFullYear(),
+            'month': $w('#datePicker1').value.getMonth(), //Zero index based Function, must add 1
+            'date': $w('#datePicker1').value.getDate(),
+        }
+
+        eventDate = {
+            'year': $w('#datePicker1').value.getFullYear(),
+            'month': Number($w('#datePicker1').value.getMonth()) + 1,
+            'date': $w('#datePicker1').value.getDate(),
+        }
+
+        console.log("Data Date: ", date, eventDate)
+
+        runAbstractApiAndCalculateTimes().then((results) => {
+
+            let eventStartTime = results.startTimeResult;
+            let eventEndTime = results.endTimeResult;
+            abstractDate = {
+                startTime: eventStartTime.split(' ')[1],
+                endTime: eventEndTime.split(' ')[1],
+                date: eventStartTime.split(' ')[0]
+            }
+
+            console.log("Abstract API Return End: ", eventStartTime, eventEndTime, abstractDate);
+
+            getTime()
+
+        })
+    }
+}
+
+export function addHour(time) {
+
+    let timeSplitter = time.split(":");
+    let hour = Number(timeSplitter[0]);
+    let sumMinutes = Number(timeSplitter[1]) + 60;
+    let additionalHours = Math.floor(sumMinutes / 60);
+    let newHour = ((additionalHours + hour) % 24).toString();
+    let newMinutes = (sumMinutes % 60).toString();
+    let formattedTime = newHour.padStart(2, '0') + ":" + newMinutes.padStart(2, '0') + ":00.000";
+    console.log("Formatted Time: ", formattedTime)
+
+    var startDate = new Date()
+    var startTime = $w('#startTime').value
+    var startHour = parseInt(startTime.substr(0, 2))
+    var startMin = parseInt(startTime.substr(3, 2))
+
+    startDate.setHours(startHour, startMin)
+
+    var endDate = new Date()
+    var endTime = $w('#endTime').value
+    var endHour = parseInt(endTime.substr(0, 2))
+    var endMin = parseInt(endTime.substr(3, 2))
+
+    endDate.setHours(endHour, endMin)
+
+    if (startDate >= endDate) {
+        $w('#message').text = 'Start time can not be greater than the end time'
+        $w('#message').expand()
+        $w('#submit').disable()
+    } else {
+        $w('#message').collapse()
+        $w('#submit').enable()
+    }
+
+    return formattedTime;
 
 }

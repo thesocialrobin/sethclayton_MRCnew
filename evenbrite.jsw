@@ -240,7 +240,7 @@ export function createEventOld(obj, startDateString, endDateString) {
 
 }
 
-export function updateEvent(obj) {
+export function updateEvent(obj, startDateString, endDateString) {
     if (obj.type === "Virtual Event") {
         isOnline = true
     }
@@ -248,7 +248,7 @@ export function updateEvent(obj) {
     return Promise.all([getLogoId(obj.eventImage), createVenue(obj)]).then((res1) => {
         var logoId = res1[0]
         var venueId = res1[1]
-        return update(obj, logoId, venueId).then((res2) => {
+        return update(obj, logoId, venueId, startDateString, endDateString).then((res2) => {
             var eventUrl = res2.url
             var eventId = res2.id
             return publishEvent(eventId).then(() => {
@@ -261,10 +261,10 @@ export function updateEvent(obj) {
                  //--log process--//
                           let logResults = {
                               "type": "Eventbrite Error",
-                              "log": "Error Creating Object", err
+                              "log": "Error Updating/Creating Object", err
                             };
 
-                            wixData.insert("devLog", logResults, )
+                            wixData.insert("devLog", logResults)
                             .then( (results) => {
                               let item = results; 
                               
@@ -761,7 +761,7 @@ export function deleteEvent(eventId) {
         .catch(error => console.log('error', error))
 }
 
-export async function update(obj, logoId, venueId) {
+export async function update(obj, logoId, venueId, startDateString, endDateString) {
 
     console.log('obj.date', obj.date);
 
@@ -779,8 +779,8 @@ export async function update(obj, logoId, venueId) {
     var startDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: startHour + 4, minute: startMin })
     var endDatev2 = await DateTime.fromObject({ year: obj.date.year, month: obj.date.month + 1, day: obj.date.date, hour: endHour + 4, minute: endMin })
 
-    var startDateString = startDatev2.toISO().split('.')[0] + "Z"
-    var endDateString = endDatev2.toISO().split('.')[0] + "Z"
+    //var startDateString = startDatev2.toISO().split('.')[0] + "Z"
+    //var endDateString = endDatev2.toISO().split('.')[0] + "Z"
 
     console.log('startDate', startDateString);
     console.log('endDate', endDateString);

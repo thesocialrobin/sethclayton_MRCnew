@@ -14,7 +14,7 @@ let totalCount = 0;
 let agentEmail;
 let templateId
 let generateItems = [];
-let quarters = [];
+let quarter
 
 
 $w.onReady(async function () {
@@ -258,7 +258,7 @@ $w.onReady(async function () {
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -284,7 +284,7 @@ $w.onReady(async function () {
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -671,9 +671,9 @@ export function quarter_change(event) {
     let option = $item("#quarter").selectedIndex;
     let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
     console.log("Birth Quarter: ", birthQuarter);
-
-    let isArray = Array.isArray(birthQuarter)
-	console.log("Is Array: ", isArray)
+    quarter = (dropdownOptions[`${option}`].label).substring( 0, (dropdownOptions[`${option}`].label).indexOf(","));
+    
+	console.log("Quarter Shortened: ", quarter)
 
 
     queryCount(county, state, birthQuarter);

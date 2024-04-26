@@ -299,7 +299,7 @@ $w.onReady(async function () {
 
                             }
 
-                            let county = ($item("#county").value).toUpperCase();
+                            let county = titleCase($item("#county").value);
                             let state = $item('#state').value;
                             let newCounty = (county + "-" + $item("#state").value); //county and state
 
@@ -679,8 +679,8 @@ export function quarter_change(event) {
 }
 
 export function titleCase(str) {
-  return str.toLowerCase().split(' ').map(function(word) {
-    return (word.charAt(0).toUpperCase() + word.slice(1));
+  return str.toLowerCase().split(' ').map(function(toConvert) {
+    return (toConvert.charAt(0).toUpperCase() + toConvert.slice(1));
   }).join(' ');
 }
 
@@ -774,15 +774,10 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
 
                             
-                            let county = ($item("#county").value).toUpperCase();
+                            let county = titleCase($item("#county").value);
                             let state = $item('#state').value;
                             let newCounty = (county + "-" + $item("#state").value); //county and state
 
-                            const titleCase = () => {
-                                return ($item("#county").value).toLowerCase().split(' ').map(function(word) {
-                                   return (word.charAt(0).toUpperCase() + word.slice(1));
-                                }).join(' ');
-                            }
 
                             let findMatch = counties.find(county=> county === newCounty)
 

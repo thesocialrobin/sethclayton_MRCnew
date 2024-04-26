@@ -315,7 +315,8 @@ $w.onReady(async function () {
 
 							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
 
-                                let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
+                                
+                                let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
                                 console.log("Birth Quarter: ", birthQuarter)
                                
 								queryCount(county, state, birthQuarter).then((returnedCount)=>{
@@ -547,8 +548,8 @@ export function queryCount(county, state, birthQuarter){
     console.log("birthQuarter:",birthQuarter)
 
 return	wixData.query("t65")
-        //.eq('countyName', county)
-        //.eq('state', state)
+        .eq('countyName', county)
+        .eq('state', state)
         .hasSome("birthMonth", birthQuarter)
         .limit(1000)
         .find()
@@ -668,10 +669,11 @@ export function quarter_change(event) {
     let state = $item('#state').value;
     let dropdownOptions = $item("#quarter").options;
     let option = $item("#quarter").selectedIndex;
-    //let birthQuarterOptions = (dropdownOptions[`${option}`].value).split(', ');
-    let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
-    //let birthQuarter = "['" + (birthQuarterOptions).join("','") + "']";
+    let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
     console.log("Birth Quarter: ", birthQuarter);
+
+    let isArray = Array.isArray(birthQuarter)
+	console.log("Is Array: ", isArray)
 
 
     queryCount(county, state, birthQuarter);
@@ -793,7 +795,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                                 let dropdownOptions = $item("#quarter").options;
                                 let option = $item("#quarter").selectedIndex;
-                                let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
+                                let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
                                 console.log("Birth Quarter: ", birthQuarter);
                                
 								queryCount(county, state, birthQuarter).then((returnedCount)=>{

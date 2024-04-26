@@ -1,0 +1,890 @@
+import wixData from 'wix-data';
+import { generatePostCard } from "backend/generateImage";
+import wixUsers from 'wix-users';
+import wixLocation from 'wix-location';
+import { triggeredEmails } from 'wix-crm';
+import { myQueryContactsFunction, triggerSend } from 'backend/email.jsw';
+
+
+
+let agent
+let counties = [];
+let emailUrl
+let totalCount = 0;
+let agentEmail;
+let templateId
+let generateItems = [];
+
+
+
+$w.onReady(async function () {
+     //----Build Quarter List--//
+
+
+    buildQuarters();
+
+    
+
+
+
+    //---End Quarter Build--//
+	// Write your JavaScript here
+	$w('#image').fitMode = 'fit'
+    console.log("Page Ready")
+	// To select an element by ID use: $w('#elementID')
+
+    let filteredList
+    /*
+    let agent
+    let totalCount = 0;
+    let counties = [];
+    let emailUrl
+    */
+
+    wixData.query("t65")
+            .distinct("state")
+            .then((results) => {
+
+            let lineItems = results.items
+			let optionsArray = []
+
+            lineItems.forEach(state => {
+                const dimension = $w("#state").options;
+                let name = state.toString()
+                dimension.push({ label: state , value: name });                
+                $w("#state").options = dimension;
+                
+            });
+
+                
+            })
+	
+	
+    agentEmail = await wixUsers.currentUser.getEmail()
+    //var agentEmail = await wixUsers.currentUser.getEmail() 
+	console.log("Page Ready")
+	console.log("Agent: ", agentEmail)
+
+    if (agentEmail !== "seth@resourcemedicare.com"){
+        $w("#county").expand();
+        //$w("#testT65").expand();
+    }
+
+    wixData.query('Team').eq('email', agentEmail).find().then((res) => {
+            agent = res.items[0]
+            console.log('Agent Data', agent);
+
+	})
+
+    wixData.query('t65TrackingLog')
+            .eq("member", agentEmail)
+            .find()
+            .then((results) => { 
+                console.log("Query Results for Number of T65 Runs Remaining: ", results)
+                let arrayTotal = results.totalCount;
+                let lineitems = results.items
+                let totalPeopleCount = results.items.length
+
+                //Find matches for the Year and the Quarter
+
+                    if (arrayTotal === 3) { //Max achieved
+                        $w('#error').text = "You've requested the maximum amount of lists this year."
+                        $w('#error').expand();
+                        $w('#moreButton').disable();
+
+
+                    }
+
+
+                    })
+   
+
+    let dataCollectionName = "t65";
+    
+    //var agentEmail = 'seth@resourcemedicare.com'
+
+    //BUILD T-65 LIST
+
+      
+
+            
+
+			 
+
+  $w("#dynamicDataset").onReady(() => {
+		$w("#listRepeater").onItemReady(($item, itemData, index) => {
+                            console.log("Ready");
+                            $item('#moreButton').label = "Generate My Postcard!";
+
+
+           
+
+            
+
+            //----Generate My Postcard----//    
+
+            $item('#moreButton').onClick( (event) => {
+                            console.log("Clicked");
+
+                let $item = $w.at(event.context);
+                let repeaterProd = $item("#dynamicDataset").getCurrentItem();
+                let itemData = repeaterProd._id;
+                templateId = repeaterProd._id;
+                
+                let clicked = "clicked"
+
+                 wixData.query('t65TrackingLog')
+            .eq("member", agentEmail)
+            .find()
+            .then((results) => { 
+                console.log("Query Results for Number of T65 Runs Remaining: ", results)
+                let arrayTotal = results.totalCount;
+                let lineitems = results.items
+                let totalPeopleCount = results.items.length
+
+                //Find matches for the Year and the Quarter
+
+                    if (arrayTotal === 2) { //Max achieved
+                        $item('#error').text = "Alert: You have 1 T65 Request remaining this year."
+                        $item('#error').expand();
+
+
+
+
+                    }
+
+
+                    })
+
+               
+
+
+
+                 //---Query to find previous quarter selections---//
+                 
+
+
+
+                console.log("Quarter Modified: ", $item('#quarter').value)
+                
+                var checkNow = new Date();
+                let checkThisYear = formatDate(checkNow)
+                //let checkThisQuarter = $w('#quarter').value;
+                 let dropdownOptions = $item("#quarter").options;
+	             let option = $item("#quarter").selectedIndex
+                 let checkThisQuarter = dropdownOptions[`${option}`].label;
+
+                let foundCounties = 0
+
+                console.log(checkNow, checkThisYear, checkThisQuarter)
+
+
+            wixData.query('t65TrackingLog')
+            .eq("quarter", checkThisQuarter)
+            .find()
+            .then((results) => { 
+                console.log("Query Results for Tracking Log: ", results)
+                let arrayTotal = results.totalCount;
+                let lineitems = results.items
+                let totalPeopleCount = results.items.length
+
+                //Find matches for the Year and the Quarter
+
+                    if (results.length < 1) {
+
+                     console.log("Count completed, no matches found")
+                        $item('#error').text = `Error` 
+                        $item('#error').collapse()
+                        $item('#yesNo').collapse()
+                        $item('#moreButton').enable()
+
+                //If there are matches, then find matches for that County and State
+                
+                    
+                    //--Continue to Generate Postcard Function --//
+
+                    
+
+                               			
+							
+							
+							console.log("Item: ", itemData)
+                            $item('#results').collapse();
+                            $item('#results').text = "Please enter county!";
+                            $item('#quarter').disable()
+                            
+
+                           
+                            //var templateId = repeaterProd._id;
+                            
+
+                            if(totalPeopleCount < 1){
+
+
+                            //GENERATE IMAGE
+                            $item('#image').hide()
+                            $item('#loading').show()
+
+
+                    
+                            var picture = agent.photo
+                            console.log(picture);
+                            var url = picture.split("/")[3];
+                            var url2 = `https://static.wixstatic.com/media/${url}`
+                            let qrPresent = agent.qrCode
+                            
+                            console.log(url2)
+                            console.log(templateId, agent.title, agent.publicEmail, agent.hone, url2)
+
+                            if(qrPresent !== undefined && qrPresent !== ""){
+                                
+                            let qrPresentUrl = qrPresent.split("/")[3];
+                            let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
+                            console.log("QR Code Present", qrPresentBanner)
+
+
+                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+                                        console.log(image)
+                                    var imageUrl = image.fileUrl
+                                    console.log(imageUrl)
+                                    $item('#image').src = imageUrl
+                                    $item('#image').show()
+                                    $item('#loading').hide()
+                                    var url = imageUrl.split("/")[3];
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    
+
+                                    
+                                
+                                    let zip = $w("#county").value;
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+
+                                //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+
+                                    })
+
+                                    //QR Code was present
+
+                                } else if(qrPresent && qrPresent.length < 1){
+
+                                    console.log("no QR code Present!", qrPresent, qrPresent.length)
+
+                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+                                        console.log(image)
+                                    var imageUrl = image.fileUrl
+                                    console.log(imageUrl)
+                                    $item('#image').src = imageUrl
+                                    $item('#image').show()
+                                    $item('#loading').hide()
+                                    var url = imageUrl.split("/")[3];
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    
+
+                                    
+                                
+                                    let zip = $w("#county").value;
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+
+                                //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+
+                                    })
+
+
+
+
+                                    //QR Code was not present
+                                }
+
+
+                            }
+
+                            let county = ($item("#county").value).toUpperCase();
+                            let state = $item('#state').value;
+                            let newCounty = (county + "-" + $item("#state").value); //county and state
+
+                            let findMatch = counties.find(county=> county === newCounty)
+
+                            if(findMatch !== undefined && totalCount < 1000){
+                                
+                                $item("#error").text = "County already added. Try again!";
+                                $item("#error").expand();
+                            } else {
+                                $item("#error").collapse();
+                            }
+
+							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+                               
+								queryCount(county, state).then((returnedCount)=>{
+
+                                    if(returnedCount == 0){
+                                        
+                                        $item("#error").text = "0 items added. Try again!";
+                                        $item("#error").expand();
+
+                                    } else {
+
+                                        console.log(returnedCount)
+                                    totalCount = totalCount + returnedCount;
+                                    console.log("Total Count: ", totalCount);
+                                    console.log(county, $item("#state").value)
+                                    
+                                    let listCount = county + ", " + $item("#state").value + "‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎";
+                                    let currentList = $item("#list").text;
+                                    console.log("Add: ", listCount, currentList)
+                                    let newListCount = (currentList.toString()) + listCount
+                                    $item("#list").text = newListCount;
+                                    console.log("Add: ", newListCount, currentList)
+                                    $item("#list").expand();
+                                    counties.push(newCounty);
+                                    console.log("Counties, ", counties)
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    console.log("emailUrl", emailUrl)
+                                    if (totalCount == 1000 || totalCount > 1000) {
+                                        //Complete and send
+                                    $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                                    $item('#results').expand();
+                                    $item('#moreButton').label = "Send Request";
+
+                                    }
+                                    else {
+                                        $item('#results').text = `Your total postcard count is now ${totalCount}`;
+                                         $item('#results').expand();
+                                    $item('#moreButton').label = "Add Another County";
+
+                                    }
+
+
+                                    }
+
+									
+                                    
+
+								})
+                   
+                    
+                
+
+                            } else if (totalCount == 1000 || totalCount > 1000 && $item('#moreButton').label == "Send Request") {
+                                console.log("Trigger Send")
+
+                            //Complete and send
+                            $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                            $item('#results').expand();
+                            $item('#moreButton').label = "Send Request";
+
+                  
+                                    let emailId = "TRtlyOS"
+                                    $item('#moreButton').label = "Sending...";
+                                    myQueryContactsFunction().then((resolvedContact) => {
+                                        let userId = resolvedContact;
+
+                                        triggerSend(emailId, userId, emailUrl, agentEmail).then((completed) => {
+                                            console.log("Result: ", completed)
+                                            if(completed == "Success"){
+                                                
+                                                //---Insert t65 tracking log item---//
+
+                                                let dropdownOptions = $item("#quarter").options;
+	                                            let option = $item("#quarter").selectedIndex
+                                                let itemQuarter = dropdownOptions[`${option}`].label;
+
+                                                var now = new Date();
+                                                let thisDate = formatDate(now)
+                                                let quarter = ($w('#quarter').value).toString();
+                                                console.log("Quarter: ", quarter)
+
+                                                let data = {
+                                                    "member": agentEmail,
+                                                    "quarter": itemQuarter,
+                                                    "year": thisDate,
+                                                    "counties": counties
+                                                    };
+
+                                                wixData.insert('t65TrackingLog', data)
+                                                .then( (result) => {
+                                                        let item = result;
+                                                        console.log("User data insert completed", item)
+                                                })
+
+                                                $item('#results').text = "Request Completed! You may close this window.";
+                                                $item('#results').expand();
+                                                $item('#moreButton').label = "Completed!";
+                                                $item('#results').expand();
+
+
+
+                                            } else {
+                                                console.log("Error")
+                                            }
+
+                                        })
+
+                                            /*
+                                    triggeredEmails.emailContact(emailId, userId,{ variables: { URL: emailUrl, Email: agentEmail} }).then(()=>{
+                                        $item('#results').text = "Request Completed! You may close this window.";
+                                        $item('#results').expand();
+                                        $item('#MoreButton').label = "Completed!";
+                                        $item('#results').expand();
+                                        });*/
+                                })
+                            
+                                    } else if (!$item('#county').valid || !$item('#state').valid){
+
+                                        $w('#results').text = "Please enter county & state!";
+                                        $w('#results').expand();
+
+                                    }
+                //---End Generation--//
+
+
+
+                } else {
+                        
+
+                        //--Show Prompt, issue options, then based on selection continue or do not continue--//
+                        let thisCount = 0
+                        lineitems.forEach(match => {
+                            thisCount++
+
+                            let matchCounties = match.counties;
+
+
+                        let newCounty = (($item("#county").value).toUpperCase() + "-" + $item("#state").value)
+                        console.log("Search: ", matchCounties, newCounty)
+
+                                let matchCounty = matchCounties.find(item => item === newCounty)
+
+                                if(matchCounty !== undefined){
+                                    //--1 additional user has sent to this group--//
+                                    console.log("1 additional user has sent to this group", match, thisCount, totalPeopleCount)
+                                    foundCounties++
+
+                                } 
+
+                                 if(thisCount == totalPeopleCount && foundCounties > 0)
+                                 {
+                            console.log("Count completed, found matches")
+
+                            //Users Found
+                            let quantityUsers = foundCounties.toString();
+                            $item('#error').text = `${quantityUsers} other agents are sending to the same customers. Would you still like to send?` 
+                            $item('#error').expand()
+                            $item('#confirmSend').expand()
+                            $item('#noSend').expand()
+                            $item('#moreButton').disable()
+
+
+                        } else {
+                            generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
+                            $item('#quarter').disable();
+                        }
+                                
+
+                       
+                            
+                            
+                        });
+
+                        
+                    }
+
+                })
+
+
+
+							
+
+			}); //More On Click
+
+                        //----Generate My Postcard End----//   
+
+                        
+		})
+  })
+
+
+
+
+	
+
+})
+
+export function noSend_click(event){
+    let $item = $w.at(event.context);
+    $item('#county').value = "";
+    $item('#state').value = null;
+    $item('#quarter').value = null;
+    $item('#error').text = `Error` 
+    $item('#error').collapse()
+    $item('#yesNo').collapse()
+    $item('#moreButton').enable()
+
+}
+export function confirmSend_click(event){
+        let $item = $w.at(event.context);
+        const data = $w("#listRepeater").data;
+        const itemId = event.context.itemId;
+        const itemData = data.find((item) => item._id === itemId);
+        $item('#moreButton').enable();
+        $item('#error').text = `Error` 
+        $item('#error').collapse()
+        $item('#results').text = `Great! Adding to List...` 
+        $item('#results').expand()
+        $item('#yesNo').collapse()
+        $item('#moreButton').enable()
+        $item('#quarter').disable();
+        generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
+
+}
+
+export function queryCount(county, state){
+    console.log("County:",county)
+
+return	wixData.query("t65")
+        .eq('countyName', county)
+        .eq('state', state)
+        .limit(1000)
+        .find()
+        .then((res) => {
+            let items = res.items;
+			let count = res.items.length;
+
+			return count
+		})
+
+
+}
+
+export function state_change(event) {
+console.log($w("#state").value)
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return year
+}
+
+function getMonth(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    /*
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    */
+
+    return month
+}
+
+export function buildQuarters(){
+
+    //--Users can only send upon success of the build. Search "success"---//
+
+    var now = new Date();
+    let month = getMonth(now)
+    let year = formatDate(now);
+
+    console.log("Quarter Build: ", now, month, year)
+
+    const dimension = $w("#quarter").options;
+
+    var quarter1 = [1,2,3];
+    var quarter2 = [4,5,6];
+    var quarter3 = [7,8,9];
+    var quarter4 = [10,11,12];
+
+    let isQuarter1 = quarter1.find(item=> item === Number(month))
+    let isQuarter2 = quarter2.find(item=> item === Number(month))
+    let isQuarter3 = quarter3.find(item=> item === Number(month))
+    let isQuarter4 = quarter4.find(item=> item === Number(month))
+
+    
+
+    
+
+    if(isQuarter1 !== undefined){
+        
+        dimension.push({ label: `Quarter 1, ${year}` , value: `Quarter 1, ${year}` }); 
+        dimension.push({ label: `Quarter 2, ${year}` , value: `Quarter 2, ${year}` });
+        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });     
+        $w("#quarter").options = dimension;     
+
+    }
+
+    if(isQuarter2 !== undefined){
+        
+        dimension.push({ label: `Quarter 2, ${year}` , value: `Quarter 2, ${year}` });
+        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });        
+        $w("#quarter").options = dimension;     
+
+    }
+
+    if(isQuarter3 !== undefined){
+        
+        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });      
+        $w("#quarter").options = dimension;     
+
+    }
+
+    if(isQuarter4 !== undefined){
+        
+        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });      
+        $w("#quarter").options = dimension;     
+
+    }
+
+
+
+
+
+
+
+}
+
+export function quarter_change(event) {
+
+    
+}
+
+export function generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData){
+
+    console.log("PARSED DATA:", $item, agent, templateId, counties, totalCount, agentEmail, itemData)
+    console.log("PARSED agent:",agent)
+    console.log("PARSED templateId:",templateId)
+    console.log("PARSED counties:",counties)
+    console.log("PARSED totalcount:",totalCount)
+    console.log("PARSED agentEmail:",agentEmail)
+    console.log("PARSED itemData:",itemData)
+
+    //--Continue to Generate Postcard Function --//
+
+                      //GENERATE IMAGE
+                            $item('#image').hide()
+                            $item('#loading').show()
+
+
+                    
+                            var picture = agent.photo
+                            console.log(picture);
+                            var url = picture.split("/")[3];
+                            var url2 = `https://static.wixstatic.com/media/${url}`
+                            let qrPresent = agent.qrCode
+                            
+                            console.log(url2)
+                            console.log(templateId, agent.title, agent.publicEmail, agent.hone, url2)
+
+                            if(qrPresent !== undefined && qrPresent !== ""){
+                                
+                            let qrPresentUrl = qrPresent.split("/")[3];
+                            let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
+                            console.log("QR Code Present", qrPresentBanner)
+
+
+                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+                                        console.log(image)
+                                    var imageUrl = image.fileUrl
+                                    console.log(imageUrl)
+                                    $item('#image').src = imageUrl
+                                    $item('#image').show()
+                                    $item('#loading').hide()
+                                    var url = imageUrl.split("/")[3];
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    
+
+                                    
+                                
+                                    let zip = $w("#county").value;
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+
+                                //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+
+                                    })
+
+                                    //QR Code was present
+
+                                } else if(qrPresent && qrPresent.length < 1){
+
+                                    console.log("no QR code Present!", qrPresent, qrPresent.length)
+
+                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+                                        console.log(image)
+                                    var imageUrl = image.fileUrl
+                                    console.log(imageUrl)
+                                    $item('#image').src = imageUrl
+                                    $item('#image').show()
+                                    $item('#loading').hide()
+                                    var url = imageUrl.split("/")[3];
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    
+
+                                    
+                                
+                                    let zip = $w("#county").value;
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+
+                                //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+
+                                    })
+
+
+
+
+                                    //QR Code was not present
+                                }
+
+
+                            
+                            let county = ($item("#county").value).toUpperCase();
+                            let state = $item('#state').value;
+                            let newCounty = (county + "-" + $item("#state").value); //county and state
+
+                            let findMatch = counties.find(county=> county === newCounty)
+
+                            if(findMatch !== undefined && totalCount < 1000){
+                                
+                                $item("#error").text = "County already added. Try again!";
+                                $item("#error").expand();
+                            } else {
+                                $item("#error").collapse();
+                            }
+
+							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+                               
+								queryCount(county, state).then((returnedCount)=>{
+
+                                    if(returnedCount == 0){
+                                        
+                                        $item("#error").text = "0 items added. Try again!";
+                                        $item("#error").expand();
+
+                                    } else {
+
+                                        console.log(returnedCount)
+                                    totalCount = totalCount + returnedCount;
+                                    console.log("Total Count: ", totalCount);
+                                    console.log(county, $item("#state").value)
+                                    
+                                    let listCount = county + ", " + $item("#state").value + "‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎";
+                                    let currentList = $item("#list").text;
+                                    console.log("Add: ", listCount, currentList)
+                                    let newListCount = (currentList.toString()) + listCount
+                                    $item("#list").text = newListCount;
+                                    console.log("Add: ", newListCount, currentList)
+                                    $item("#list").expand();
+                                    counties.push(newCounty);
+                                    console.log("Counties, ", counties)
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    console.log("emailUrl", emailUrl)
+                                    if (totalCount == 1000 || totalCount > 1000) {
+                                        //Complete and send
+                                    $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                                    $item('#results').expand();
+                                    $item('#moreButton').label = "Send Request";
+
+                                    }
+                                    else {
+                                        $item('#results').text = `Your total postcard count is now ${totalCount}`;
+                                         $item('#results').expand();
+                                    $item('#moreButton').label = "Add Another County";
+
+                                    }
+
+
+                                    }
+
+									
+                                    
+
+								})
+                   
+                    
+                
+
+                            } else if (totalCount == 1000 || totalCount > 1000 && $item('#MoreButton').label == "Send Request") {
+                                console.log("Trigger Send")
+
+                            //Complete and send
+                            $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                            $item('#results').expand();
+                            $item('#moreButton').label = "Send Request";
+
+                  
+                                    let emailId = "TRtlyOS"
+                                    $item('#moreButton').label = "Sending...";
+                                    myQueryContactsFunction().then((resolvedContact) => {
+                                        let userId = resolvedContact;
+
+                                        triggerSend(emailId, userId, emailUrl, agentEmail).then((completed) => {
+                                            console.log("Result: ", completed)
+                                            if(completed == "Success"){
+                                                
+                                                //---Insert t65 tracking log item---//
+
+                                                let dropdownOptions = $item("#quarter").options;
+	                                            let option = $item("#quarter").selectedIndex
+                                                let itemQuarter = dropdownOptions[`${option}`].label;
+
+                                                var now = new Date();
+                                                let thisDate = formatDate(now)
+                                                let quarter = ($w('#quarter').value).toString();
+                                                console.log("Quarter: ", quarter)
+
+                                                let data = {
+                                                    "member": agentEmail,
+                                                    "quarter": itemQuarter,
+                                                    "year": thisDate,
+                                                    "counties": counties
+                                                    };
+
+                                                wixData.insert('t65TrackingLog', data)
+                                                .then( (result) => {
+                                                        let item = result;
+                                                        console.log("User data insert completed", item)
+                                                })
+
+                                                $item('#results').text = "Request Completed! You may close this window.";
+                                                $item('#results').expand();
+                                                $item('#moreButton').label = "Completed!";
+                                                $item('#results').expand();
+
+
+
+                                            } else {
+                                                console.log("Error")
+                                            }
+
+                                        })
+
+                                            /*
+                                    triggeredEmails.emailContact(emailId, userId,{ variables: { URL: emailUrl, Email: agentEmail} }).then(()=>{
+                                        $item('#results').text = "Request Completed! You may close this window.";
+                                        $item('#results').expand();
+                                        $item('#MoreButton').label = "Completed!";
+                                        $item('#results').expand();
+                                        });*/
+                                })
+                            
+                            } else if (!$item('#county').valid || !$item('#state').valid){
+
+                                $w('#results').text = "Please enter county & state!";
+                                $w('#results').expand();
+
+                            }
+                //---End Generation--//
+
+                                 	
+
+
+}

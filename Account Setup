@@ -4,6 +4,7 @@ import { session } from 'wix-storage';
 import wixWindow from 'wix-window';
 import { generateAgentMap } from "backend/generateImage";
 import wixLocation from 'wix-location';
+import { local } from 'wix-storage';
 
 let user = wixUsers.currentUser;
 let userId = user.id;
@@ -16,95 +17,92 @@ let stripeSubscription
 
 //Personal State
 
-
 export function essentialPlan_click(event) {
-	session.setItem("Plan Selection", "Essential");
-    setTimeout(()=>{
-    checkSwitch();
-    },500)
-    
+    session.setItem("Plan Selection", "Essential");
+    setTimeout(() => {
+        checkSwitch();
+    }, 500)
+
 }
 
 export function freePlan_click(event) {
-	session.setItem("Plan Selection", "Free");
-    setTimeout(()=>{
-    checkSwitch();
-    },500)
+    session.setItem("Plan Selection", "Free");
+    setTimeout(() => {
+        checkSwitch();
+    }, 500)
 }
 
-export function checkSwitch(){
+export function checkSwitch() {
     let planSelection = session.getItem("Plan Selection");
-	let isChecked1 = $w("#billingSwitch").checked;
+    let isChecked1 = $w("#billingSwitch").checked;
     console.log("Checking Switch", isChecked1, planSelection)
 
-	if(!isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
-		session.setItem("Plan", "Monthly") ////-----DURATION-----/////
+    if (!isChecked1 && planSelection == "Essential") { ////-----PLAN NAME-----/////
+        session.setItem("Plan", "Monthly") ////-----DURATION-----/////
         $w("#essentialPlan").label = "Selected";
         $w("#freePlan").label = "Select Plan";
-		console.log(session.getItem("Plan"), planSelection, isChecked1);
+        console.log(session.getItem("Plan"), planSelection, isChecked1);
         executePayment();
 
-	} else if (!isChecked1 && planSelection == "Free"){ ////-----FREE-----/////
+    } else if (!isChecked1 && planSelection == "Free") { ////-----FREE-----/////
         $w("#freePlan").label = "Selected";
         $w("#essentialPlan").label = "Select Plan";
-		session.setItem("Plan", "Free")
+        session.setItem("Plan", "Free")
         console.log(session.getItem("Plan"), planSelection, isChecked1);
         executeFreeDashboard(); //Confirm with Seth and redirect
 
-	} else if (isChecked1 && planSelection == "Essential"){ ////-----PLAN NAME-----/////
-		session.setItem("Plan", "Annual") ////-----DURATION-----/////
+    } else if (isChecked1 && planSelection == "Essential") { ////-----PLAN NAME-----/////
+        session.setItem("Plan", "Annual") ////-----DURATION-----/////
         $w("#freePlan").label = "Select Plan";
-		$w("#essentialPlan").label = "Selected";
+        $w("#essentialPlan").label = "Selected";
         console.log(session.getItem("Plan"), planSelection, isChecked1);
         executePayment();
-		
-	} 
+
+    }
 }
 
-export async function executeFreeDashboard(){
+export async function executeFreeDashboard() {
 
-        
-let thisId = session.getItem("id")
+    let thisId = session.getItem("id")
 
-/*  //--safeguard if thisId cannot be found--//
-        var email = await wixUsers.currentUser.getEmail()
+    /*  //--safeguard if thisId cannot be found--//
+            var email = await wixUsers.currentUser.getEmail()
 
-    wixData.query('Team').eq('email', email).find().then((res) => {
-        var itemId = res.items[0]._id
-        session.setItem("id", itemId)
-        session.setItem("userName", res.items[0].name)
-    })
+        wixData.query('Team').eq('email', email).find().then((res) => {
+            var itemId = res.items[0]._id
+            session.setItem("id", itemId)
+            session.setItem("userName", res.items[0].name)
+        })
 
- */
+     */
 
-            wixData.get("Team", thisId)
-                .then((toUpdate) => {
+    wixData.get("Team", thisId)
+        .then((toUpdate) => {
 
-                    toUpdate.subscriptionId = "FREE";
-                    console.log(toUpdate);
-                    wixData.update('Team', toUpdate).then((res) => {
-                        console.log('updated');
-                        $w("#freePlan").label = "Subscribed!";
+            toUpdate.subscriptionId = "FREE";
+            console.log(toUpdate);
+            wixData.update('Team', toUpdate).then((res) => {
+                console.log('updated');
+                $w("#freePlan").label = "Subscribed!";
 
+                setTimeout(() => {
+                    $w("#freePlan").label = "Loading Dashboard";
 
-                        setTimeout(() => {
-                            $w("#freePlan").label = "Continuing Setup";
+                }, 1000);
 
-                        }, 1000);
+                setTimeout(() => {
 
-                        setTimeout(() => {
+                    //$w("#accountSetup").changeState("personalInfo");
+                    wixLocation.to("/account/boost-dashboard");
 
-                           $w("#accountSetup").changeState("personalInfo");
-                            wixWindow.scrollTo(0, 0);
+                }, 2000);
+            })
 
-                        }, 2000);
-                    })
-
-                })
+        })
 
 }
 
-export function executePayment(){
+export function executePayment() {
     console.log("Payment Executed")
 
     session.setItem("stripePurpose", "Subscribe");
@@ -115,6 +113,23 @@ export function executePayment(){
 
     }
     console.log("Subscription Data", subscriptionData)
+
+                    //--log process--//
+                          let logResults = {
+                              "type": "Subscription Tracking",
+                              "log": "Account Setup Page Trigger", subscriptionData, user
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
 
     wixWindow.openLightbox('Payment', subscriptionData)
         .then((data) => {
@@ -127,10 +142,10 @@ export function executePayment(){
 
                 //--Code TBD--//
 
-            } else if (receivedData === "Success"){
+            } else if (receivedData === "Success") {
 
                 $w("#accountSetup").changeState("personalInfo");
-                 wixWindow.scrollTo(0, 0);
+                wixWindow.scrollTo(0, 0);
 
             }
         });
@@ -139,22 +154,34 @@ export function executePayment(){
 
 $w.onReady(async function () {
 
-    
+    if (local.getItem("navigatedFromPersonal") === "true") {
+        $w("#accountSetup").changeState("personalInfo");
+        local.removeItem("navigatedFromPersonal");
+    } else if (local.getItem("navigatedFromLicensing") === "true") {
+        $w("#accountSetup").changeState("licensing");
+        local.removeItem("navigatedFromLicensing");
+    } else if (local.getItem("navigatedFromLinks") === "true") {
+        $w("#accountSetup").changeState("links");
+        local.removeItem("navigatedFromLinks");
+    }else if (local.getItem("navigatedFromSeo") === "true") {
+        $w("#accountSetup").changeState("seo");
+        local.removeItem("navigatedFromSeo");
+    }
+
     $w("#carriers").options = [];
     let optionsArray = []
     wixData.query('CarrierLogos').find().then((populateCarriers) => {
         var allCarriers = populateCarriers.items
         console.log("All Carriers", allCarriers)
 
-        populateCarriers.items.forEach(function(carrier) {
+        populateCarriers.items.forEach(function (carrier) {
             console.log("This Carrier: ", carrier.carrier)
-            optionsArray.push({ label: carrier.carrier , value: carrier._id });              
-			$w("#carriers").options = optionsArray;
+            optionsArray.push({ label: carrier.carrier, value: carrier._id });
+            $w("#carriers").options = optionsArray;
 
         })
-        
-    })
 
+    })
 
     var email = await wixUsers.currentUser.getEmail()
 
@@ -180,24 +207,20 @@ $w.onReady(async function () {
         carrierList = [];
         let selectedCarriers = $w("#carriers").value;
 
-        selectedCarriers.forEach(function(carrier) {
+        selectedCarriers.forEach(function (carrier) {
 
             wixData.query('CarrierLogos').eq('_id', carrier).find().then((thisCarrier) => {
 
-                    newCarriers.push(thisCarrier.items[0]._id)
-                    carrierList.push(thisCarrier.items[0].carrier)
-                    console.log("This logo", thisCarrier.items[0].logo)
-                    console.log("Carrier Logos", newCarriers)
-                    console.log("All Carriers", carrierList)
+                newCarriers.push(thisCarrier.items[0]._id)
+                carrierList.push(thisCarrier.items[0].carrier)
+                console.log("This logo", thisCarrier.items[0].logo)
+                console.log("Carrier Logos", newCarriers)
+                console.log("All Carriers", carrierList)
 
-                })
+            })
 
-            
-        
         })
 
-
-        
     })
 
     $w('#personalCont').onClick(() => {
@@ -210,6 +233,7 @@ $w.onReady(async function () {
                     toUpdate.epicenter = $w('#epicenter').value
                     toUpdate.bio = $w('#bio').value
                     toUpdate.photo = $w('#photo').src
+                    toUpdate.personal = true;
                     console.log(toUpdate);
                     wixData.update('Team', toUpdate).then((res) => {
                         console.log('updated');
@@ -255,7 +279,9 @@ $w.onReady(async function () {
         let selectedState = $w("#stateSelection").value;
         if (selectedState && !selectedStates.includes(selectedState)) {
             selectedStates.push(selectedState);
-            newStates.push(selectedState);
+            if (!newStates.includes(selectedState)) { // Check if newStates already contains the state
+                newStates.push(selectedState); // Only add the state if it does not exist in newStates
+            }
             console.log(selectedStates); // Check if the state is added to the array
             console.log("Map Generation Check:", newStates);
             updateRepeater();
@@ -269,7 +295,10 @@ $w.onReady(async function () {
         let removeButton = $item("#removeButton")
 
         let onClick = (function (itemData) {
-            return function () {
+            return async function () {
+                // Disable the remove button immediately when it's clicked
+                removeButton.disable();
+
                 if (isDeleting || isUpdating) {
                     return;
                 }
@@ -297,19 +326,17 @@ $w.onReady(async function () {
                     $w("#statesRepeater").hide();
                 }
 
-                // Enable the remove button for the current repeater item
-                removeButton.enable();
-
                 isDeleting = false;
+
+                // Enable the remove button for the current repeater item after the deletion process is complete
+                removeButton.enable();
             };
         })(itemData);
 
         removeButton.onClick(onClick);
     });
-    
-    $w('#licensingCont').onClick(() => {
 
-        
+    $w('#licensingCont').onClick(() => {
 
         if ($w('#npn').valid && $w('#carriers').valid) {
             let thisId = session.getItem("id");
@@ -317,32 +344,33 @@ $w.onReady(async function () {
                 .then((toUpdate) => {
 
                     toUpdate.npn = $w('#npn').value;
+                    toUpdate.licensing = true;
                     toUpdate.carriers = carrierList;
                     toUpdate.states = selectedStates;
                     toUpdate.carrierLogos = newCarriers;
-                    
-                            wixData.update('Team', toUpdate).then((res) => {
-                                console.log('updated');
 
-                                updateDisclaimer(newStates, carrierList, thisId)
+                    wixData.update('Team', toUpdate).then((res) => {
+                        console.log('updated');
 
-                                let mapGenCheck = session.getItem("stateChange");
+                        updateDisclaimer(newStates, carrierList, thisId)
 
-                                if(mapGenCheck == "Yes"){
+                        let mapGenCheck = session.getItem("stateChange");
 
-                                    generateNewMap();
+                        if (mapGenCheck == "Yes") {
 
-                                }
+                            generateNewMap();
 
-                                $w("#licensingCont").label = "Saved";
-                                setTimeout(() => {
-                                    $w("#accountSetup").changeState("links");
-                                    wixWindow.scrollTo(0, 0);
+                        }
 
-                                }, 2000);
+                        $w("#licensingCont").label = "Saved";
+                        setTimeout(() => {
+                            $w("#accountSetup").changeState("links");
+                            wixWindow.scrollTo(0, 0);
 
-                            });
-                        
+                        }, 2000);
+
+                    });
+
                 })
         }
     })
@@ -365,10 +393,12 @@ $w.onReady(async function () {
             .then((toUpdate) => {
 
                 toUpdate.calendlyUrl = $w('#calendlyUrl').value
+                toUpdate.shoppingLink = $w('#shoppingLink').value
                 toUpdate.facebookUrl = $w('#facebookUrl').value
                 toUpdate.linkedinUrl = $w('#linkedinUrl').value
                 toUpdate.instagramUrl = $w('#instagramUrl').value
                 toUpdate.xurl = $w('#xurl').value
+                toUpdate.links = true;
                 console.log(toUpdate);
                 wixData.update('Team', toUpdate).then((res) => {
                     console.log('updated');
@@ -402,7 +432,8 @@ $w.onReady(async function () {
             .then((toUpdate) => {
 
                 toUpdate.seoDescription = $w('#seoDescription').value
-                toUpdate.seoKeywords = $w('#seoKeywords').value
+                toUpdate.template = "Template1";
+                toUpdate.completedSetup = true;
                 console.log(toUpdate);
                 wixData.update('Team', toUpdate).then((res) => {
                     console.log('updated');
@@ -410,7 +441,7 @@ $w.onReady(async function () {
 
                     // After 2 seconds, redirect to the dashboard
                     setTimeout(() => {
-                        wixLocation.to("/account/boost-dashboard");
+                        wixWindow.openLightbox('Finish Setup');
                     }, 2000);
                 })
             })
@@ -454,7 +485,7 @@ export function loadChanges() {
 function updateDisclaimerOld(userData) {
 
     console.log("User Data Submitted : ", userData);
-    
+
     return new Promise((resolve, reject) => {
         if (userData && userData.states && userData.carriers) {
             let states = userData.states;
@@ -708,5 +739,3 @@ export function generateNewMap() {
     })
 
 }
-
-

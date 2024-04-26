@@ -14,7 +14,7 @@ let totalCount = 0;
 let agentEmail;
 let templateId
 let generateItems = [];
-
+let quarters = [];
 
 
 $w.onReady(async function () {
@@ -173,6 +173,7 @@ $w.onReady(async function () {
                  let dropdownOptions = $item("#quarter").options;
 	             let option = $item("#quarter").selectedIndex
                  let checkThisQuarter = dropdownOptions[`${option}`].label;
+                 //let checkThisQuarter = dropdownOptions[`${option}`].value;
 
                 let foundCounties = 0
 
@@ -313,15 +314,18 @@ $w.onReady(async function () {
                             }
 
 							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+
+                                let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
+                                console.log("Birth Quarter: ", birthQuarter)
                                
-								queryCount(county, state).then((returnedCount)=>{
+								queryCount(county, state, birthQuarter).then((returnedCount)=>{
 
                                     if(returnedCount == 0){
                                         
                                         $item("#error").text = "0 items added. Try again!";
                                         $item("#error").expand();
 
-                                    } else {
+                                    } else if(returnedCount > 0){
 
                                         console.log(returnedCount)
                                     totalCount = totalCount + returnedCount;
@@ -474,9 +478,10 @@ $w.onReady(async function () {
                             $item('#moreButton').disable()
 
 
-                        } else {
-                            generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
-                            $item('#quarter').disable();
+                        } else { //Commented out on 042624 for testing purposes
+                            //console.log("Generating Postcard")
+                            //generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
+                            //$item('#quarter').disable();
                         }
                                 
 
@@ -537,17 +542,20 @@ export function confirmSend_click(event){
 
 }
 
-export function queryCount(county, state){
-    console.log("County:",county)
+export function queryCount(county, state, birthQuarter){
+    console.log("County and State:",county, state)
+    console.log("birthQuarter:",birthQuarter)
 
 return	wixData.query("t65")
-        .eq('countyName', county)
-        .eq('state', state)
+        //.eq('countyName', county)
+        //.eq('state', state)
+        .hasSome("birthMonth", birthQuarter)
         .limit(1000)
         .find()
         .then((res) => {
             let items = res.items;
 			let count = res.items.length;
+            console.log("Items Found: ", res)
 
 			return count
 		})
@@ -613,34 +621,34 @@ export function buildQuarters(){
 
     if(isQuarter1 !== undefined){
         
-        dimension.push({ label: `Quarter 1, ${year}` , value: `Quarter 1, ${year}` }); 
-        dimension.push({ label: `Quarter 2, ${year}` , value: `Quarter 2, ${year}` });
-        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
-        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });     
+        dimension.push({ label: `Quarter 1, ${year}` , value: `${quarter1}` }); 
+        dimension.push({ label: `Quarter 2, ${year}` , value: `${quarter2}` });
+        dimension.push({ label: `Quarter 3, ${year}` , value: `${quarter3}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `${quarter4}` });     
         $w("#quarter").options = dimension;     
 
     }
 
     if(isQuarter2 !== undefined){
         
-        dimension.push({ label: `Quarter 2, ${year}` , value: `Quarter 2, ${year}` });
-        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
-        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });        
+        dimension.push({ label: `Quarter 2, ${year}` , value: `${quarter2}` });
+        dimension.push({ label: `Quarter 3, ${year}` , value: `${quarter3}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `${quarter4}` });        
         $w("#quarter").options = dimension;     
 
     }
 
     if(isQuarter3 !== undefined){
         
-        dimension.push({ label: `Quarter 3, ${year}` , value: `Quarter 3, ${year}` });
-        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });      
+        dimension.push({ label: `Quarter 3, ${year}` , value: `${quarter3}` });
+        dimension.push({ label: `Quarter 4, ${year}` , value: `${quarter4}` });      
         $w("#quarter").options = dimension;     
 
     }
 
     if(isQuarter4 !== undefined){
         
-        dimension.push({ label: `Quarter 4, ${year}` , value: `Quarter 4, ${year}` });      
+        dimension.push({ label: `Quarter 4, ${year}` , value: `${quarter4}` });      
         $w("#quarter").options = dimension;     
 
     }
@@ -655,8 +663,28 @@ export function buildQuarters(){
 
 export function quarter_change(event) {
 
-    
+    let $item = $w.at(event.context);
+    let county = titleCase($item("#county").value)
+    let state = $item('#state').value;
+    let dropdownOptions = $item("#quarter").options;
+    let option = $item("#quarter").selectedIndex;
+    //let birthQuarterOptions = (dropdownOptions[`${option}`].value).split(', ');
+    let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
+    //let birthQuarter = "['" + (birthQuarterOptions).join("','") + "']";
+    console.log("Birth Quarter: ", birthQuarter);
+
+
+    queryCount(county, state, birthQuarter);
+
 }
+
+export function titleCase(str) {
+  return str.toLowerCase().split(' ').map(function(word) {
+    return (word.charAt(0).toUpperCase() + word.slice(1));
+  }).join(' ');
+}
+
+
 
 export function generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData){
 
@@ -750,6 +778,12 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                             let state = $item('#state').value;
                             let newCounty = (county + "-" + $item("#state").value); //county and state
 
+                            const titleCase = () => {
+                                return ($item("#county").value).toLowerCase().split(' ').map(function(word) {
+                                   return (word.charAt(0).toUpperCase() + word.slice(1));
+                                }).join(' ');
+                            }
+
                             let findMatch = counties.find(county=> county === newCounty)
 
                             if(findMatch !== undefined && totalCount < 1000){
@@ -761,8 +795,13 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                             }
 
 							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+
+                                let dropdownOptions = $item("#quarter").options;
+                                let option = $item("#quarter").selectedIndex;
+                                let birthQuarter = (dropdownOptions[`${option}`].value).split(', ');
+                                console.log("Birth Quarter: ", birthQuarter);
                                
-								queryCount(county, state).then((returnedCount)=>{
+								queryCount(county, state, birthQuarter).then((returnedCount)=>{
 
                                     if(returnedCount == 0){
                                         

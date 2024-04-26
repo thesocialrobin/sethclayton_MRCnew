@@ -271,6 +271,23 @@ export function executePayment() {
 
     console.log("Subscription Data", subscriptions)
 
+                        //--log process--//
+                          let logResults = {
+                              "type": "Subscription Tracking",
+                              "log": "Subscriptions Page Trigger", subscriptions, email
+                            };
+
+                            wixData.insert("devLog", logResults)
+                            .then( (results) => {
+                              let item = results; //see item below
+                              
+                            } )
+                            .catch( (err) => {
+                              let errorMsg = err;
+                            } );
+
+                        //--end log process--//
+
     wixWindow.openLightbox('Payment', subscriptions)
         .then((data) => {
 
@@ -293,6 +310,8 @@ export function executePayment() {
 
 export function essentialPlan_click(event) {
 
+    
+
     let planName = "Essential";
     let duration = "Monthly"
 
@@ -307,6 +326,8 @@ export function essentialPlan_click(event) {
         $w("#essentialPlan").label = "Sign Up"
         $w('#checkoutEssential').collapse();
 
+                          
+
     } else {
 
         let subscriptionData = {
@@ -320,6 +341,8 @@ export function essentialPlan_click(event) {
         $w('#checkoutEssential').expand();
 
         console.log("My Subscriptions: ", subscriptions)
+
+                       
 
     }
 

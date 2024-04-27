@@ -22,8 +22,8 @@ $w.onReady(async function () {
 
 
     buildQuarters();
-
-    
+    $w("#list").text = "";
+   
 
 
 
@@ -241,7 +241,7 @@ $w.onReady(async function () {
                                 
                             let qrPresentUrl = qrPresent.split("/")[3];
                             let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
-                            console.log("QR Code Present", qrPresentBanner)
+                            console.log("QR Code Present Line 244", qrPresentBanner)
 
 
                                     generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
@@ -355,6 +355,7 @@ $w.onReady(async function () {
                                         $item('#results').text = `Your total postcard count is now ${totalCount}`;
                                          $item('#results').expand();
                                     $item('#moreButton').label = "Add Another County";
+                                    $item('#quarter').enable()
 
                                     }
 
@@ -479,10 +480,10 @@ $w.onReady(async function () {
                             $item('#moreButton').disable()
 
 
-                        } else { //Commented out on 042624 for testing purposes
-                            //console.log("Generating Postcard")
-                            //generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
-                            //$item('#quarter').disable();
+                        } else { 
+                            console.log("Generating Postcard")
+                            generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
+                            $item('#quarter').disable();
                         }
                                 
 
@@ -719,7 +720,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                 
                             let qrPresentUrl = qrPresent.split("/")[3];
                             let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
-                            console.log("QR Code Present", qrPresentBanner)
+                            console.log("QR Code Present Line 722", qrPresentBanner)
 
 
                                     generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {

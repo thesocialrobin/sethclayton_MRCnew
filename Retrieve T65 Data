@@ -1,0 +1,291 @@
+import wixLocation from 'wix-location';
+import { session } from 'wix-storage';
+import wixData from 'wix-data';
+import { generatePostCard } from "backend/generateImage";
+
+let url = wixLocation.url;
+let query = wixLocation.query;
+let template = query.template;
+let email = query.email;
+let birthQuarter = query.quarter;
+let counties = (query.counties).split(',');
+console.log("Counties: ", counties)
+console.log("Quarter: ", birthQuarter)
+let countCounties = 0;
+let quarter = []
+
+$w.onReady(async function () {
+
+     if(birthQuarter == "Quarter 1"){
+         quarter.push(1,2,3);
+         //quarter = quarter.split(/[ ,]+/).map(Number)
+         console.log("Quarter: ", quarter)
+         $w('#SheetButton').enable()
+     }
+
+     if(birthQuarter == "Quarter 2"){
+         quarter.push(4,5,6);
+         //quarter = (quarter).split(/[ ,]+/).map(Number)
+         console.log("Quarter: ", quarter)
+         $w('#SheetButton').enable()
+     }
+
+     if(birthQuarter == "Quarter 3"){
+         quarter.push(7,8,9);
+         //quarter = (quarter).split(/[ ,]+/).map(Number)
+         console.log("Quarter: ", quarter)
+         $w('#SheetButton').enable()
+     }
+
+     if(birthQuarter == "Quarter 4"){
+         quarter.push(10,11,12);
+         //quarter = (quarter).split(/[ ,]+/).map(Number)
+         console.log("Quarter: ", quarter)
+         $w('#SheetButton').enable()
+     }
+
+    wixData.query('Team').eq('email', email).find().then((res) => {
+        var agent = res.items[0]
+        console.log('Agent Data', agent);
+        $w('#loading').show()
+        $w('#generating').show()
+        var templateId = template
+        var picture = agent.photo
+        console.log(picture);
+        var url = picture.split("/")[3];
+        var url2 = `https://static.wixstatic.com/media/${url}`
+        let qrPresent = agent.qrCode
+
+        console.log(url2)
+
+        if (qrPresent !== undefined && qrPresent !== "") {
+
+            let qrPresentUrl = qrPresent.split("/")[3];
+            let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
+            console.log("QR Code Present", qrPresentBanner)
+
+            generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+                var imageUrl = image.fileUrl
+                console.log("Generating Image:", imageUrl)
+                $w('#preview').src = imageUrl
+                $w('#preview').show()
+                $w('#loading').hide()
+                $w('#generating').hide()
+                var url = imageUrl.split("/")[3];
+                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                console.log("url2")
+                wixLocation.to(url2)
+            })
+
+            //QR is present
+
+        } else if (qrPresent && qrPresent.length < 1) {
+
+            generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+                var imageUrl = image.fileUrl
+                console.log("Generating Image:", imageUrl)
+                $w('#preview').src = imageUrl
+                $w('#preview').show()
+                $w('#loading').hide()
+                $w('#generating').hide()
+                var url = imageUrl.split("/")[3];
+                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                console.log("url2")
+                wixLocation.to(url2)
+            })
+
+            //QR is not present
+
+        }
+
+    })
+
+    //T65 EXECUTION
+
+    /*
+
+		console.log("Clicked")
+
+                
+				let filteredList
+				let dataCollectionName = "t65";
+                let countyQuery = [];
+	            countyQuery = counties;
+                let count = 0
+                let countiesLength = counties.length;
+                let limit = 1000
+                session.setItem("Limit",limit)
+                let newLimit = Number(session.getItem("Limit"))
+                let downloadCount = 0
+                
+
+                counties.forEach(element => {
+                    count++
+                    let thisCounty = element.split("-")[0];
+                    let thisState = element.split("-")[1];
+                    console.log("Search: ", thisCounty, thisState)
+                console.log("Track: ", count, countiesLength, limit, newLimit)
+                 wixData.query(dataCollectionName)
+                .eq("countyName", thisCounty)
+                .eq("state", thisState)
+                .limit(newLimit)
+                .find()
+                .then((results) => {
+
+                    console.log("Results: ", results)
+                    if (results.totalCount > 0){
+                        console.log(results.items[0])
+                        let items = results.items
+                        let itemsCount = results.items.length;
+                        countCounties = countCounties + itemsCount
+                        limit = limit - countCounties;
+                        session.setItem("Limit",limit)
+                        console.log("Limit, decreasedBy", limit, itemsCount, countCounties, newLimit)
+                        
+
+                            if (count > 0){
+                                //filteredList.concat(items)
+                                let pushArray = [];
+                                pushArray.push.apply(pushArray, filteredList);
+	                            pushArray.push.apply(pushArray, items);
+                                filteredList = pushArray;
+                                console.log("Filtered List:", filteredList.length)
+
+                                setTimeout(()=>{
+                                if (count == countiesLength){
+                                    
+
+                                    let toSend = filteredList.slice(0,1000).map(function(obj){
+                                    return {
+                                        firstName: obj.firstName, 
+                                        lastName: obj.lastName,
+                                        addressLine1: obj.addressLine1,
+                                        addressLine2: obj.addressLine2,
+                                        city: obj.city,
+                                        state: obj.state,
+                                        zipCode: obj.zipCode,
+                                        zip4: obj.zip4,
+                                        countyName: obj.countyName
+                                    }; 
+                                    
+                                });
+                                    if(downloadCount == 0){
+                                    console.log("Ready to download")
+                                    $w("#t65builder").postMessage(toSend) 
+                                    downloadCount++
+
+                                    }
+                                    
+                                    console.log(filteredList.length)
+
+                                    	
+                                  
+                                }
+                                },1200)
+
+                            } else {
+                                filteredList = items;
+                                 console.log(filteredList.length)		
+                            }
+                            
+                           		
+    
+
+		            }
+
+		 
+	            })
+                    
+                });
+
+                */
+
+});
+
+export function SheetButton_click(event) {
+
+    console.log("Clicked")
+
+    let filteredList
+    let dataCollectionName = "t65";
+    let countyQuery = [];
+    countyQuery = counties;
+    let count = 0
+    let countiesLength = counties.length;
+    let limit = 500
+    session.setItem("Limit", limit)
+    let newLimit = Number(session.getItem("Limit"))
+    let downloadCount = 0
+
+    counties.forEach(element => {
+        count++
+        let thisCounty = element.split("-")[0];
+        let thisState = element.split("-")[1];
+        console.log("Search: ", thisCounty, thisState)
+        console.log("Track: ", count, countiesLength, limit, newLimit)
+        wixData.query(dataCollectionName)
+            .eq("countyName", thisCounty)
+            .eq("state", thisState)
+            .hasSome("birthMonth", quarter)
+            .limit(newLimit)
+            .find()
+            .then((results) => {
+
+                console.log("Results: ", results)
+                if (results.totalCount > 0) {
+                    console.log(results.items[0])
+                    let items = results.items
+                    let itemsCount = results.items.length;
+                    countCounties = countCounties + itemsCount
+                    limit = limit - countCounties;
+                    session.setItem("Limit", limit)
+                    console.log("Limit, decreasedBy", limit, itemsCount, countCounties, newLimit)
+
+                    if (count > 0) {
+                        //filteredList.concat(items)
+                        let pushArray = [];
+                        pushArray.push.apply(pushArray, filteredList);
+                        pushArray.push.apply(pushArray, items);
+                        filteredList = pushArray;
+                        console.log("Filtered List:", filteredList.length)
+
+                        setTimeout(() => {
+                            if (count == countiesLength) {
+
+                                let toSend = filteredList.slice(0, 500).map(function (obj) {
+                                    return {
+                                        firstName: obj.firstName,
+                                        lastName: obj.lastName,
+                                        addressLine1: obj.addressLine1,
+                                        addressLine2: obj.addressLine2,
+                                        city: obj.city,
+                                        state: obj.state,
+                                        zipCode: obj.zipCode,
+                                        zip4: obj.zip4,
+                                        countyName: obj.countyName
+                                    };
+
+                                });
+                                if (downloadCount == 0) {
+                                    console.log("Ready to download")
+                                    $w("#t65builder").postMessage(toSend)
+                                    downloadCount++
+
+                                }
+
+                                console.log(filteredList.length)
+
+                            }
+                        }, 2200)
+
+                    } else {
+                        filteredList = items;
+                        console.log("Filtered List 0:", filteredList.length)
+                    }
+
+                }
+
+            })
+
+    });
+}

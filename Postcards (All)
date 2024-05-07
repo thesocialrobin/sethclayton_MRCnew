@@ -4,6 +4,8 @@ import wixUsers from 'wix-users';
 import wixLocation from 'wix-location';
 import { triggeredEmails } from 'wix-crm';
 import { myQueryContactsFunction, triggerSend } from 'backend/email.jsw';
+import {session} from 'wix-storage-frontend';
+
 
 
 
@@ -305,21 +307,24 @@ $w.onReady(async function () {
 
                             let findMatch = counties.find(county=> county === newCounty)
 
-                            if(findMatch !== undefined && totalCount < 1000){
+                            if(findMatch !== undefined && totalCount < 500){
                                 
                                 $item("#error").text = "County already added. Try again!";
                                 $item("#error").expand();
                             } else {
                                 $item("#error").collapse();
+                                $item("#quarter").enable();
                             }
 
-							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+							if($item('#county').valid && totalCount < 500 && $item('#state').valid && (findMatch == undefined)){
 
                                 
                                 let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
                                 console.log("Birth Quarter: ", birthQuarter)
                                
 								queryCount(county, state, birthQuarter).then((returnedCount)=>{
+
+                                    console.log("Returned Count:", returnedCount)
 
                                     if(returnedCount == 0){
                                         
@@ -328,8 +333,17 @@ $w.onReady(async function () {
 
                                     } else if(returnedCount > 0){
 
-                                        console.log(returnedCount)
-                                    totalCount = totalCount + returnedCount;
+                                        console.log("Returned Count:", returnedCount)
+
+                                        let  oldTotal= Number(session.getItem("total"));
+
+                                        let newTotal = oldTotal + returnedCount;
+                                        session.setItem("total", newTotal)
+                                        
+
+                                    //totalCount = totalCount + returnedCount;
+                                    totalCount = newTotal;
+
                                     console.log("Total Count: ", totalCount);
                                     console.log(county, $item("#state").value)
                                     
@@ -342,11 +356,11 @@ $w.onReady(async function () {
                                     $item("#list").expand();
                                     counties.push(newCounty);
                                     console.log("Counties, ", counties)
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
                                     console.log("emailUrl", emailUrl)
-                                    if (totalCount == 1000 || totalCount > 1000) {
+                                    if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send
-                                    $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                                    $item('#results').text = `Your total postcard count has reached the 500 limit!`;
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
@@ -370,16 +384,16 @@ $w.onReady(async function () {
                     
                 
 
-                            } else if (totalCount == 1000 || totalCount > 1000 && $item('#moreButton').label == "Send Request") {
+                            } else if (totalCount == 500 || totalCount > 500 && $item('#moreButton').label == "Send Request") {
                                 console.log("Trigger Send")
 
                             //Complete and send
-                            $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                            $item('#results').text = `Your total postcard count has reached the 500 limit!`;
                             $item('#results').expand();
                             $item('#moreButton').label = "Send Request";
 
                   
-                                    let emailId = "TRtlyOS"
+                                    let emailId = "UC2Ly8Y"
                                     $item('#moreButton').label = "Sending...";
                                     myQueryContactsFunction().then((resolvedContact) => {
                                         let userId = resolvedContact;
@@ -415,6 +429,7 @@ $w.onReady(async function () {
                                                 $item('#results').text = "Request Completed! You may close this window.";
                                                 $item('#results').expand();
                                                 $item('#moreButton').label = "Completed!";
+                                                $item('#moreButton').disable();
                                                 $item('#results').expand();
 
 
@@ -477,13 +492,14 @@ $w.onReady(async function () {
                             $item('#error').expand()
                             $item('#confirmSend').expand()
                             $item('#noSend').expand()
+                            $item('#yesNo').expand()
                             $item('#moreButton').disable()
 
 
                         } else { 
                             console.log("Generating Postcard")
                             generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
-                            $item('#quarter').disable();
+                            //$item('#quarter').disable();
                         }
                                 
 
@@ -539,7 +555,7 @@ export function confirmSend_click(event){
         $item('#results').expand()
         $item('#yesNo').collapse()
         $item('#moreButton').enable()
-        $item('#quarter').disable();
+        //$item('#quarter').disable();
         generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
 
 }
@@ -552,7 +568,7 @@ return	wixData.query("t65")
         .eq('countyName', county)
         .eq('state', state)
         .hasSome("birthMonth", birthQuarter)
-        .limit(1000)
+        .limit(500)
         .find()
         .then((res) => {
             let items = res.items;
@@ -737,7 +753,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -763,7 +779,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -784,20 +800,22 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                             let findMatch = counties.find(county=> county === newCounty)
 
-                            if(findMatch !== undefined && totalCount < 1000){
+                            if(findMatch !== undefined && totalCount < 500){
                                 
                                 $item("#error").text = "County already added. Try again!";
                                 $item("#error").expand();
                             } else {
                                 $item("#error").collapse();
+                                $item("#quarter").enable();
                             }
 
-							if($item('#county').valid && totalCount < 1000 && $item('#state').valid && (findMatch == undefined)){
+							if($item('#county').valid && totalCount < 500 && $item('#state').valid && (findMatch == undefined)){
 
                                 let dropdownOptions = $item("#quarter").options;
                                 let option = $item("#quarter").selectedIndex;
                                 let birthQuarter = (dropdownOptions[`${option}`].value).split(/[ ,]+/).map(Number)
                                 console.log("Birth Quarter: ", birthQuarter);
+                                $item("#quarter").enable();
                                
 								queryCount(county, state, birthQuarter).then((returnedCount)=>{
 
@@ -808,8 +826,18 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                                     } else {
 
-                                        console.log(returnedCount)
-                                    totalCount = totalCount + returnedCount;
+                                        console.log("Returned Count:", returnedCount)
+                                    
+
+                                      let  oldTotal= Number(session.getItem("total"));
+
+                                        let newTotal = oldTotal + returnedCount;
+                                        session.setItem("total", newTotal)
+                                        
+
+                                    //totalCount = totalCount + returnedCount;
+                                    totalCount = newTotal;
+
                                     console.log("Total Count: ", totalCount);
                                     console.log(county, $item("#state").value)
                                     
@@ -822,11 +850,11 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item("#list").expand();
                                     counties.push(newCounty);
                                     console.log("Counties, ", counties)
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
                                     console.log("emailUrl", emailUrl)
-                                    if (totalCount == 1000 || totalCount > 1000) {
+                                    if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send
-                                    $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                                    $item('#results').text = `Your total postcard count has reached the 500 limit!`;
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
@@ -849,16 +877,16 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                     
                 
 
-                            } else if (totalCount == 1000 || totalCount > 1000 && $item('#MoreButton').label == "Send Request") {
+                            } else if (totalCount == 500 || totalCount > 500 && $item('#MoreButton').label == "Send Request") {
                                 console.log("Trigger Send")
 
                             //Complete and send
-                            $item('#results').text = `Your total postcard count has reached the 1000 limit!`;
+                            $item('#results').text = `Your total postcard count has reached the 500 limit!`;
                             $item('#results').expand();
                             $item('#moreButton').label = "Send Request";
 
                   
-                                    let emailId = "TRtlyOS"
+                                    let emailId = "UC2Ly8Y"
                                     $item('#moreButton').label = "Sending...";
                                     myQueryContactsFunction().then((resolvedContact) => {
                                         let userId = resolvedContact;

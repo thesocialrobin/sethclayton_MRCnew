@@ -1,0 +1,224 @@
+import { triggeredEmails } from 'wix-crm-backend';
+import wixData from 'wix-data';
+import { contacts } from 'wix-crm-backend';
+
+var memberId = "e1fa471a-0606-4e89-b313-dd7b330cfa01"
+var seth = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+var lead = '36b9b491-7fcd-4bcc-90d6-23224aa91537'
+
+//var members = ["5d7c541a-1f5f-4c1a-9b24-58747c36b7d3", "5d7c541a-1f5f-4c1a-9b24-58747c36b7d3"]
+
+export function email(obj) {
+    triggeredEmails.emailMember("StlSYqe", memberId, { "variables": obj })
+        .then(() => {
+            console.log('Email was sent to member');
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}
+
+let options = {
+    suppressAuth: true
+}
+
+export function triggerSend(emailId, userId, emailUrl, agentEmail) {
+
+                    return triggeredEmails.emailContact(emailId, userId,{ variables: { URL: emailUrl, Email: agentEmail} }).then(()=>{
+                               return 'Success'
+
+                                })
+                                .catch((error) => {
+                                console.error(error);
+                                     });
+
+
+
+}
+
+export function triggerAds(emailId, userId, contents, request) {
+
+                    return triggeredEmails.emailContact(emailId, userId,{ variables: { contents: contents, request: request} }).then(()=>{
+                               return 'Success'
+
+                                })
+                                .catch((error) => {
+                                console.error(error);
+                                     });
+
+
+
+}
+
+export function triggerThankYou(emailId, reviewer, name, agentName) {
+
+                    return triggeredEmails.emailContact(emailId, reviewer,{ variables: { name: name, agent: agentName} }).then(()=>{
+                               return 'Success'
+
+                                })
+                                .catch((error) => {
+                                console.error(error);
+                                     });
+
+
+
+}
+
+export function myQueryContactsFunction() {
+
+     const options = {
+    suppressAuth: true,
+    suppressHooks: true
+  };
+
+  return contacts.queryContacts()
+    .eq("info.emails.email", "seth@resourcemedicare.com")
+    .find(options)
+    .then((results) => {
+      if (results.items.length > 0) {
+        const items = results.items;
+        const firstItem = items[0];
+        const contactId = firstItem._id
+        const pageSize = results.pageSize;
+        const hasNext = results.hasNext();
+        const hasPrev = results.hasPrev();
+        const length = results.length;
+        const query = results.query;
+
+        return contactId;
+      } else {
+        // Handle case where no matching items found
+      }
+    })
+    .catch((error) => {
+      return error
+    })
+
+}
+
+export function myQueryContactsFunctionDev() {
+
+     const options = {
+    suppressAuth: true,
+    suppressHooks: true
+  };
+
+  return contacts.queryContacts()
+    .eq("info.emails.email", "wix@thesocialrobin.com")
+    .find(options)
+    .then((results) => {
+      if (results.items.length > 0) {
+        const items = results.items;
+        const firstItem = items[0];
+        const contactId = firstItem._id
+        const pageSize = results.pageSize;
+        const hasNext = results.hasNext();
+        const hasPrev = results.hasPrev();
+        const length = results.length;
+        const query = results.query;
+
+        return contactId;
+      } else {
+        // Handle case where no matching items found
+      }
+    })
+    .catch((error) => {
+      return error
+    })
+
+}
+
+export function newFeatureEmail(obj) {
+    console.log('function triggered');
+    wixData.query('Members/PrivateMembersData').find().then((res) => {
+        var items = res.items
+
+        items.forEach((item) => {
+            triggeredEmails.emailMember("SvvBCdR", item._id, { "variables": obj })
+                .then(() => {
+                    console.log('Email was sent to member');
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        })
+    })
+}
+
+export function eventUpdateEmail(obj) {
+    var lead = '5d7c541a-1f5f-4c1a-9b24-58747c36b7d3'
+    var seth = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
+
+    return triggeredEmails.emailMember('SuwScxg', seth, {
+        variables: {
+            'title': obj.title,
+            'type': obj.type,
+            'date': obj.date.toLocaleDateString(),
+            'startTime': obj.startTime,
+            'endTime': obj.endTime,
+            'eventName': obj.eventName,
+            'description': obj.description,
+            'link': obj.link,
+            'address': obj.address,
+            'agentEmail': obj.agentEmail,
+            'eventbriteLink': obj.eventbriteLink
+        }
+    }).then(() => {
+        return 'Email sent'
+    }).catch((err) => {
+        console.log(err);
+    })
+}
+
+export function newAttendee(agentId, obj) {
+    return triggeredEmails.emailMember("newAttendee", agentId, { "variables": obj })
+        .then(() => {
+            console.log('Email was sent to member');
+            return 'email sent'
+        })
+        .catch((error) => {
+            console.error(error);
+            throw (error)
+        });
+}
+
+export function newQuoteEmail(obj) {
+    return triggeredEmails.emailMember('quoteForm', seth , {
+        variables: {
+            email: obj.email ,
+            nameOfEmployer: obj.nameOfEmployer ,
+            outOfPocketMax: obj.outOfPocketMax.toString() ,
+            lastName: obj.lastName ,
+            firstName: obj.firstName ,
+            monthlyPremium: obj.monthlyPremium.toString() ,
+            insuranceCompany: obj.insuranceCompany ,
+            annualDeductible: obj.annualDeductible.toString()
+        }
+    }).then(() => {
+        return 'Email sent'
+    })
+}
+
+export function request(obj) {
+    return triggeredEmails.emailMember("request", seth, { "variables": obj })
+        .then(() => {
+            console.log('Email was sent to member');
+            return 'Email was sent to member'
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}
+
+export function profileChange(obj) {
+    return triggeredEmails.emailMember("profileChange", seth, { "variables": obj })
+        .then(() => {
+            console.log('Email was sent to member');
+            return 'Email was sent to member'
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}
+
+

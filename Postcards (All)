@@ -20,6 +20,13 @@ let quarter
 
 
 $w.onReady(async function () {
+
+    //Set Total to Zero
+    let  oldTotal= Number(session.getItem("total"));
+
+    let newTotal = 0;
+
+    session.setItem("total", newTotal)
      //----Build Quarter List--//
 
 
@@ -244,6 +251,7 @@ $w.onReady(async function () {
                             let qrPresentUrl = qrPresent.split("/")[3];
                             let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
                             console.log("QR Code Present Line 244", qrPresentBanner)
+
 
 
                                     generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {

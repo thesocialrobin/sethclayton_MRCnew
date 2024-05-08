@@ -97,9 +97,9 @@ $w.onReady(async function () {
                 //Find matches for the Year and the Quarter
 
                     if (arrayTotal === 3) { //Max achieved
-                        $w('#error').text = "You've requested the maximum amount of lists this year."
-                        $w('#error').expand();
-                        $w('#moreButton').disable();
+                        //$w('#error').text = "You've requested the maximum amount of lists this year."
+                        //$w('#error').expand();
+                        //$w('#moreButton').disable();
 
 
                     }
@@ -313,7 +313,18 @@ $w.onReady(async function () {
                             let state = $item('#state').value;
                             let newCounty = (county + "-" + $item("#state").value); //county and state
 
-                            let findMatch = counties.find(county=> county === newCounty)
+                            //let findMatch = counties.find(county=> county === newCounty)
+
+                            let findMatch = counties.find(county => {
+   
+                            let [existingCounty, existingState] = county.split("-");
+
+                            
+                            let [newCountyName, newState] = newCounty.split("-");
+                            
+                            return existingCounty === newCountyName && existingState === newState;
+
+                             });
 
                             if(findMatch !== undefined && totalCount < 500){
                                 
@@ -809,7 +820,19 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                             let newCounty = (county + "-" + $item("#state").value); //county and state
 
 
-                            let findMatch = counties.find(county=> county === newCounty)
+                            //let findMatch = counties.find(county=> county === newCounty)
+                            
+                            let findMatch = counties.find(county => {
+   
+                            let [existingCounty, existingState] = county.split("-");
+
+                            
+                            let [newCountyName, newState] = newCounty.split("-");
+                            
+                            return existingCounty === newCountyName && existingState === newState;
+
+                             });
+
 
                             if(findMatch !== undefined && totalCount < 500){
                                 

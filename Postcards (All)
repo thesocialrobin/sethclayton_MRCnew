@@ -154,8 +154,8 @@ $w.onReady(async function () {
                 //Find matches for the Year and the Quarter
 
                     if (arrayTotal === 2) { //Max achieved
-                        $item('#error').text = "Alert: You have 1 T65 Request remaining this year."
-                        $item('#error').expand();
+                        //$item('#error').text = "Alert: You have 1 T65 Request remaining this year."
+                        //$item('#error').expand();
 
 
 
@@ -244,7 +244,7 @@ $w.onReady(async function () {
                             let qrPresent = agent.qrCode
                             
                             console.log(url2)
-                            console.log(templateId, agent.title, agent.publicEmail, agent.hone, url2)
+                            console.log(templateId, agent.name, agent.publicEmail, agent.hone, url2)
 
                             if(qrPresent !== undefined && qrPresent !== ""){
                                 
@@ -254,7 +254,7 @@ $w.onReady(async function () {
 
 
 
-                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+                                    generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
                                         console.log(image)
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
@@ -262,7 +262,7 @@ $w.onReady(async function () {
                                     $item('#image').show()
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
-                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
 
                                     
@@ -280,7 +280,7 @@ $w.onReady(async function () {
 
                                     console.log("no QR code Present!", qrPresent, qrPresent.length)
 
-                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+                                    generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2).then((image) => {
                                         console.log(image)
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
@@ -288,7 +288,7 @@ $w.onReady(async function () {
                                     $item('#image').show()
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
-                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
 
                                     
@@ -357,10 +357,10 @@ $w.onReady(async function () {
                                     
                                     let listCount = county + ", " + $item("#state").value + "‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎";
                                     let currentList = $item("#list").text;
-                                    console.log("Add: ", listCount, currentList)
+                                    console.log("Add List and Current: ", listCount, currentList)
                                     let newListCount = (currentList.toString()) + listCount
                                     $item("#list").text = newListCount;
-                                    console.log("Add: ", newListCount, currentList)
+                                    console.log("Add New and Current: ", newListCount, currentList)
                                     $item("#list").expand();
                                     counties.push(newCounty);
                                     console.log("Counties, ", counties)
@@ -369,6 +369,7 @@ $w.onReady(async function () {
                                     if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send
                                     $item('#results').text = `Your total postcard count has reached the 500 limit!`;
+                                    console.log("Line 372")
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
@@ -397,6 +398,7 @@ $w.onReady(async function () {
 
                             //Complete and send
                             $item('#results').text = `Your total postcard count has reached the 500 limit!`;
+                            console.log("Line 401")
                             $item('#results').expand();
                             $item('#moreButton').label = "Send Request";
 
@@ -506,7 +508,8 @@ $w.onReady(async function () {
 
                         } else { 
                             console.log("Generating Postcard")
-                            generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
+                            let  finalTotal= Number(session.getItem("total"));
+                            generatePostcardClick($item, agent, counties, finalTotal, agentEmail, itemData)
                             //$item('#quarter').disable();
                         }
                                 
@@ -738,7 +741,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                             let qrPresent = agent.qrCode
                             
                             console.log(url2)
-                            console.log(templateId, agent.title, agent.publicEmail, agent.hone, url2)
+                            console.log(templateId, agent.name, agent.publicEmail, agent.hone, url2)
 
                             if(qrPresent !== undefined && qrPresent !== ""){
                                 
@@ -747,7 +750,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                             console.log("QR Code Present Line 722", qrPresentBanner)
 
 
-                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+                                    generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
                                         console.log(image)
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
@@ -755,7 +758,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#image').show()
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
-                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
 
                                     
@@ -773,7 +776,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                                     console.log("no QR code Present!", qrPresent, qrPresent.length)
 
-                                    generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+                                    generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2).then((image) => {
                                         console.log(image)
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
@@ -781,7 +784,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#image').show()
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
-                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                                    var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
 
                                     
@@ -863,6 +866,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send
                                     $item('#results').text = `Your total postcard count has reached the 500 limit!`;
+                                    console.log("Line 868")
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
@@ -890,6 +894,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                             //Complete and send
                             $item('#results').text = `Your total postcard count has reached the 500 limit!`;
+                            console.log("Line 896")
                             $item('#results').expand();
                             $item('#moreButton').label = "Send Request";
 

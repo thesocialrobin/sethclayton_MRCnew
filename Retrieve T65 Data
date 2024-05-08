@@ -64,7 +64,7 @@ $w.onReady(async function () {
             let qrPresentBanner = `https://static.wixstatic.com/media/${qrPresentUrl}`
             console.log("QR Code Present", qrPresentBanner)
 
-            generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
+            generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2, qrPresentBanner).then((image) => {
                 var imageUrl = image.fileUrl
                 console.log("Generating Image:", imageUrl)
                 $w('#preview').src = imageUrl
@@ -72,7 +72,7 @@ $w.onReady(async function () {
                 $w('#loading').hide()
                 $w('#generating').hide()
                 var url = imageUrl.split("/")[3];
-                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                 console.log("url2")
                 wixLocation.to(url2)
             })
@@ -81,7 +81,7 @@ $w.onReady(async function () {
 
         } else if (qrPresent && qrPresent.length < 1) {
 
-            generatePostCard(templateId, agent.title, agent.publicEmail, agent.phone, url2).then((image) => {
+            generatePostCard(templateId, agent.name, agent.publicEmail, agent.phone, url2).then((image) => {
                 var imageUrl = image.fileUrl
                 console.log("Generating Image:", imageUrl)
                 $w('#preview').src = imageUrl
@@ -89,7 +89,7 @@ $w.onReady(async function () {
                 $w('#loading').hide()
                 $w('#generating').hide()
                 var url = imageUrl.split("/")[3];
-                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.title+templateId}`
+                var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                 console.log("url2")
                 wixLocation.to(url2)
             })

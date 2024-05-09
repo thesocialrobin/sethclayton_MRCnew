@@ -22,7 +22,8 @@ let quarter
 $w.onReady(async function () {
 
     //testing
-    console.log("Override Check", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+    console.log("Override Check Submission", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+      console.log("Override Check Image", session.getItem("Image_E9YaWrZM2nxy5nRd74"))
 
     //Set Total to Zero
     let  oldTotal= Number(session.getItem("total"));
@@ -36,7 +37,7 @@ $w.onReady(async function () {
     buildQuarters();
     $w("#list").text = "";
    
-
+    
 
 
     //---End Quarter Build--//
@@ -56,13 +57,16 @@ $w.onReady(async function () {
 	    let overrideOption = items[0]._id; 
 	    console.log("Override Option: ", overrideOption); 
         session.removeItem(`Send_${overrideOption}`);
+        session.removeItem(`Image_${overrideOption}`);
+        console.log("Override Check Submission", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+        console.log("Override Check Image", session.getItem("Image_E9YaWrZM2nxy5nRd74"))
 	  } ) 
 	  .catch( (err) => { 
 	  } );
 	} 
       })
 
-      console.log("Override Check", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+      
 
 
 
@@ -265,6 +269,23 @@ $w.onReady(async function () {
                             $item('#loading').show()
 
 
+                            //Agent Template Load Check
+
+                            let imageTemplate = templateId;
+                            let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                            if(imageTemplateLoaded == "Yes"){
+                                $item('#moreButton').enable()
+                            } else {
+                                $item('#moreButton').disable()
+                            }
+
+                            //End Check
+                            
+
+                            
+
+
                     
                             var picture = agent.photo
                             console.log(picture);
@@ -294,6 +315,24 @@ $w.onReady(async function () {
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
 
+                                    //Set the image template
+                                    let imageTemplate = repeaterProd._id;
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                    session.setItem(`Image_${imageTemplate}`, "Yes")
+
+                                    console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplateLoaded}`)
+                                    //Complete set
+
+                                     //Agent Template Load Check
+
+
+                                    if(imageTemplateLoaded == "Yes"){
+                                        $item('#moreButton').enable()
+                                    } else {
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
                                     
                                 
                                     let zip = $w("#county").value;
@@ -304,6 +343,8 @@ $w.onReady(async function () {
                                     })
 
                                     //QR Code was present
+
+                                   
 
                                 } else if(qrPresent && qrPresent.length < 1){
 
@@ -318,12 +359,32 @@ $w.onReady(async function () {
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
+
+                                    //Set the image template
+                                    let imageTemplate = repeaterProd._id;
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                    session.setItem(`Image_${imageTemplate}`, "Yes")
+
+                                    console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplateLoaded}`)
+                                    //Complete set
                                     
 
                                     
                                 
                                     let zip = $w("#county").value;
                                     emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+
+                                    //Agent Template Load Check
+
+                           
+
+                                    if(imageTemplateLoaded == "Yes"){
+                                        $item('#moreButton').enable()
+                                    } else {
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -413,6 +474,19 @@ $w.onReady(async function () {
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
+                                     //Agent Template Load Check
+
+                                    let imageTemplate = templateId;
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                                    if(imageTemplateLoaded == "Yes"){
+                                        $item('#moreButton').enable()
+                                    } else {
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
+
                                     }
                                     else {
                                         $item('#results').text = `Your total postcard count is now ${totalCount}`;
@@ -441,6 +515,21 @@ $w.onReady(async function () {
                             console.log("Line 401")
                             $item('#results').expand();
                             $item('#moreButton').label = "Send Request";
+
+                             //Agent Template Load Check
+
+                            let imageTemplate = templateId;
+                            let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                            if(imageTemplateLoaded == "Yes"){
+                                $item('#moreButton').enable()
+                            } else {
+                                $item('#moreButton').disable()
+                            }
+
+                            //End Check
+
+                            
 
                   
                                     let emailId = "UC2Ly8Y"
@@ -481,6 +570,16 @@ $w.onReady(async function () {
                                                 $item('#moreButton').label = "Completed!";
                                                 $item('#moreButton').disable();
                                                 $item('#results').expand();
+                                                let overrideOption = templateId;
+                                                session.setItem(`Send_${overrideOption}`, "")
+
+                                                //Reset the image template
+                                                let imageTemplate = templateId;
+                                                let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                                session.setItem(`Image_${imageTemplate}`, "")
+
+                                                console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
+                                                //Complete reset
 
 
 
@@ -834,7 +933,26 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#loading').hide()
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
+
+                                    //Set the image template
+                                    let imageTemplate = templateId;
+                                    session.setItem(`Image_${imageTemplate}`, "Yes")
                                     
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                                    console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
+                                    //Complete set
+
+                                     //Agent Template Load Check
+
+
+                                    if(imageTemplateLoaded == "Yes"){
+                                        $item('#moreButton').enable()
+                                    } else {
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
 
                                     
                                 
@@ -861,7 +979,14 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
+                                    //Set the image template
+                                    let imageTemplate = templateId;
+                                    session.setItem(`Image_${imageTemplate}`, "Yes")
 
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                                    console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
+                                    //Complete set
                                     
                                 
                                     let zip = $w("#county").value;
@@ -957,6 +1082,19 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#results').expand();
                                     $item('#moreButton').label = "Send Request";
 
+                                     //Agent Template Load Check
+
+                                    let imageTemplate = templateId;
+                                    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                                    if(imageTemplateLoaded == "Yes"){
+                                        $item('#moreButton').enable()
+                                    } else {
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
+
                                     }
                                     else {
                                         $item('#results').text = `Your total postcard count is now ${totalCount}`;
@@ -978,6 +1116,21 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                             } else if ((totalCount === 500 || totalCount > 500) && $item('#moreButton').label === "Send Request") {
                                 console.log("Trigger Send")
+
+                                 //Agent Template Load Check
+
+                            let imageTemplate = templateId;
+                            let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+                            if(imageTemplateLoaded == "Yes"){
+                                $item('#moreButton').enable()
+                            } else {
+                                $item('#moreButton').disable()
+                            }
+
+                            //End Check
+
+                               
 
                             //Complete and send
                             $item('#results').text = `Your total postcard count has reached the 500 limit!`;
@@ -1022,9 +1175,18 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                                 $item('#results').text = "Request Completed! You may close this window.";
                                                 $item('#results').expand();
                                                 $item('#moreButton').label = "Completed!";
+                                                $item('#moreButton').disable();
                                                 $item('#results').expand();
-                                                let overrideOption = itemData._id;
+                                                let overrideOption = templateId;
                                                 session.setItem(`Send_${overrideOption}`, "")
+
+                                                //Reset the image template
+                                                let imageTemplate = templateId;
+                                                let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                                session.setItem(`Image_${imageTemplate}`, "")
+
+                                                console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
+                                                //Complete reset
 
 
 

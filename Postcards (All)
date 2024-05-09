@@ -551,7 +551,7 @@ $w.onReady(async function () {
 
                             console.log("Generating Postcard")
                             let finalTotal= Number(session.getItem("total"));
-                            generatePostcardClick($item, agent, counties, finalTotal, agentEmail, itemData)
+                            generatePostcardClick($item, agent, counties, finalTotal, agentEmail, templateId)
 
 
                             } else {

@@ -233,13 +233,27 @@ $w.onReady(async function () {
 
                 //Find matches for the Year and the Quarter
 
+                //Agent Template Load Check
+
+                           
+                                 //GENERATE IMAGE
+                                $item('#image').hide()
+                                $item('#loading').show()
+                            
+
+                            //End Check
+
                     if (results.length < 1) {
 
                      console.log("Count completed, no matches found")
                         $item('#error').text = `Error` 
                         $item('#error').collapse()
                         $item('#yesNo').collapse()
-                        $item('#moreButton').enable()
+
+                         let moreLabel = $item('#moreButton').label 
+                    if(moreLabel !== "Completed!"){
+                        $item('#moreButton').enable();
+                    }
 
                 //If there are matches, then find matches for that County and State
                 
@@ -259,28 +273,17 @@ $w.onReady(async function () {
 
                            
                             //var templateId = repeaterProd._id;
+
+                            
                             
 
                             if(totalPeopleCount < 1){
 
 
-                            //GENERATE IMAGE
-                            $item('#image').hide()
-                            $item('#loading').show()
+                           
 
 
-                            //Agent Template Load Check
-
-                            let imageTemplate = templateId;
-                            let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
-
-                            if(imageTemplateLoaded == "Yes"){
-                                $item('#moreButton').enable()
-                            } else {
-                                $item('#moreButton').disable()
-                            }
-
-                            //End Check
+                            
                             
 
                             
@@ -309,8 +312,7 @@ $w.onReady(async function () {
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
                                     $item('#image').src = imageUrl
-                                    $item('#image').show()
-                                    $item('#loading').hide()
+                                    
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
@@ -325,10 +327,14 @@ $w.onReady(async function () {
 
                                      //Agent Template Load Check
 
+                                     let moreLabel = $item('#moreButton').label;
 
-                                    if(imageTemplateLoaded == "Yes"){
+
+                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                         $item('#moreButton').enable()
-                                    } else {
+                                    } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
                                     }
 
@@ -355,8 +361,7 @@ $w.onReady(async function () {
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
                                     $item('#image').src = imageUrl
-                                    $item('#image').show()
-                                    $item('#loading').hide()
+                                    
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
 
@@ -376,11 +381,15 @@ $w.onReady(async function () {
 
                                     //Agent Template Load Check
 
+                                    let moreLabel = $item('#moreButton').label;
+
                            
 
-                                    if(imageTemplateLoaded == "Yes"){
+                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                         $item('#moreButton').enable()
-                                    } else {
+                                    } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
                                     }
 
@@ -475,13 +484,14 @@ $w.onReady(async function () {
                                     $item('#moreButton').label = "Send Request";
 
                                      //Agent Template Load Check
+                                     let moreLabel = $item('#moreButton').label;
 
                                     let imageTemplate = templateId;
                                     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                                    if(imageTemplateLoaded == "Yes"){
+                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
                                         $item('#moreButton').enable()
-                                    } else {
+                                    } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
                                     }
 
@@ -517,13 +527,14 @@ $w.onReady(async function () {
                             $item('#moreButton').label = "Send Request";
 
                              //Agent Template Load Check
+                             let moreLabel = $item('#moreButton').label;
 
                             let imageTemplate = templateId;
                             let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                            if(imageTemplateLoaded == "Yes"){
+                            if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
                                 $item('#moreButton').enable()
-                            } else {
+                            } else if(imageTemplateLoaded == null){
                                 $item('#moreButton').disable()
                             }
 
@@ -576,7 +587,8 @@ $w.onReady(async function () {
                                                 //Reset the image template
                                                 let imageTemplate = templateId;
                                                 let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
-                                                session.setItem(`Image_${imageTemplate}`, "")
+                                                //session.setItem(`Image_${imageTemplate}`, "")
+                                                session.removeItem(`Image_${imageTemplate}`);
 
                                                 console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
                                                 //Complete reset
@@ -721,7 +733,20 @@ export function noSend_click(event){
     $item('#error').text = `Error` 
     $item('#error').collapse()
     $item('#yesNo').collapse()
-    $item('#moreButton').enable()
+    //$item('#moreButton').enable()
+    //Agent Template Load Check
+    let moreLabel = $item('#moreButton').label;
+
+    let imageTemplate = templateId;
+    let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+
+    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+        $item('#moreButton').enable()
+    } else if(imageTemplateLoaded == null){
+        $item('#moreButton').disable()
+    }
+
+    //End Check
 
 }
 export function confirmSend_click(event){
@@ -733,13 +758,17 @@ export function confirmSend_click(event){
         session.setItem(`Send_${overrideOption}`, "Yes")
         let checkItem = session.getItem(`Send_${overrideOption}`)
         console.log("override", checkItem, `Send_${overrideOption}`)
-        $item('#moreButton').enable();
+
+        let moreLabel = $item('#moreButton').label 
+        if(moreLabel !== "Completed!"){
+            //$item('#moreButton').enable();
+        }
+        
         $item('#error').text = `Error` 
         $item('#error').collapse()
         $item('#results').text = `Great! Adding to List...` 
         $item('#results').expand()
         $item('#yesNo').collapse()
-        $item('#moreButton').enable()
         //$item('#quarter').disable();
         generatePostcardClick($item, agent, counties, totalCount, agentEmail, itemData)
 
@@ -903,8 +932,8 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
     //--Continue to Generate Postcard Function --//
 
                       //GENERATE IMAGE
-                            $item('#image').hide()
-                            $item('#loading').show()
+                           
+
 
 
                     
@@ -929,8 +958,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
                                     $item('#image').src = imageUrl
-                                    $item('#image').show()
-                                    $item('#loading').hide()
+                                    
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
 
@@ -944,11 +972,15 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     //Complete set
 
                                      //Agent Template Load Check
+                                     let moreLabel = $item('#moreButton').label;
 
 
-                                    if(imageTemplateLoaded == "Yes"){
+                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                        console.log("agentTemplateLoaded image Gen Check Line 979", imageTemplateLoaded, `Image_${imageTemplate}`)
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                         $item('#moreButton').enable()
-                                    } else {
+                                    } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
                                     }
 
@@ -974,8 +1006,37 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     var imageUrl = image.fileUrl
                                     console.log(imageUrl)
                                     $item('#image').src = imageUrl
-                                    $item('#image').show()
-                                    $item('#loading').hide()
+                                    
+                                    
+                                    //$item('#image').show()
+                                    //$item('#loading').hide()
+
+                                    //Set the image template
+                                    let imageTemplate2 = templateId;
+                                    session.setItem(`Image_${imageTemplate2}`, "Yes")
+                                    
+                                    let imageTemplateLoaded2 = session.getItem(`Image_${imageTemplate2}`)
+
+                                    console.log("agentTemplateLoaded", imageTemplateLoaded2, `Image_${imageTemplate2}`)
+                                    //Complete set
+
+                                     //Agent Template Load Check
+                                     let moreLabel = $item('#moreButton').label;
+
+
+                                    if(imageTemplateLoaded2 == "Yes" || moreLabel !== "Completed!"){
+                                        console.log("agentTemplateLoaded image Gen Check Line 979", imageTemplateLoaded2, `Image_${imageTemplate2}`)
+                                        $item('#image').show()
+                                        $item('#loading').hide()
+                                        $item('#moreButton').enable()
+                                    } else if(imageTemplateLoaded2 == null){
+                                        $item('#moreButton').disable()
+                                    }
+
+                                    //End Check
+
+                                    
+
                                     var url = imageUrl.split("/")[3];
                                     var url2 = `https://static.wixstatic.com/media/${url}?dn=${agent.name+templateId}`
                                     
@@ -1083,13 +1144,14 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#moreButton').label = "Send Request";
 
                                      //Agent Template Load Check
+                                     let moreLabel = $item('#moreButton').label;
 
                                     let imageTemplate = templateId;
                                     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                                    if(imageTemplateLoaded == "Yes"){
+                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
                                         $item('#moreButton').enable()
-                                    } else {
+                                    } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
                                     }
 
@@ -1118,17 +1180,18 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                 console.log("Trigger Send")
 
                                  //Agent Template Load Check
+                                 let moreLabel = $item('#moreButton').label;
 
-                            let imageTemplate = templateId;
-                            let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                let imageTemplate = templateId;
+                                let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                            if(imageTemplateLoaded == "Yes"){
-                                $item('#moreButton').enable()
-                            } else {
-                                $item('#moreButton').disable()
-                            }
+                                if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    $item('#moreButton').enable()
+                                } else if(imageTemplateLoaded == null){
+                                    $item('#moreButton').disable()
+                                }
 
-                            //End Check
+                                //End Check
 
                                
 
@@ -1183,7 +1246,8 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                                 //Reset the image template
                                                 let imageTemplate = templateId;
                                                 let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
-                                                session.setItem(`Image_${imageTemplate}`, "")
+                                                //session.setItem(`Image_${imageTemplate}`, "")
+                                                session.removeItem(`Image_${imageTemplate}`);
 
                                                 console.log("agentTemplateLoaded", imageTemplateLoaded, `Image_${imageTemplate}`)
                                                 //Complete reset

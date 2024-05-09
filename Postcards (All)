@@ -21,6 +21,9 @@ let quarter
 
 $w.onReady(async function () {
 
+    //testing
+    console.log("Override Check", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+
     //Set Total to Zero
     let  oldTotal= Number(session.getItem("total"));
 
@@ -37,6 +40,32 @@ $w.onReady(async function () {
 
 
     //---End Quarter Build--//
+
+      $w("#dynamicDataset").onReady( () => { 
+    let itemIndex = $w("#dynamicDataset").getCurrentItemIndex(); 
+    let hasNext = $w("#dynamicDataset").hasNext();
+	let location = $w("#dynamicDataset").getCurrentItem(); 
+	let count = $w("#dynamicDataset").getTotalCount(); 
+	console.log("Size of the Dataset: ", count); 
+
+	for(var i = 0; i < count; i++){ 
+
+	$w("#dynamicDataset").getItems(i,1) 
+	  .then( (result) => { 
+	    let items = result.items; 
+	    let overrideOption = items[0]._id; 
+	    console.log("Override Option: ", overrideOption); 
+        session.removeItem(`Send_${overrideOption}`);
+	  } ) 
+	  .catch( (err) => { 
+	  } );
+	} 
+      })
+
+      console.log("Override Check", session.getItem("Send_E9YaWrZM2nxy5nRd74"))
+
+
+
 	// Write your JavaScript here
 	$w('#image').fitMode = 'fit'
     console.log("Page Ready")
@@ -343,7 +372,7 @@ $w.onReady(async function () {
                                
 								queryCount(county, state, birthQuarter).then((returnedCount)=>{
 
-                                    console.log("Returned Count:", returnedCount)
+                                    console.log("Returned Count Line 346:", returnedCount)
 
                                     if(returnedCount == 0){
                                         
@@ -352,7 +381,7 @@ $w.onReady(async function () {
 
                                     } else if(returnedCount > 0){
 
-                                        console.log("Returned Count:", returnedCount)
+                                        console.log("Returned Count Line 355:", returnedCount)
 
                                         let  oldTotal= Number(session.getItem("total"));
 
@@ -363,7 +392,7 @@ $w.onReady(async function () {
                                     //totalCount = totalCount + returnedCount;
                                     totalCount = newTotal;
 
-                                    console.log("Total Count: ", totalCount);
+                                    console.log("Total Count Line 366: ", totalCount);
                                     console.log(county, $item("#state").value)
                                     
                                     let listCount = county + ", " + $item("#state").value + "‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎";
@@ -480,7 +509,7 @@ $w.onReady(async function () {
 
 
 
-                } else {
+                } else { //if there are greater than 1 results
                         
 
                         //--Show Prompt, issue options, then based on selection continue or do not continue--//
@@ -490,8 +519,10 @@ $w.onReady(async function () {
 
                             let matchCounties = match.counties;
 
+                        let countyCase = titleCase($item("#county").value)
+                        //let newCounty = (($item("#county").value).toUpperCase() + "-" + $item("#state").value)
+                        let newCounty = (countyCase + "-" + $item("#state").value);
 
-                        let newCounty = (($item("#county").value).toUpperCase() + "-" + $item("#state").value)
                         console.log("Search: ", matchCounties, newCounty)
 
                                 let matchCounty = matchCounties.find(item => item === newCounty)
@@ -509,6 +540,23 @@ $w.onReady(async function () {
 
                             //Users Found
                             let quantityUsers = foundCounties.toString();
+
+                            
+                            let overrideOption = repeaterProd._id;
+                            let agentSendOverride = session.getItem(`Send_${overrideOption}`)
+
+                            console.log("agentSendOverride", agentSendOverride, `Send_${overrideOption}`)
+
+                            if(agentSendOverride == "Yes"){
+
+                            console.log("Generating Postcard")
+                            let finalTotal= Number(session.getItem("total"));
+                            generatePostcardClick($item, agent, counties, finalTotal, agentEmail, itemData)
+
+
+                            } else {
+
+
                             $item('#error').text = `${quantityUsers} other agents are sending to the same customers. Would you still like to send?` 
                             $item('#error').expand()
                             $item('#confirmSend').expand()
@@ -516,12 +564,19 @@ $w.onReady(async function () {
                             $item('#yesNo').expand()
                             $item('#moreButton').disable()
 
+                            }
+                            
 
-                        } else { 
+
+                        } else if (thisCount == totalPeopleCount && foundCounties < 1){ 
+
+                            
                             console.log("Generating Postcard")
-                            let  finalTotal= Number(session.getItem("total"));
+                            let finalTotal= Number(session.getItem("total"));
                             generatePostcardClick($item, agent, counties, finalTotal, agentEmail, itemData)
                             //$item('#quarter').disable();
+                            
+                            
                         }
                                 
 
@@ -556,6 +611,11 @@ $w.onReady(async function () {
 
 export function noSend_click(event){
     let $item = $w.at(event.context);
+    const data = $w("#listRepeater").data;
+    const itemId = event.context.itemId;
+    const itemData = data.find((item) => item._id === itemId);
+    let overrideOption = itemData._id;
+    session.setItem(`Send_${overrideOption}`, "No")
     $item('#county').value = "";
     $item('#state').value = null;
     $item('#quarter').value = null;
@@ -570,6 +630,10 @@ export function confirmSend_click(event){
         const data = $w("#listRepeater").data;
         const itemId = event.context.itemId;
         const itemData = data.find((item) => item._id === itemId);
+        let overrideOption = itemData._id;
+        session.setItem(`Send_${overrideOption}`, "Yes")
+        let checkItem = session.getItem(`Send_${overrideOption}`)
+        console.log("override", checkItem, `Send_${overrideOption}`)
         $item('#moreButton').enable();
         $item('#error').text = `Error` 
         $item('#error').collapse()
@@ -822,7 +886,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                             //let findMatch = counties.find(county=> county === newCounty)
                             
-                            let findMatch = counties.find(county => {
+                            let findMatch = counties.find(county => { //County is already added for that state
    
                             let [existingCounty, existingState] = county.split("-");
 
@@ -860,7 +924,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
 
                                     } else {
 
-                                        console.log("Returned Count:", returnedCount)
+                                        console.log("Returned Count Line 865:", returnedCount)
                                     
 
                                       let  oldTotal= Number(session.getItem("total"));
@@ -872,7 +936,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     //totalCount = totalCount + returnedCount;
                                     totalCount = newTotal;
 
-                                    console.log("Total Count: ", totalCount);
+                                    console.log("Total Count Line 877: ", totalCount);
                                     console.log(county, $item("#state").value)
                                     
                                     let listCount = county + ", " + $item("#state").value + "‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎";
@@ -912,7 +976,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                     
                 
 
-                            } else if (totalCount == 500 || totalCount > 500 && $item('#MoreButton').label == "Send Request") {
+                            } else if ((totalCount === 500 || totalCount > 500) && $item('#moreButton').label === "Send Request") {
                                 console.log("Trigger Send")
 
                             //Complete and send
@@ -959,6 +1023,8 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                                 $item('#results').expand();
                                                 $item('#moreButton').label = "Completed!";
                                                 $item('#results').expand();
+                                                let overrideOption = itemData._id;
+                                                session.setItem(`Send_${overrideOption}`, "")
 
 
 

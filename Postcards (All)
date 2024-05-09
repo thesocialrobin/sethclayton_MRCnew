@@ -297,7 +297,7 @@ $w.onReady(async function () {
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -323,7 +323,7 @@ $w.onReady(async function () {
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -404,7 +404,7 @@ $w.onReady(async function () {
                                     $item("#list").expand();
                                     counties.push(newCounty);
                                     console.log("Counties, ", counties)
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
                                     console.log("emailUrl", emailUrl)
                                     if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send
@@ -549,7 +549,7 @@ $w.onReady(async function () {
 
                             if(agentSendOverride == "Yes"){
 
-                            console.log("Generating Postcard")
+                            console.log("Generating Postcard Line 552", templateId)
                             let finalTotal= Number(session.getItem("total"));
                             generatePostcardClick($item, agent, counties, finalTotal, agentEmail, templateId)
 
@@ -571,7 +571,7 @@ $w.onReady(async function () {
                         } else if (thisCount == totalPeopleCount && foundCounties < 1){ 
 
                             
-                            console.log("Generating Postcard")
+                            console.log("Generating Postcard Line 574", templateId)
                             let finalTotal= Number(session.getItem("total"));
                             generatePostcardClick($item, agent, counties, finalTotal, agentEmail, templateId)
                             //$item('#quarter').disable();
@@ -839,7 +839,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -865,7 +865,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     
                                 
                                     let zip = $w("#county").value;
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
 
                                 //let userId = 'e1fa471a-0606-4e89-b313-dd7b330cfa01'
 
@@ -948,7 +948,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item("#list").expand();
                                     counties.push(newCounty);
                                     console.log("Counties, ", counties)
-                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${itemData}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
+                                    emailUrl = `http://www.resourcemedicare.com/retrieve-t65-data?template=${templateId}&email=${agentEmail}&counties=${counties}&quarter=${quarter}`
                                     console.log("emailUrl", emailUrl)
                                     if (totalCount == 500 || totalCount > 500) {
                                         //Complete and send

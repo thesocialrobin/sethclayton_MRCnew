@@ -252,6 +252,7 @@ $w.onReady(async function () {
 
                          let moreLabel = $item('#moreButton').label 
                     if(moreLabel !== "Completed!"){
+                        console.log("Line 1153 Enable More")
                         $item('#moreButton').enable();
                     }
 
@@ -330,12 +331,16 @@ $w.onReady(async function () {
                                      let moreLabel = $item('#moreButton').label;
 
 
-                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                        console.log("Line 335 Enable More")
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
+                                    } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                     }
 
                                     //End Check
@@ -385,12 +390,16 @@ $w.onReady(async function () {
 
                            
 
-                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                        console.log("Line 391 Enable More")
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
+                                    } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                     }
 
                                     //End Check
@@ -489,7 +498,8 @@ $w.onReady(async function () {
                                     let imageTemplate = templateId;
                                     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                        console.log("Line 496 Enable More")
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
@@ -532,7 +542,8 @@ $w.onReady(async function () {
                             let imageTemplate = templateId;
                             let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                            if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                            if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                console.log("Line 540 Enable More")
                                 $item('#moreButton').enable()
                             } else if(imageTemplateLoaded == null){
                                 $item('#moreButton').disable()
@@ -740,7 +751,8 @@ export function noSend_click(event){
     let imageTemplate = templateId;
     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+        console.log("Line 749 Enable More")
         $item('#moreButton').enable()
     } else if(imageTemplateLoaded == null){
         $item('#moreButton').disable()
@@ -975,13 +987,16 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                      let moreLabel = $item('#moreButton').label;
 
 
-                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
                                         console.log("agentTemplateLoaded image Gen Check Line 979", imageTemplateLoaded, `Image_${imageTemplate}`)
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
+                                    } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                     }
 
                                     //End Check
@@ -1024,13 +1039,16 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                      let moreLabel = $item('#moreButton').label;
 
 
-                                    if(imageTemplateLoaded2 == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded2 == "Yes" && moreLabel !== "Completed!"){
                                         console.log("agentTemplateLoaded image Gen Check Line 979", imageTemplateLoaded2, `Image_${imageTemplate2}`)
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded2 == null){
                                         $item('#moreButton').disable()
+                                    } else if (imageTemplateLoaded2 == "Yes" && moreLabel == "Completed!"){
+                                        $item('#image').show()
+                                        $item('#loading').hide()
                                     }
 
                                     //End Check
@@ -1149,7 +1167,8 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     let imageTemplate = templateId;
                                     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                                    if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                    if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                        console.log("Line 1153 Enable More")
                                         $item('#moreButton').enable()
                                     } else if(imageTemplateLoaded == null){
                                         $item('#moreButton').disable()
@@ -1185,7 +1204,8 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                 let imageTemplate = templateId;
                                 let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
-                                if(imageTemplateLoaded == "Yes" || moreLabel !== "Completed!"){
+                                if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
+                                    console.log("Line 1190 Enable More", moreLabel)
                                     $item('#moreButton').enable()
                                 } else if(imageTemplateLoaded == null){
                                     $item('#moreButton').disable()
@@ -1235,7 +1255,7 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                                         console.log("User data insert completed", item)
                                                 })
 
-                                                $item('#results').text = "Request Completed! You may close this window.";
+                                                $item('#results').text = "Request Completed! You may leave this page.";
                                                 $item('#results').expand();
                                                 $item('#moreButton').label = "Completed!";
                                                 $item('#moreButton').disable();

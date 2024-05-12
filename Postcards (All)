@@ -235,10 +235,27 @@ $w.onReady(async function () {
 
                 //Agent Template Load Check
 
-                           
+
+                                
+                                /*
                                  //GENERATE IMAGE
                                 $item('#image').hide()
                                 $item('#loading').show()
+                                */
+
+                                
+                                 //GENERATE IMAGE TEST
+                                let imageTemplate = templateId;
+                                let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
+                                let moreLabel = $item('#moreButton').label;
+
+                                if(imageTemplateLoaded !== "Yes"){
+
+                                $item('#image').hide()
+                                $item('#loading').show()
+                                }
+                                
+
                             
 
                             //End Check

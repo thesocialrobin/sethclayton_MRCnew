@@ -384,6 +384,7 @@ async function initForm(agentEmail, agentId) {
 
     $w('#submit').onClick(() => {
         console.log('clicked');
+        $w('#submit').disable();
 
         if ($w('#startTime').valid || $w('#endTime').valid) {
 
@@ -589,6 +590,7 @@ async function initForm(agentEmail, agentId) {
                     $w('#message').expand()
                     setTimeout(function () {
                         $w('#message').collapse()
+                        $w('#submit').enable();
                     }, 7000)
                     $w('#dataset1').refresh()
                 })

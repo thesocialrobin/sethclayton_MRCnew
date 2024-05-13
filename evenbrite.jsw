@@ -64,7 +64,7 @@ export function createEvent(obj, startDateString, endDateString) {
         //--log process--//
                           let logResultsPrep = {
                               "type": "Eventbrite Object",
-                              "log": "Construct Event Prep", obj, logoId, venueId, res1
+                              "log": "Construct Event Prep Line 67", obj, logoId, venueId, res1
                             };
 
                             wixData.insert("devLog", logResultsPrep)
@@ -376,29 +376,18 @@ function confirmUpload(token) {
 //
 export function createVenue(obj) {
 
-                    //--log process--//
-                          let logResults = {
-                              "type": "Eventbrite Venue Creation",
-                              "log": "Creating Venue", obj, isOnline
-                            };
-
-                            wixData.insert("devLog", logResults, )
-                            .then( (results) => {
-                              let item = results; 
-                              
-                            } )
-
-                     //--end log process--//
+                    
 
     var body
     if (isOnline === false) {
         body = {
             "venue": {
                 "name": obj.venueName,
+                "capacity": obj.capacity,
                 "address": {
                     "address_1": obj.address_1,
                     "city": obj.city,
-                    "country": obj.country,
+                    "country": "US",
                     "postal_code": obj.postal_code,
                     "latitude": obj.latitude,
                     "longitude": obj.longitude
@@ -416,7 +405,21 @@ export function createVenue(obj) {
         }
     }
 
-    console.log('body', body);
+    
+
+    //--log process--//
+                          let logResults = {
+                              "type": "Eventbrite Venue Creation",
+                              "log": "Creating Venue", obj, isOnline, body
+                            };
+
+                            wixData.insert("devLog", logResults )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
 
     var vRequestOptions = {
         method: 'POST',
@@ -428,13 +431,10 @@ export function createVenue(obj) {
     return fetch(`https://www.eventbriteapi.com/v3/organizations/909246732743/venues/`, vRequestOptions)
         .then(async (venueDetails) => {
 
-            console.log('Venue Created');
-
             //--log process--//
                           let logResults3 = {
                               "type": "Eventbrite Venue Creation",
-                              "log": "Venue Created", venueDetails
-                            };
+                              "log": "Venue Details", venueDetails                            };
 
                             wixData.insert("devLog", logResults3 )
                             .then( (results) => {
@@ -444,8 +444,23 @@ export function createVenue(obj) {
 
                      //--end log process--//
 
+
             return await venueDetails.json().then((res) => {
                 console.log(res);
+                let id = res.id
+                //--log process--//
+                          let logResults5 = {
+                              "type": "Eventbrite Venue Id",
+                              "log": "Venue Id", id
+                            };
+
+                            wixData.insert("devLog", logResults5 )
+                            .then( (results) => {
+                              let item = results; 
+                              
+                            } )
+
+                     //--end log process--//
                 return res.id
             })
 

@@ -39,6 +39,33 @@ async function initRepeater(agentEmail, agentId) {
             $w('#repeater5').expand()
         })
 
+
+        
+    
+	$w("#repeater5").onItemReady(($item, itemData) => {
+
+             let eventBriteId = itemData.eventbriteId;  
+                                
+                wixData.query('EventAttendees').eq('eventbriteId', eventBriteId).find().then((res) => {
+                            
+                            let items = res.items
+
+                            if(items.length > 0){
+
+                                $item("#copyAttendees").enable();
+
+                            } else {
+
+                                $item("#copyAttendees").disable();
+
+                            }
+
+                            
+                        })
+            
+
+    })
+
         $w("#update").onClick((event) => {
             let $item = $w.at(event.context);
             // $item("#myRepeatedText").text = "Selected";

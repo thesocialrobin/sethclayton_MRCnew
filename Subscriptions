@@ -338,6 +338,7 @@ export function essentialPlan_click(event) {
 
         subscriptions.push(subscriptionData);
         $w("#essentialPlan").label = "Added to Cart!"
+        $w("#essentialPlan").disable()
         $w('#checkoutEssential').expand();
 
         console.log("My Subscriptions: ", subscriptions)
@@ -371,6 +372,7 @@ export function boostSocialPlan_click(event) {
 
         subscriptions.push(subscriptionData);
         $w("#boostSocialPlan").label = "Added to Cart!"
+        $w("#boostSocialPlan").disable();
         $w('#checkoutBoostSocial').expand();
 
         console.log("My Subscriptions: ", subscriptions)
@@ -409,6 +411,7 @@ export function googleAdsPlan_click(event) {
 
             subscriptions.push(subscriptionData);
             $w("#googleAdsPlan").label = "Added to Cart!"
+            $w("#googleAdsPlan").disable()
             $w('#checkoutGoogle').expand();
 
             console.log("My Subscriptions: ", subscriptions)

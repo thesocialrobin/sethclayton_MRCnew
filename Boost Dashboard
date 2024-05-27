@@ -294,16 +294,25 @@ export function getMemberAnalyticsSeven(memberPage) {
                 if (timeOnPageCount < 4) { //seconds only
                     const split = timeOnPage.split('s')
                     let countedseconds = Number(split[0]);
+                    //seconds = seconds + countedseconds;
+                    if (!isNaN(countedseconds)) {
                     seconds = seconds + countedseconds;
+                }
 
                 } else if (timeOnPageCount < 8) { //has minutes and seconds
                     const split = timeOnPage.split('m')
                     let countedminutes = Number(split[0]);
-                    minutes = minutes + countedminutes;
+                    //minutes = minutes + countedminutes;
+                    if (!isNaN(countedminutes)) {
+                minutes = minutes + countedminutes;
+                    }
                     let toSplitSeconds = split[1]
                     let secondsSplit = toSplitSeconds.split('s');
                     let countedseconds = Number(secondsSplit[0])
+                    //seconds = seconds + countedseconds;
+                     if (!isNaN(countedseconds)) {
                     seconds = seconds + countedseconds;
+                }
 
                 }
 

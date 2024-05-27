@@ -412,9 +412,9 @@ $w.onReady(async function () {
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
-                                    } else if(imageTemplateLoaded == null){
+                                    } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
+                                    }  else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
                                         $item('#image').show()
                                         $item('#loading').hide()
                                     }
@@ -518,9 +518,9 @@ $w.onReady(async function () {
                                     if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
                                         console.log("Line 496 Enable More")
                                         $item('#moreButton').enable()
-                                    } else if(imageTemplateLoaded == null){
+                                    } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    }
+                                    } 
 
                                     //End Check
 
@@ -562,9 +562,9 @@ $w.onReady(async function () {
                             if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
                                 console.log("Line 540 Enable More")
                                 $item('#moreButton').enable()
-                            } else if(imageTemplateLoaded == null){
-                                $item('#moreButton').disable()
-                            }
+                            } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
+                                        $item('#moreButton').disable()
+                                    } 
 
                             //End Check
 
@@ -769,11 +769,13 @@ export function noSend_click(event){
     let imageTemplateLoaded = session.getItem(`Image_${imageTemplate}`)
 
     if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
-        console.log("Line 749 Enable More")
+        console.log("Line 772 Enable More")
         $item('#moreButton').enable()
-    } else if(imageTemplateLoaded == null){
-        $item('#moreButton').disable()
-    }
+    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+        $item('#moreButton').enable()
+    } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
+                                        $item('#moreButton').disable()
+                                    } 
 
     //End Check
 
@@ -1009,12 +1011,11 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                         $item('#image').show()
                                         $item('#loading').hide()
                                         $item('#moreButton').enable()
-                                    } else if(imageTemplateLoaded == null){
+                                    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
+                                    } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
-                                        $item('#image').show()
-                                        $item('#loading').hide()
-                                    }
+                                    } 
 
                                     //End Check
 
@@ -1187,9 +1188,9 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
                                         console.log("Line 1153 Enable More")
                                         $item('#moreButton').enable()
-                                    } else if(imageTemplateLoaded == null){
+                                    } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    }
+                                    } 
 
                                     //End Check
 
@@ -1224,9 +1225,9 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                 if(imageTemplateLoaded == "Yes" && moreLabel !== "Completed!"){
                                     console.log("Line 1190 Enable More", moreLabel)
                                     $item('#moreButton').enable()
-                                } else if(imageTemplateLoaded == null){
-                                    $item('#moreButton').disable()
-                                }
+                                } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
+                                        $item('#moreButton').disable()
+                                    } 
 
                                 //End Check
 

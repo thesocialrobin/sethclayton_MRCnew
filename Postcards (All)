@@ -358,6 +358,8 @@ $w.onReady(async function () {
                                     } else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
                                         $item('#image').show()
                                         $item('#loading').hide()
+                                    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
                                     }
 
                                     //End Check
@@ -417,6 +419,8 @@ $w.onReady(async function () {
                                     }  else if (imageTemplateLoaded == "Yes" && moreLabel == "Completed!"){
                                         $item('#image').show()
                                         $item('#loading').hide()
+                                    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
                                     }
 
                                     //End Check
@@ -520,7 +524,9 @@ $w.onReady(async function () {
                                         $item('#moreButton').enable()
                                     } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } 
+                                    }  else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
+                                    }
 
                                     //End Check
 
@@ -564,7 +570,9 @@ $w.onReady(async function () {
                                 $item('#moreButton').enable()
                             } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } 
+                            } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
+                            }
 
                             //End Check
 
@@ -688,9 +696,24 @@ $w.onReady(async function () {
 
                             if(agentSendOverride == "Yes"){
 
+                            
+                            if($item('#results').text == "Your total postcard count has reached the 500 limit!"){
+
                             console.log("Generating Postcard Line 552", templateId)
                             let finalTotal= Number(session.getItem("total"));
                             generatePostcardClick($item, agent, counties, finalTotal, agentEmail, templateId)
+
+                            } else {
+
+                                $item('#error').text = `${quantityUsers} other agents are sending to the same customers. Would you still like to send?` 
+                            $item('#error').expand()
+                            $item('#confirmSend').expand()
+                            $item('#noSend').expand()
+                            $item('#yesNo').expand()
+                            $item('#moreButton').disable()
+
+                            }
+                            
 
 
                             } else {
@@ -702,6 +725,7 @@ $w.onReady(async function () {
                             $item('#noSend').expand()
                             $item('#yesNo').expand()
                             $item('#moreButton').disable()
+                            console.log("OTHER AGENTS FOUND EXPAND")
 
                             }
                             
@@ -791,8 +815,8 @@ export function confirmSend_click(event){
         console.log("override", checkItem, `Send_${overrideOption}`)
 
         let moreLabel = $item('#moreButton').label 
-        if(moreLabel !== "Completed!"){
-            //$item('#moreButton').enable();
+        if(moreLabel !== "Completed!" && moreLabel !== "Send Request"){
+            $item('#moreButton').enable();
         }
         
         $item('#error').text = `Error` 
@@ -1190,7 +1214,9 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                         $item('#moreButton').enable()
                                     } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } 
+                                    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
+                                    }
 
                                     //End Check
 
@@ -1227,7 +1253,9 @@ export function generatePostcardClick($item, agent, counties, totalCount, agentE
                                     $item('#moreButton').enable()
                                 } else if (imageTemplateLoaded == null && moreLabel == "Send Request"){
                                         $item('#moreButton').disable()
-                                    } 
+                                    } else if (moreLabel == "Add Another County" || moreLabel == "Generate My Postcard!"){
+                                        $item('#moreButton').enable()
+                                    }
 
                                 //End Check
 

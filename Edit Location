@@ -3,6 +3,7 @@ import wixUsers from 'wix-users';
 import wixLocation from 'wix-location';
 
 var location
+let locationId
 let selectedImageIndex;
 let uploadedFiles;
 let galleryItems = [];
@@ -151,6 +152,9 @@ $w.onReady(async function () {
         wixData.query('Locations').hasSome('agents', [agentId]).eq('_id', itemId).include('agents').find().then((res) => {
             var itemData = res.items[0]
             location = itemData
+            locationId = location._id
+            console.log("Location Id", locationId)
+            console.log("Location Data", location)
             console.log(res.items[0])
             if (itemData.gallery !== undefined) {
                 galleryItems = itemData.gallery;
@@ -172,87 +176,87 @@ $w.onReady(async function () {
     })
 });
 
-$w('#generalSave').onClick(() => {
-    if ($w('#name').valid && $w('#phone').valid && $w('#description').valid && $w('#address').valid) {
-        var toUpdate = {
-            'title': $w('#name').value,
-            'phoneNumber': $w('#phone').value,
-            'subtitle': $w('#description').value,
-            'address': $w('#address').value,
-            'image': $w('#coverPhoto').src,
-            '_id': location._id,
-            'agents': location.agents,
-            'urlText': location.urlText,
-            'gallery': location.gallery,
-            'monday': location.monday,
-            'tuesday': location.tuesday,
-            'wednesday': location.wednesday,
-            'thursday': location.thursday,
-            'friday': location.friday,
-            'saturday': location.saturday,
-            'sunday': location.sunday,
-            'bookApt': location.bookApt,
-            'map': location.map,
-            'quoteEnroll': location.quoteEnroll,
-            'googleReview': location.quoteEnroll,
-            'order': location.order,
-            'location': location.location
-        }
-        wixData.update('Locations', toUpdate).then(() => {
-            console.log('Updated');
-            $w("#generalSave").label = "Saved";
-            $w('#generalSave').disable();
 
-            $w("#successMessage").show("float");
-            setTimeout(() => {
-                $w("#successMessage").hide("float");
-                $w("#generalSave").label = "Save"; // Reset the label after 5 seconds
-            }, 6000);
-        })
-    }
-})
 
-$w('#hoursSave').onClick(() => {
-    if ($w('#monday').valid && $w('#tuesday').valid && $w('#wednesday').valid && $w('#thursday').valid && $w('#friday').valid && $w('#saturday').valid && $w('#sunday').valid) {
-        var toUpdate = {
-            'title': location.title,
-            'phoneNumber': location.phone,
-            'subtitle': location.description,
-            'address': location.address,
-            'image': location.image,
-            '_id': location._id,
-            'agents': location.agents,
-            'urlText': location.urlText,
-            'gallery': location.gallery,
-            'monday': $w('#monday').value,
-            'tuesday': $w('#tuesday').value,
-            'wednesday': $w('#wednesday').value,
-            'thursday': $w('#thursday').value,
-            'friday': $w('#friday').value,
-            'saturday': $w('#saturday').value,
-            'sunday': $w('#sunday').value,
-            'bookApt': location.bookApt,
-            'map': location.map,
-            'quoteEnroll': location.quoteEnroll,
-            'googleReview': location.quoteEnroll,
-            'order': location.order,
-            'location': location.location
-        }
-        wixData.update('Locations', toUpdate).then(() => {
-            console.log('Updated');
-            $w("#hoursSave").label = "Saved";
-            $w('#hoursSave').disable();
-
-            $w("#successMessage").show("float");
-            setTimeout(() => {
-                $w("#successMessage").hide("float");
-                $w("#generalSave").label = "Save"; // Reset the label after 5 seconds
-            }, 6000);
-        })
-    }
-})
 
 export function makeChnages_click(event) {
     $w('#galleryBox').expand();
     $w('#selectedImageBox').expand();
+}
+
+export function generalSave_click(event) {
+	 if ($w('#name').valid && $w('#phone').valid && $w('#description').valid && $w('#address').valid) {
+        
+        wixData.get("Locations", locationId)
+        .then((toUpdate) => {
+
+            console.log("Record: ", toUpdate)
+
+            toUpdate.title = $w('#name').value,
+            toUpdate.phoneNumber = $w('#phone').value,
+            toUpdate.subtitle = $w('#description').value,
+            toUpdate.address = $w('#address').value,
+            toUpdate.image = $w('#coverPhoto').src,
+            toUpdate.gallery = location.gallery,
+            toUpdate.monday = $w('#monday').value,
+            toUpdate.tuesday = $w('#tuesday').value,
+            toUpdate.wednesday = $w('#wednesday').value,
+            toUpdate.thursday = $w('#thursday').value,
+            toUpdate.friday = $w('#friday').value,
+            toUpdate.saturday = $w('#saturday').value,
+            toUpdate.sunday = $w('#sunday').value,
+
+            wixData.update('Locations', toUpdate).then(() => {
+                console.log('Updated');
+                $w("#generalSave").label = "Saved";
+                $w('#generalSave').disable();
+
+                $w("#successMessage").show("float");
+                setTimeout(() => {
+                    $w("#successMessage").hide("float");
+                    $w("#generalSave").label = "Save"; // Reset the label after 5 seconds
+                }, 6000);
+            })
+
+        })
+    }
+}
+
+export function hoursSave_click(event) {
+	 if ($w('#monday').valid && $w('#tuesday').valid && $w('#wednesday').valid && $w('#thursday').valid && $w('#friday').valid && $w('#saturday').valid && $w('#sunday').valid) {
+        
+
+        wixData.get("Locations", locationId)
+        .then((toUpdate) => {
+
+             console.log("Record: ", toUpdate)
+
+            toUpdate.title = $w('#name').value,
+            toUpdate.phoneNumber = $w('#phone').value,
+            toUpdate.subtitle = $w('#description').value,
+            toUpdate.address = $w('#address').value,
+            toUpdate.image = $w('#coverPhoto').src,
+            toUpdate.gallery = location.gallery,
+            toUpdate.monday = $w('#monday').value,
+            toUpdate.tuesday = $w('#tuesday').value,
+            toUpdate.wednesday = $w('#wednesday').value,
+            toUpdate.thursday = $w('#thursday').value,
+            toUpdate.friday = $w('#friday').value,
+            toUpdate.saturday = $w('#saturday').value,
+            toUpdate.sunday = $w('#sunday').value,
+
+            wixData.update('Locations', toUpdate).then(() => {
+                console.log('Updated');
+                $w("#hoursSave").label = "Saved";
+                $w('#hoursSave').disable();
+
+                $w("#successMessage").show("float");
+                setTimeout(() => {
+                    $w("#successMessage").hide("float");
+                    $w("#generalSave").label = "Save"; // Reset the label after 5 seconds
+                }, 6000);
+            })
+
+        })
+    }
 }

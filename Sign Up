@@ -3,9 +3,111 @@ import wixData from 'wix-data';
 import wixLocation from 'wix-location';
 
 $w.onReady(function () {
-    
+    $w("#register").disable();
+
+    $w("#firstName").onKeyPress((event) => {
+        if (event.key === "Tab") {
+            $w("#lastName").focus();
+        }
+    });
+    $w("#lastName").onKeyPress((event) => {
+        if (event.key === "Tab") {
+            $w("#phone").focus();
+        }
+    });
+    $w("#phone").onKeyPress((event) => {
+        if (event.key === "Tab") {
+            $w("#email").focus();
+        }
+    });
+    $w("#email").onKeyPress((event) => {
+        if (event.key === "Tab") {
+            $w("#password").focus();
+        }
+    });
+
+    function updateRegisterButtonState() {
+        let password = $w("#password").value;
+        let firstName = $w("#firstName").value;
+        let lastName = $w("#lastName").value;
+        let phone = $w("#phone").value;
+        let email = $w("#email").value;
+
+        let hasNumber = /\d/.test(password);
+        let hasSpecialChar = /[!@#$%^&*]/.test(password);
+        let hasCorrectLength = password.length >= 5 && password.length <= 25;
+        let isPasswordValid = hasNumber && hasSpecialChar && hasCorrectLength;
+        let areFieldsNotEmpty = firstName !== '' && lastName !== '' && phone !== '' && email !== '';
+
+        if (isPasswordValid && areFieldsNotEmpty) {
+            $w("#register").enable();
+        } else {
+            $w("#register").disable();
+        }
+    }
+    $w("#password").onFocus(() => {
+        $w("#requirement1").expand();
+        $w("#requirement2").expand();
+        $w("#requirement3").expand();
+    });
+
+    // Add input event listeners to all fields to check their state
+    $w("#firstName").onInput(updateRegisterButtonState);
+    $w("#lastName").onInput(updateRegisterButtonState);
+    $w("#phone").onInput(updateRegisterButtonState);
+    $w("#email").onInput(updateRegisterButtonState);
+
+    $w("#password").onInput((event) => {
+        let password = event.target.value;
+        let hasNumber = /\d/.test(password);
+        let hasSpecialChar = /[!@#$%^&*]/.test(password);
+        let hasCorrectLength = password.length >= 5 && password.length <= 25;
+
+        if (password === '') {
+            $w("#numberCheck").hide().then(() => {
+                $w("#numberX").show();
+            });
+        } else if (hasNumber) {
+            $w("#numberCheck").show().then(() => {
+                $w("#numberX").hide();
+            });
+        } else {
+            $w("#numberCheck").hide().then(() => {
+                $w("#numberX").show();
+            });
+        }
+        if (password === '') {
+            $w("#specialCharCheck").hide().then(() => {
+                $w("#specialCharX").show();
+            });
+        } else if (hasSpecialChar) {
+            $w("#specialCharCheck").show().then(() => {
+                $w("#specialCharX").hide();
+            });
+        } else {
+            $w("#specialCharCheck").hide().then(() => {
+                $w("#specialCharX").show();
+            });
+        }
+        if (password === '') {
+            $w("#lengthCheck").hide().then(() => {
+                $w("#lengthX").show();
+            });
+        } else if (hasCorrectLength) {
+            $w("#lengthCheck").show().then(() => {
+                $w("#lengthX").hide();
+            });
+        } else {
+            $w("#lengthCheck").hide().then(() => {
+                $w("#lengthX").show();
+            });
+        }
+        updateRegisterButtonState();
+    });
+
     $w("#register").onClick(() => {
-        // Change the button text to "Loading..."
+        // Immediately disable the register button and change its label
+        $w("#register").disable();
         $w("#register").label = "Loading...";
 
         let firstName = $w("#firstName").value;
@@ -14,56 +116,49 @@ $w.onReady(function () {
         let email = $w("#email").value;
         let password = $w("#password").value;
 
-        // Capitalize the first letter of the first name and last name
-        firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-        lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
-
-        // Combine the first name and last name into a full name
-        let fullName = `${firstName} ${lastName}`;
-
-        // Format the phone number to match (555) 123-4567
-        phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
-
-        // Check if the email already exists in the 'Team' collection
+        // Process the form...
         wixData.query('Team')
             .eq('email', email)
             .find()
             .then(res => {
                 if (res.items.length > 0) {
-                    // If the email exists, display an error message
+                    // If email exists, show error and re-enable the register button for corrections
                     $w("#error").text = "This email is already registered.";
                     $w("#error").expand();
                     setTimeout(() => {
-                        $w("#error").collapse(); // Hide the error message after 3 seconds
+                        $w("#error").collapse();
+                        $w("#register").label = "Register"; // Reset button text
+                        updateRegisterButtonState(); // Check if the button should be re-enabled
                     }, 3000);
-
-                    // Reset the button text to "Register"
-                    $w("#register").label = "Register";
                 } else {
-                    // If the email does not exist, register the user
+                    // If email does not exist, proceed with registration
                     wixUsers.register(email, password, {
-                            contactInfo: {
-                                firstName: firstName,
-                                lastName: lastName,
-                                phones: [phone]
-                            }
-                        })
-                        .then((result) => {
-                            // Add the user data to the 'Team' collection
-                            wixData.insert('Team', {
-                                    name: fullName,
-                                    phone: phone,
-                                    email: email,
-                                })
-                                .then(() => {
-                                    // Redirect the user to the 'account-setup' page
-                                    wixLocation.to("/account/account-setup");
-                                });
-                        })
-                        .catch( (err) => {
-                            console.log("Error Inserting User: ", err)
-	                    });
+                        contactInfo: {
+                            firstName: firstName,
+                            lastName: lastName,
+                            phones: [phone],
+                        }
+                    }).then((result) => {
+                        // On successful registration
+                        wixData.insert('Team', {
+                            name: `${firstName} ${lastName}`,
+                            phone: phone.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3"),
+                            email: email,
+                        }).then(() => {
+                            wixLocation.to("/account/account-setup");
+                        });
+                    }).catch((err) => {
+                        // If there's an error in registration, log it and re-enable the button
+                        console.log("Error Inserting User: ", err);
+                        $w("#register").label = "Register"; // Reset button text
+                        updateRegisterButtonState(); // Check if the button should be re-enabled
+                    });
                 }
+            }).catch((err) => {
+                // If there's an error in checking the email, log it and re-enable the button
+                console.log("Error Querying User: ", err);
+                $w("#register").label = "Register"; // Reset button text
+                updateRegisterButtonState(); // Check if the button should be re-enabled
             });
     });
 });
